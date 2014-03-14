@@ -1,0 +1,4 @@
+Ubuntu
+$ sudo apt-get install mit-scheme
+- this installs 3 packages: libmcrypt4, libpq5, mit-scheme
+- to uninstall: `sudo apt-get remove mit-scheme`, then `sudo apt-get autoremove`
