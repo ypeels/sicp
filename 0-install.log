@@ -2,3 +2,13 @@ Ubuntu
 $ sudo apt-get install mit-scheme
 - this installs 3 packages: libmcrypt4, libpq5, mit-scheme
 - to uninstall: `sudo apt-get remove mit-scheme`, then `sudo apt-get autoremove`
+
+Windows
+- simply install mit-scheme-9.1.1-i386-win32.exe
+- "MIT-GNU Scheme\bin\mit-scheme.exe" --band "MIT-GNU Scheme\lib\all.com"
+
+
+
+Various notes from MIT-GNU Scheme User Guide <http://www.gnu.org/software/mit-scheme/documentation/mit-scheme-user/>
+- (identify-world)    ; tells you version information
+- uh, set up more user-friendly shortcuts in sicp_cmd.bat?
