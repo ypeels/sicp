@@ -49,3 +49,4 @@
 (define (even? n)
     (= (remainder n 2) 0))
 
+;(define (f b e) (fast-expt-iterative b e)) ; for testing
