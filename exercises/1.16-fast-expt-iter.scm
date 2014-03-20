@@ -50,3 +50,9 @@
     (= (remainder n 2) 0))
 
 ;(define (f b e) (fast-expt-iterative b e)) ; for testing
+
+
+; afterword
+; this problem was TRICKY! the "accumulator" was split into both a and b.
+; the hint that the initial and final value would be stored in a was MISLEADING!!
+; but working things around polya-style yielded results in a few minutes
