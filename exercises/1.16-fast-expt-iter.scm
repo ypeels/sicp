@@ -17,8 +17,11 @@
 ; C = b^j b^n
 ; C = b^j (b^2)^(n/2). AHA, you need to SQUARE THE BASE, not the accumulator!!!
 
-; termination
+; termination?
 ; C = b^j b^1 - just another odd case; it'll terminate when n == 0
+
+; termination!
+; C = b^j b^0 - so when n = 0, just return a!
 
 
 (define (fast-expt-iterative base exponent)    
