@@ -36,7 +36,7 @@
                     b
                     (- n 1)))))
                     
-    ; initialize "a" to the identity element for ADDITION
+    ; initialize "a" to the identity element for ADDITION.
     ; can only be "called" AFTER (iter) has been defined
     (iter 0 base factor))
             
