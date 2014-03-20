@@ -48,9 +48,4 @@
 ; from p. 45
 (define (even? n)
     (= (remainder n 2) 0))
-    
-(define (odd? n)
-    (not (even? n)))
 
-; for testing
-(define (f b e) (fast-expt-iterative b e))
