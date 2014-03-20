@@ -1,0 +1,49 @@
+Euclid's Algorithm in action
+a = q2 b + r0
+b = q1 r0 + r1
+r2 = q3 r1 + r3
+...
+rN-3 = qN-1 rN-2 + rN-1
+rN-2 = qN   rN-1 + 0 by definition (the algorithm MUST end)
+
+
+Book Claim: "The idea of the algorithm is based on the observation that, 
+if r0 is the remainder when a is divided by b, 
+then the common divisors of a and b are precisely the same as the common divisors of b and r0."
+
+Proof of book claim:
+
+Suppose c divides a and b:
+a = m c
+b = n c
+
+But
+a = q0 b + r0
+mc = q0 n c + r0
+(m - q0 n)c = r0 i.e., r0 is also a multiple of c ("except" the trivial case r0 = 0)
+
+This must be true for ANY c that divides a and b.
+
+This proves the book claim.
+------------------------
+
+Corollary: g = GCD(a, b) = GCD(b, r0)
+(the common divisors are precisely the same, so their max, g, must also be the same)
+
+Apply the corollary RECURSIVELY to b and r0:
+g = GCD(a, b) = GCD(b, r0) = GCD(rN-2, rN-1)
+
+But we KNOW that rN-1 divides rN-2 evenly, by definition of rN = 0
+rN-2 = qN   rN-1 + 0
+
+Therefore, GCD(rN-2, rN-1) = rN-1 vacuously, QED.
+
+
+The proof on Wikipedia is clunkier:
+http://en.wikipedia.org/wiki/Euclidean_algorithm#Proof_of_validity
+
+The Book Claim just feels somewhat NON-TRIVIAL...
+You wouldn't expect a DIVISOR to have anything to do with a REMAINDER...
+And then the idea of recursion/feedback adds a non-trivial layer on top of that...
+
+In any case, because it's a RECURSIVE process, it's still hard to have an INTUITIVE grasp on this...
