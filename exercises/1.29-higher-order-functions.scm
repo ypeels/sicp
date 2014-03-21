@@ -27,16 +27,20 @@
        (/ dx 3.0)))
        
 
+(define (test-1.29)
 
-; simpson's rule
-(newline)
-(display (simpson-integral cube 0 1 0.01))  ; 0.2500000000
-(newline)
-(display (simpson-integral cube 0 1 0.001)) ; 0.2500000000
-    
-    
-; midpoint rule
-(newline)
-(display (integral cube 0 1 0.01))          ; 0.2499875
-(newline)
-(display (integral cube 0 1 0.001))         ; 0.249999875
+    ; simpson's rule
+    (newline)
+    (display (simpson-integral cube 0 1 0.01))  ; 0.2500000000
+    (newline)
+    (display (simpson-integral cube 0 1 0.001)) ; 0.2500000000
+        
+        
+    ; midpoint rule
+    (newline)
+    (display (integral cube 0 1 0.01))          ; 0.2499875
+    (newline)
+    (display (integral cube 0 1 0.001))         ; 0.249999875
+)
+
+; (test-1.29) ; uncomment to run test suite
