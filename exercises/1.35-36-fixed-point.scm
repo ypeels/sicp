@@ -6,12 +6,17 @@
 
       (define (close-enough? v1 v2)
         (< (abs (- v1 v2)) tolerance))
-      (define (try guess)
+      (define (try guess counter)
         (let ((next (f guess)))
-          (if (close-enough? guess next)
+          
+          (display counter) (display ") ")  ; also added in Exercise 1.36, because i can't scroll up in the stupid Scheme window?
+          (display next)                    ; added in Exercise 1.36
+          (newline)
+          
+          (if (close-enough? guess next )
               next
-              (try next))))
-      (try first-guess)
+              (try next (+ counter 1)))))
+      (try first-guess 1)
       
   )
   
