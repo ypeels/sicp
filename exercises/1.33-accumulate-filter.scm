@@ -27,7 +27,8 @@
 
 
     
-    
+; WAY more time is spent writing test code and making sure "support code" is present, 
+; than on design and actually writing "real" code    ...
 (define (test-1.33)
 
     ;;;;;;;;;;;;;;;;;;;;;;;
