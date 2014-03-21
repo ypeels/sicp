@@ -1,5 +1,5 @@
 
-; 1.37a: the obvious approach is recursive...
+; 1.37a: the obvious approach is recursive...? start from the 1st term
 (define (cont-frac n d K)
     (define (iter i)    ; not QUITE sure how to do this without adding an additional counter...
         (if (> i K) 
@@ -8,23 +8,16 @@
     (iter 1))
     
     
-; 1.37b: how about starting from the kth term? 
+; 1.37b: how about starting from the Kth term? 
 ; maybe THIS is the "obvious" approach... since their "k" formal argument was LOWERCASE...
-; but it DOES take more code to express, since the first iteration is 
 (define (cont-frac-iter n d k)
-    (define (iter n d k result)
+    (define (iter k result)             ; lookit that, my tail-recursive version is THE SAME LENGTH as the recursive... is there a simpler recursive version? meh
         (if (< k 1)
             result
             (iter
-                n
-                d
                 (- k 1)
                 (/ (n k) (+ (d k) result)))))
-    (iter 
-        n           ; the coefficient functions (input)
-        d 
-        (- k 1)     ; pre-compute the first iteration!
-        (/ (n k) (d k))))
+    (iter k 0)) ; no need to pre-compute the first iteration; just initialize result to 0! like how recursive case terminates with 0.
     
     
     
@@ -66,4 +59,4 @@
         
         
 ; run test code
-(test-1.37)
+;(test-1.37)
