@@ -81,3 +81,6 @@
 ; didn't help that deHon was such a piss-poor instructor/communicator, and i bet we had shitty solution sets
 ; either that, OR i just couldn't see past the parentheses-happy scheme syntax...
 ; no, i think the problem was not enough time to ponder and digest this book
+
+; sub-moral: argument for a lambda is a DUMMY ARGUMENT
+    ; but the argument for an outer lambda can be treated as concrete for any inner nested lambdas
