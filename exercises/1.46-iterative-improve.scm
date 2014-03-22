@@ -1,4 +1,4 @@
-; two procedures as arguments: 
+; Write a procedure iterative-improve that takes two procedures as arguments: 
     ; a method for telling whether a guess is good enough   (good-enough? x)
     ; and a method for improving a guess                    (improve x). NOTE FUNCTION SIGNATURES!    
 (define (iterative-improve good-enough? improve)
