@@ -42,7 +42,7 @@
     )
 )
     
-(test-1.44) ; hmmmmm this is so slow by reps = 20 that i'm not sure it's right... nonlocality and exponentially duplicated effort?
+; (test-1.44) ; hmmmmm this is so slow by reps = 20 that i'm not sure it's right... nonlocality and exponentially duplicated effort?
 
 ; the current implementation scales EXPONENTIALLY ("order of growth")
 ; (define f1 (smooth f))
