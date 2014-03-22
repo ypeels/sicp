@@ -10,7 +10,7 @@
 (define (repeated foo n)
 
     (cond
-        ((not (integer? n)) (error "n is not an integer" n))    ;(error) from 1.3.3, (integer?) from google search
+        ((not (integer? n)) (error "repeated: n is not an integer" n))    ;(error) from 1.3.3, (integer?) from google search
         ((<= n 0)           (lambda (x) x))                     ; null value is the identity operation.
         (else               (compose foo (repeated foo (- n 1))))))
         
@@ -22,10 +22,13 @@
             result
             (iter (- n 1) (compose foo result))))   ; will this work??
     
-
-    (if (not (integer? n))
-        (error "n is not an integer" n)
-        (iter n (lambda(x) x))))
+    
+    ; error-checking is much cheaper in the iterative case - as a precondition instead of at every iteration
+    (if (not (integer? n)) 
+        (error "repeated-iter: n is not an integer" n)
+        (iter n (lambda (x) x))
+    )
+)
         
         
 ; by analogy with (fast-expt)
@@ -35,7 +38,8 @@
     ; need to define "squaring" operation
     (define (double f) (lambda (x) (f (f x))))
 
-    (cond   ((= n 0) (lambda (x) x))                                    ; termination: null value is the identity operation.
+    (cond   ((not (integer? n)) (error "fast-repeated called with non-integer n" n))
+            ((= n 0) (lambda (x) x))                                    ; termination: null value is the identity operation.
             ((even? n) (double (fast-repeated foo (/ n 2))))            ; (double) is analogous to squaring
             (else (compose foo (fast-repeated foo (- n 1))))            ; (compose) is analogous to multiplying
     )                                                                   ; and no confusing lambdas! functions are FIRST-CLASS CITIZENS!!!    
@@ -67,11 +71,13 @@
                     b                                   ; b = b
                     (- n 1)))))                         ; n = n-1
               
-           
-    (iter 
-        (lambda (x) x)      ; null value
-        foo                 ; base        
-        reps                ; exponent
+    (if (not (integer? reps))
+        (error "fast-repeated-iter called with non-integer n" reps)
+        (iter 
+            (lambda (x) x)      ; null value
+            foo                 ; base        
+            reps                ; exponent
+        )
     )
 )
         
@@ -129,8 +135,10 @@
     (test 2 5)
     (test 3 3)
     (test 4 2)
+    ;(test 1.5 0) ; should give errors
     
 
 )
 
 (test-1.43)
+; STUPID scheme's parenthesis fetish means that SYNTAX ERRORS ARE NIGH IMPOSSIBLE to find...
