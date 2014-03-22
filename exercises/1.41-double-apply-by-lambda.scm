@@ -55,8 +55,21 @@
     ; = (double (double inc)), substituting again
     ; = (double add-2)
     ; = (lambda (x) (add-2 (add-2 x))) = (lambda (x) (+ x 4)) = add-4
-    
-; no, due to the order of operations and the parentheses, you can't substitute (inc) until the END.
+; or, more explicitly:
+; (double double) inc
+    ; = (lambda (foo) (double (double foo))) inc
+    ; = (double (double inc))
+    ; = (double (lambda (x) (inc (inc x))))
+    ; = (lambda (z)
+    ;       ((lambda (y) (inc (inc y)))
+    ;           ((lambda (x) (inc (inc x))) z)))    ; evaluate lambda(x) by substituting z for x, then removing "lambda(x)"
+    ; = (lambda (z)
+    ;       ((lambda (y) (inc (inc y)))             ; evaluate lambda (y) by substituting (inc (inc z)) for y, then removing "lambda (y)
+    ;           (inc (inc z))))
+    ; = (lambda (z)
+    ;       (inc (inc (inc (inc z)))))              ; which is the answer (an unevaluated/unapplied lambda).
+
+; so, due to the order of operations and the parentheses, you can't substitute (inc) until the END.
 ; (double (double double)) = (double (lambda (foo) (double (double foo))))
     ; = (lambda (bar)
     ;       ((lambda (foo) (double (double foo)))
@@ -64,7 +77,7 @@
     ; = (lambda (bar)                               ; mindlessly EVALUATE THE LAMBDA by substituting bar for foo2, and removing "lambda (foo2)"
     ;       ((lambda (foo) (double (double foo)))
     ;           (double (double bar))))
-    ; = (lambda (bar)
+    ; = (lambda (bar)                               ; mindlessly evaluate lambda(foo) by substituting (double (double bar)) for foo, and removing "lambda (foo)"
     ;       (double (double (double (double bar)))))
     
 ; therefore, (double (double double)) inc
@@ -84,3 +97,23 @@
 
 ; sub-moral: argument for a lambda is a DUMMY ARGUMENT
     ; but the argument for an outer lambda can be treated as concrete for any inner nested lambdas
+    
+; 
+; passing note: to do the same thing with a lambda of TWO arguments, you'd have to 
+; - pass it to itself TWICE AND
+; - make sure it returns a LAMBDA that takes two arguments. hmmmmmm....... 
+
+; ultimate goal: (double-2 double-2 double-2) where the 2nd and 3rd are ARGUMENTS
+
+; you could easily do
+; (define (double-2 foo1 foo2)
+;   (lambda (x) (foo1 (foo2 (foo1 (foo2 x))))))
+;   - but then you CAN'T NEST IT, because you'd have (double-2 x) on the innermost lambda.
+
+
+
+; WANT something that looks like
+(define (double-2 foo1 foo2)
+  (lambda (x y) ( 
+      (foo1 x y) (foo2 x y))))
+; 
