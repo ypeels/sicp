@@ -113,7 +113,14 @@
 
 
 ; WANT something that looks like
-(define (double-2 foo1 foo2)
-  (lambda (x y) ( 
-      (foo1 x y) (foo2 x y))))
+; (define (double-2 foo1 foo2)
+;   (lambda (x y) ( 
+;       (foo1 x y) (foo2 x y))))  ; but what would this return when applied to DATA??
 ; 
+; (display ((double-2 + +) 1 1)) ; "the function 2 is not applicable"
+; (double-2 + +) 1 1
+    ; = (lambda (x y) (+ x y) (+ x y)) 1 1
+    ; = (+ 1 1) (+ 1 1)
+    ; but 2 scalars in a row doesn't reall mean anything...
+    ; hence my initial intuition that nested lambdas of 2 arguments are meaningles unless
+    ; we can RETURN A DATA STRUCTURE. that's chapter 2... and i BET they're gonna talk about nesting them...
