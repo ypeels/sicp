@@ -8,4 +8,4 @@
     (display ((compose square inc) 6))  ; 49
 )
 
-(test-1.42) ; for testing
+;(test-1.42) ; for testing
