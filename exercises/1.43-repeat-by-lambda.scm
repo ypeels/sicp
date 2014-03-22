@@ -16,12 +16,10 @@
         
         
 (define (repeated-iter foo n)
-
     (define (iter n result)
         (if (<= n 0)
             result
-            (iter (- n 1) (compose foo result))))   ; will this work??
-    
+            (iter (- n 1) (compose foo result))))   ; will this work??    
     
     ; error-checking is much cheaper in the iterative case - as a precondition instead of at every iteration
     (if (not (integer? n)) 
@@ -32,12 +30,10 @@
         
         
 ; by analogy with (fast-expt)
-(define (even? n) (= 0 (remainder n 2)))
+;(define (even? n) (= 0 (remainder n 2)))
 (define (fast-repeated foo n)
-
-    ; need to define "squaring" operation
-    (define (double f) (lambda (x) (f (f x))))
-
+    (define (double f) (lambda (x) (f (f x))))                          ; need to define "squaring" operation
+    
     (cond   ((not (integer? n)) (error "fast-repeated called with non-integer n" n))
             ((= n 0) (lambda (x) x))                                    ; termination: null value is the identity operation.
             ((even? n) (double (fast-repeated foo (/ n 2))))            ; (double) is analogous to squaring
@@ -49,7 +45,6 @@
 ; how about analogy with (fast-expt-iter)?? copy/pasted it and then modified accordingly
 ; NO NEED to worry about returning functions as lambdas, since they're FIRST-CLASS
 (define (fast-repeated-iter foo reps)  
-
     (define (double f) (lambda (x) (f (f x))))
 
     (define (iter a b n)
