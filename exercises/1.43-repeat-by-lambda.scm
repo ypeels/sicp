@@ -137,3 +137,5 @@
 
 ; (test-1.43)
 ; STUPID scheme's parenthesis fetish means that SYNTAX ERRORS ARE NIGH IMPOSSIBLE to find...
+
+; NOTE: the "fast" versions don't get you any savings at all!! See exercise 1.44.
