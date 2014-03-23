@@ -2,7 +2,7 @@
 ; - (newline)
 ; - (display) ; which can be called BEFORE a return "statement"!
 ; - (runtime)
-
+; (display) and (newline) first introduced in the main text (and explained in a FOOTNOTE) in 2.1.1 p. 86...
 
 
 ; my work
