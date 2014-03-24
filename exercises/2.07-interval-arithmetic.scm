@@ -3,13 +3,14 @@
   (make-interval (+ (lower-bound x) (lower-bound y))
                  (+ (upper-bound x) (upper-bound y))))
 
-(define (mul-interval x y)
+(define (mul-interval-v1 x y)
   (let ((p1 (* (lower-bound x) (lower-bound y)))
         (p2 (* (lower-bound x) (upper-bound y)))
         (p3 (* (upper-bound x) (lower-bound y)))
         (p4 (* (upper-bound x) (upper-bound y))))
     (make-interval (min p1 p2 p3 p4)
                    (max p1 p2 p3 p4))))
+(define mul-interval mul-interval-v1)                       ; for Exercise 2.11
                    
 (define (div-interval-v1 x y)
   (mul-interval x 
@@ -23,6 +24,6 @@
 
 
 
-; Exercise 2.7: my additions
+; Exercise 2.7: my additions. ESTABLISHES CONVENTION (make-interval lower upper), as required by alyssa's (add).
 (define (upper-bound interval) (cdr interval))  ; oops, had car/cdr switched incorrectly (noticed during Exercise 2.9 testing)
 (define (lower-bound interval) (car interval))  ; actually, this only matters once i start calling (make-interval)...
