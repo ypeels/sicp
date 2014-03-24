@@ -23,15 +23,8 @@
     
 (define (mul-interval-v2 x y)
 
-    ; no, most of the typing is "lower-bound" and "upper-bound"
-    ;(define (make-product a b c d)
-    ;    (make-interval (* a b) (* c d)))
     (define l lower-bound)
     (define u upper-bound)
-    ;(define pos? interval-is-strictly-positive?)
-    ;(define neg? interval-is-strictly-negative?)
-    ;(define neither? interval-spans-zero?)
-
     
     ; shared cases require FLIPPING the arguments as appropriate
     (define (positive-times-negative positive negative)
@@ -111,37 +104,21 @@
                 ((interval-is-strictly-negative? y)
                     (negative-times-straddle y x)
                 )
-                (else (error "the last empty stub"))
+                (else                           ; both straddle! then lx, ly < 0 and ux, uy > 0.
+                    (make-interval
+                        (min (* (l x) (u y)) (* (u x) (l y)))
+                        (max (* (l x) (l y)) (* (u x) (u y)))
+                    )
+                )
             )
         )
     )                                           ; end cond(x)
 )
-                
-                        
-        
-
-    
+   
 (define mul-interval mul-interval-v2)
 
 
 
-
-
-
-
-; test code...
-;(load "2.09-width.scm")     ; should revert to mul-interval-v1...? yes it does.
-;(test-2.9)
-;(display "\nAnd now to test mul-v2\n")
-;(define mul-interval mul-interval-v2)
-;(test-2.9)
-
-    
-    
-    
-; (define (equal-intervals? x y)
-; then use mul-interval-v1 and mul-interval-v2, comparing the results.
-; it's really tempting to write the test code first - that way i know how close i am to finished...
 (define (equal-intervals? x y)
     (and    (= (upper-bound x) (upper-bound y))
             (= (lower-bound x) (lower-bound y))))
@@ -158,11 +135,14 @@
                 (y (make-interval c d)))
                 
             (print-interval x) (display "   times   ") (print-interval y)
-            (if (equal-intervals?
-                    (mul-interval-v1 x y)
-                    (mul-interval-v2 x y))
-                (display "   are equal!")
-                (error "not equal" (mul-interval-v1 x y) (mul-interval-v2 x y))
+            (cond   
+                ((equal-intervals? (mul-interval-v1 x y) (mul-interval-v2 x y))
+                    (display "   are equal! ") 
+                    (print-interval (mul-interval-v1 x y))
+                )
+                (else
+                    (error "not equal" (mul-interval-v1 x y) (mul-interval-v2 x y))
+                )
             )
         )
         "unused return value"
@@ -177,8 +157,14 @@
     (test -2 -1 -8 6)
     (test -3 5 2 3)
     (test -3 5 -3 -1)
+    (test 0 0 0 0)
+    (test -1 1 -1 1)
+    (test -1 1 -9 4)
+    (test -1 1 -4 9)
+    (test -2 1 -4 9)
+    (test -1 2 -4 9)
 )
 
-(test-2.11)
+; (test-2.11)
 
                 
