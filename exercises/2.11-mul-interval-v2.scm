@@ -26,11 +26,11 @@
     (define l lower-bound)
     (define u upper-bound)
     
-    ; shared cases require FLIPPING the arguments as appropriate
+    ; shared cases require passing correct argument as appropriate
     (define (positive-times-negative positive negative)
         (if (or     (not (interval-is-strictly-positive? positive))
                     (not (interval-is-strictly-negative? negative)))
-            (error "bad input in positive-times-negative")              ; i mean, i COULD just HANDLE the error... but meh
+            (error "bad input in positive-times-negative")              ; i mean, i COULD just HANDLE the error... but meh, what if it's not just a simple swap error?
             (make-interval
                 (* (u positive) (l negative))   ; lower = most negative product
                 (* (l positive) (u negative))   ; upper = least negative product
@@ -52,7 +52,7 @@
     (define (negative-times-straddle negative straddle)
         (if (or     (not (interval-is-strictly-negative? negative))
                     (not (interval-spans-zero? straddle)))
-            (error "bad inputin negative-times-straddle")
+            (error "bad input in negative-times-straddle")
             (make-interval
                 (* (l negative) (u straddle))   ; lower = most negative * straddle+
                 (* (l negative) (l straddle))   ; upper = most negative * straddle-
