@@ -11,10 +11,12 @@
     (make-interval (min p1 p2 p3 p4)
                    (max p1 p2 p3 p4))))
                    
-(define (div-interval x y)
+(define (div-interval-v1 x y)
   (mul-interval x 
                 (make-interval (/ 1.0 (upper-bound y))
                                (/ 1.0 (lower-bound y)))))
+                               
+(define div-interval div-interval-v1)                       ; for Exercise 2.10
 
 ; from problem statement
 (define (make-interval a b) (cons a b))
