@@ -22,5 +22,5 @@
 
 
 ; Exercise 2.7: my additions
-(define (upper-bound interval) (cdr interval))  ; oops, had car/cdr switched incorrectly
-(define (lower-bound interval) (car interval))
+(define (upper-bound interval) (cdr interval))  ; oops, had car/cdr switched incorrectly (noticed during Exercise 2.9 testing)
+(define (lower-bound interval) (car interval))  ; actually, this only matters once i start calling (make-interval)...

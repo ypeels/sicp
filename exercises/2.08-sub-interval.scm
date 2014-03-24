@@ -41,6 +41,6 @@
     (add-interval
         x
         (make-interval 
-            (- 0 (lower-bound y))       ; we have to be more careful than alyssa in (div), since (add) does no checking!
-            (- 0 (upper-bound y)))))
+            (- 0 (upper-bound y))       ; we have to be more careful than alyssa in (div), since (add) does no checking!
+            (- 0 (lower-bound y)))))
         
