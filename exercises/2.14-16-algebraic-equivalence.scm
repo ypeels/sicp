@@ -1,3 +1,6 @@
+; what was the POINT of the time skip? it has nothing to do with the actual work in the exercise...
+; yes, this is a common occurrence in software engineering, but just mentioning it in passing doesn't teach anybody that...
+
 ; "Examine the results of the computation in center-percent form"
 (load "2.12-make-center.scm")   
 
