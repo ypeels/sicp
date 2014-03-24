@@ -22,5 +22,5 @@
 
 
 ; Exercise 2.7: my additions
-(define (upper-bound interval) (car interval))
-(define (lower-bound interval) (cdr interval))
+(define (upper-bound interval) (cdr interval))  ; oops, had car/cdr switched incorrectly
+(define (lower-bound interval) (car interval))
