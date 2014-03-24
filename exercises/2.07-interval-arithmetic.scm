@@ -20,7 +20,10 @@
 (define div-interval div-interval-v1)                       ; for Exercise 2.10
 
 ; from problem statement
-(define (make-interval a b) (cons a b))
+(define (make-interval a b) 
+    (if (> a b)                                             ; added some error-checking JUST in case. (alternatively, FIX it... meh)
+        (error "Usage: make-interval(lower < upper)" a b)
+        (cons a b)))
 
 
 
