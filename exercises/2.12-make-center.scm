@@ -18,5 +18,11 @@
     (/  (width i) 
         (center i) .01))                                ; yes, that's right, (/ 1 2 3) = 1/6. such a strange strange language...
 
+(define (print-center-percent i)                        ; for Exercise 2.14
+    (display (center i))
+    (display " +/- ")
+    (display (percent i))
+    (display "%"))
+        
         
 ; uh... i don't really feel like testing this...
