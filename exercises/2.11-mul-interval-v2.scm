@@ -33,19 +33,39 @@
     ;(define neither? interval-spans-zero?)
 
     
-    ; shared cases require FLIPPING
+    ; shared cases require FLIPPING the arguments as appropriate
     (define (positive-times-negative positive negative)
         (if (or     (not (interval-is-strictly-positive? positive))
                     (not (interval-is-strictly-negative? negative)))
-            (error "bad input in positive-times-negative")
+            (error "bad input in positive-times-negative")              ; i mean, i COULD just HANDLE the error... but meh
             (make-interval
-                (* (u positive) (l negative))   ; most negative product
-                (* (l positive) (u negative))   ; least negative product
+                (* (u positive) (l negative))   ; lower = most negative product
+                (* (l positive) (u negative))   ; upper = least negative product
             )
         )
     )
-        
     
+    (define (positive-times-straddle positive straddle)
+        (if (or     (not (interval-is-strictly-positive? positive))
+                    (not (interval-spans-zero? straddle)))
+            (error "bad input in positive-times-straddle")
+            (make-interval
+                (* (u positive) (l straddle))   ; lower = max(positive) * straddle-
+                (* (u positive) (u straddle))   ; upper = max(positive) * straddle+
+            )
+        )
+    )
+    
+    (define (negative-times-straddle negative straddle)
+        (if (or     (not (interval-is-strictly-negative? negative))
+                    (not (interval-spans-zero? straddle)))
+            (error "bad inputin negative-times-straddle")
+            (make-interval
+                (* (l negative) (u straddle))   ; lower = most negative * straddle+
+                (* (l negative) (l straddle))   ; upper = most negative * straddle-
+            )
+        )
+    )
     
     
     (cond 
@@ -57,19 +77,11 @@
                         (* (u x) (u y))  
                     )
                 )
-                ((interval-is-strictly-negative? y)
-                    ;(make-interval 
-                    ;    (* (u x) (l y))         ; most negative
-                    ;    (* (l x) (u y))         ; least negative
-                    ;)
-                    
+                ((interval-is-strictly-negative? y)                   
                     (positive-times-negative x y)
-                )                        
+                )
                 (else                           ; y must straddle 0
-                    (make-interval                        
-                        (* (u x) (l y))         ; max(x) * negative value of y
-                        (* (u x) (u y))         ; max(x) * positive value of y
-                    )
+                    (positive-times-straddle x y)
                 )
             )
         )
@@ -77,12 +89,8 @@
         ((interval-is-strictly-negative? x)
             (cond
                 ((interval-is-strictly-positive? y)
-                    ;(make-interval
-                    ;    (* (l x) (u y))         ; most negative product
-                    ;    (* (u x) (l y))         ; least negative product
-                    ;)
-                    (positive-times-negative y x)
-                )                        
+                    (positive-times-negative y x)     
+                )
                 ((interval-is-strictly-negative? y)
                     (make-interval
                         (* (u x) (u y))         ; (u x) and (u y) are both the least negative
@@ -90,19 +98,21 @@
                     )
                 )                        
                 (else                           ; y must straddle 0
-                    (make-interval
-                        (* (l x) (u y))         ; most negative x * positive value of y
-                        (* (l x) (l y))         ; most negative x * negative value of y
-                    )
+                    (negative-times-straddle x y)
                 )
             )
         )
         
         (else                                   ; x must straddle 0!!!
-            (error "empty stub")
-            ;(cond 
-            ;    ((interval-is-strictly-positive? y)
-            ;        (make-interval
+            (cond
+                ((interval-is-strictly-positive? y)
+                    (positive-times-straddle y x)
+                )
+                ((interval-is-strictly-negative? y)
+                    (negative-times-straddle y x)
+                )
+                (else (error "the last empty stub"))
+            )
         )
     )                                           ; end cond(x)
 )
@@ -166,6 +176,7 @@
     (test 1 2 -2 3)
     (test -2 -1 -8 6)
     (test -3 5 2 3)
+    (test -3 5 -3 -1)
 )
 
 (test-2.11)
