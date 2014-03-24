@@ -1,0 +1,15 @@
+﻿Can I use my width notes from Exercise 2.9? No, I don't think it's in the right form...
+
+±
+
+Assume 
+x, y, dx, dy > 0
+dx/x << 1
+dy/y << 1
+
+product = (x ± dx)(y ± dy) = xy ± (x dy + y dx) + dx dy
+product / (xy) = 1 ± (dy/y + dx/x) + (dx/x) (dy/y)
+	≈ 1 ± (dy/y + dx/x)     if you neglect the second order term
+
+Thus, percentage tolerances will approximately ADD when you multiply intervals,
+when the tolerances are small.
