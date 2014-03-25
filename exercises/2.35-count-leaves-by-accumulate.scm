@@ -9,9 +9,10 @@
 
 (define (count-leaves-accum t)
   (accumulate 
-    +           ; <??> operation
-    0           ; <??> initial value
+    ;+           ; <??> operation
+    ;0           ; <??> initial value
     
+    ; maybe map the tree onto a list? or onto a tree of lengths?
     (map        ; target sequence for accumulate
         ;(lambda (t) (count-leaves-accum t)) ; <??> map operation. cop out, and does not work.
         ;t                                   ; <??> target sequence for map
