@@ -6,6 +6,7 @@ Introduced in main text but not indicated as built-in*
 1.1.7 p. 23: sqrt
 1.2.4 p. 44: expt, even?
 1.2.5 p. 49: gcd
+2.2.3 p. 115: filter (accumulate is NOT built-in, yet exercises focus on it)
 
 *MAYBE their manuscript predates my current MIT Scheme version (9.1) by too much?
 
