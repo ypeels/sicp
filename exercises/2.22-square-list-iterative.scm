@@ -34,6 +34,7 @@
     ; this is not even a scheme list, which must have the structure of *** above (Figure 2.4 and following)
 
 
+; ugh, getting this correct requires FAIRLY LOW LEVEL knowledge of how scheme's stupid lists work
 (define (square-list-iter-v3 items)
 
     (define (iter things answer)
@@ -48,7 +49,7 @@
 )
     
   
-  
+
 (define (test-2.22)
 
     (define (test proc name)
