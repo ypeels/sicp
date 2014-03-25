@@ -46,7 +46,7 @@
     )
     
     (iter () input-list)
-)
+)                                           ; yes, this is the same algorithm that Louis Reasoner "discovered" in Exercise 2.22    
 
 
 
