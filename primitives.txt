@@ -1,0 +1,16 @@
+Running list of language features not introduced in main text or footnotes
+
+Introduced in main text but not indicated as built-in*
+1.1.4 p. 12: square
+1.1.6 pp. 18-20: abs, >=
+1.1.7 p. 23: sqrt
+1.2.4 p. 44: expt, even?
+1.2.5 p. 49: gcd
+
+*MAYBE their manuscript predates my current MIT Scheme version (9.1) by too much?
+
+
+First introduced
+Exercise 1.22: newline, display, runtime (display and newline formally introduced in 2.1.1)
+Exercise 2.18: reverse (not indicated as built-in!)
+Exercise 2.20: variable-length argument lists, including for lambdas (come ON)
