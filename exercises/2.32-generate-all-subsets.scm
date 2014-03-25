@@ -1,53 +1,29 @@
-; from problem statement
+(define nil ())
+
+; everything here is from problem statement except what is boxed off
 (define (subsets s)
   (if (null? s)
       (list nil)
       (let ((rest (subsets (cdr s))))
-        ;(append rest (map <??> s)))))   
-        ;(append rest (map (<??> rest s) s)))))  ; back-building the result "iteratively"
-        
-        (append 
-            rest                    ; results from completed recursion
-            (map
-                ;<??>
-                s
-            )
-        ))))
+        (append rest (map 
+            
+            ; <??>
+            ; --------------------------------------------------------------
+            ;(lambda (item) (append (list (car s)) rest)) ; not QUITE...
+            (lambda (item) (cons (car s) item))
+            ; --------------------------------------------------------------
+            ; takes (car s), the only item which hasn't been merged in yet
+            ; and prefixes it onto every subset in the current result list (rest)
+            ; - the enclosing append merges all the results.
+            
+            
+            rest)))))        ; dammit, i had this as (map <??> s) for a WHILE...
+;;;;;;;;;;;;;;;;;;;        
                 
                 
-                ;(<??> s rest) ; wow that IS some flexible syntax... but let's not bother making it TOO complicated
-                ;(lambda (s) (subsets s))
-                
-                
-                ; ok, so the (map) means that you're doing something with the INDIVIDUAL members of s
-        
-                
-                
-; my contributions
-(define nil ())
-;(define <??> ; wow that IS some flexible syntax...
-;    
-;    ; nope, returns (() 3 2 3 1 2 3)
-;    ;(lambda (s) s)
-;    
-;    ; nope, (() (3) (2) (3) (1) (2) (3))
-;    (lambda (s) (list s))
-;        ; does this mean that i need to pass "rest" as an argument too?
-;)
 
-(define (<??> rest s)
-    (display "\n\nrest: ") (display rest)
-    (display "\ns: ") (display s)
-    (lambda (item)
-        (display "\nitem: ") (display item)
-        ;(list item)
-        
-        ;(map (lambda (set) (append (list item) set)) rest)
-        (list item)
-        
-        ; maybe map something onto rest?
-    )
-)
+
+
 
 
 
@@ -58,7 +34,7 @@
     (display (subsets (list 1 2 3)))
 )
 
-(test-2.32)
+; (test-2.32)
 
 
 
