@@ -9,7 +9,7 @@
         ((not (pair? tree)) (list tree))
         (else (append (fringe (car tree)) (fringe (cdr tree))))
     )
-) ; hey, I found what is pretty much the best solution on http://community.schemewiki.org/
+) ; hey, I found what is pretty much the cleanest solution on http://community.schemewiki.org/?sicp-solutions
 
         
     
