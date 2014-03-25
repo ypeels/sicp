@@ -1,3 +1,5 @@
+; didn't they DO this already in the main text??
+
 (define nil ()) ; apparently MIT Scheme 9.1 needs this
 
 (define (square-list items)

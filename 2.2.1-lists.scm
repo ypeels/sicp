@@ -58,3 +58,17 @@
 
 (define L (list 5 6 7 8 9))
 (newline) (display (append one-through-four L))         ; (1 2 3 4 5 6 7 8 9) - p. 103: "cdr up" first arg from end (recursively, of course), and "cons onto" second arg
+
+
+; Mapping over lists - now this is a little more familiar (Qt and Python both implement this)
+; Scheme's built-in (map) takes a procedure (proc) of n arguments and n LISTS, all of length L
+    ; and returns the resulting list of L values obtained by applying (proc) to the 1st, 2nd, ... elem of each list
+(newline)
+(display (map + (list 1 2 3) (list 40 50 60) (list 700 800 900)))
+; (741 852 963)
+
+(newline)
+(display (map (lambda (x y) (+ x (* 2 y)))
+     (list 1 2 3)
+     (list 4 5 6)))
+; (9 12 15)
