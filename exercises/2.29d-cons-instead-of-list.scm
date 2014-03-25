@@ -1,5 +1,8 @@
 (load "2.29-binary-mobile.scm")
 
+
+(display "\nExercise 2.29d overrides\n")
+
 ; overrides from problem statement
 (define (make-mobile left right)
     (cons left right))                  ; instead of list
@@ -22,4 +25,4 @@
 ; - change low-level representation, and only a couple selectors need to change? 
 ; Since I was careful and wrote everything in terms of API's wherever possible
 ; This was not really something they taught that clearly, but that I did instinctively after years of practice...
-(newline) (display "Exercise 2.29d\n") (test-2.29)
+; (test-2.29)
