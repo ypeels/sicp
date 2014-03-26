@@ -10,8 +10,8 @@
         (else (append (fringe (car tree)) (fringe (cdr tree))))
     )
 ) ; hey, I found what is pretty much the cleanest solution on http://community.schemewiki.org/?sicp-solutions
-
-        
+  ; HEY this is the same as the BOOK's answer in 2.2.3 (footnote 14)!
+  
     
         
 

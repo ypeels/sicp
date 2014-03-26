@@ -1,3 +1,7 @@
 *~
 *.gz
 allcode/
+
+# wtf?
+.fuse_hidden*
+
