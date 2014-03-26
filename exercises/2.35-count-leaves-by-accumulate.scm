@@ -18,46 +18,32 @@
 ; "Using recursion, it's possible to do it with map and without enumerate-tree"
 ; I caught a glimpse of their solution but didn't look too closely.
 ; I guess I should have considered reaching back to that "Mapping over trees" section...
-; Here's what I worked out, using the "+ 0" as a starting point.
+; Here's what I worked out, using their "+ 0" as a starting point.
 (define (count-leaves-accum-recur t)
+
+    (define is-tree? pair?)
+
     (accumulate
         +                                   ; <??> accumulate operation. this was my first instinct
         0                                   ; <??> initial value
         (map
-            (lambda (subtree)
-                ;(display "\n\nlambda ") (display subtree)
-                ;(newline) (display (car subtree))
-                ;(newline) (display (cdr subtree))
-                
-                ; actually, it's (fringe) you should be ripping off, NOT (scale-tree)!
-                ;(cond 
-                ;    ((null? subtree) 0)         ; ignore null leaves
-                ;    ((not (pair? subtree)) 1)   ; count non-null leaves
-                ;    ((pair? subtree)            ; not a leaf, so recurse
-                ;        (+  (count-leaves-accum-recur (car subtree))
-                ;            (count-leaves-accum-recur (cdr subtree)))
-                ;    )
-                ;)
-                        
-                
-                ;(if (pair? subtree)         ; not a leaf
-                ;    (+  (count-leaves-accum-recur (list (car subtree)))
-                ;        (count-leaves-accum-recur (list (cdr subtree))))
-                ;    1
-                ;)
-                
-                ; oh, remember that map TAKES CARE OF TRAVERSAL FOR YOU
-                ; and because the (map) is wrapped with an (accum), you are SUMMING OVER THE TREE, not rebuilding it
-                (if (pair? subtree)
+            (lambda (subtree)               ; <??> map operation. inspired by (scale-tree)
+                ; remember that (map) + recursion TAKES CARE OF TRAVERSAL FOR YOU, and ignores null nodes
+                ; somewhat non-trivial leap: because the (map) is wrapped with an (accum),
+                ; and you are recursing over (accum (map)),
+                ; you are SUMMING OVER THE TREE, instead of rebuilding it
+                (if (is-tree? subtree)
                     (count-leaves-accum-recur subtree)
                     1
                 )
                 
             )
-            t
+        t                                   ; <??> map target
         )
     )
 )
+
+
                     
 
 
@@ -65,6 +51,7 @@
 (define (test-2.35)
 
     (define (test y)
+        (newline) 
         (newline) (display y)
         (display "\noriginal: ") (display (count-leaves y))
         (display "\naccum: ") (display (count-leaves-accum y))
