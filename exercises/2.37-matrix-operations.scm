@@ -8,8 +8,16 @@
   
 (define (matrix-*-vector m v)
   (map 
-    (lambda (w) (dot-product v w))  ; <??> - binding v from procedure argument 
+    (lambda (w) (dot-product v w))  ; <??> - w = current row of matrix (v is bound from procedure argument)
     m
+  )
+)
+
+(define (transpose mat)
+  (accumulate-n 
+    cons    ; <??> operation. this works because (accumulate) operates from RIGHT TO LEFT
+    ()      ; <??> initial value 
+    mat
   )
 )
   
@@ -24,6 +32,7 @@
          (display "\nm: ") (display m)
          (display "\nv.v: ") (display (dot-product v v))
          (display "\nm*v: ") (display (matrix-*-vector m v))
+         (display "\nm': ") (display (transpose m))
     )
         
     
