@@ -40,7 +40,7 @@
 
 )
 
-(test-2.38)
+; (test-2.38)
 
 ; i BET the desired property is commutativity; addition and multiplication should work, subtraction should not
 
