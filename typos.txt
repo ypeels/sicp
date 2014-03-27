@@ -3,3 +3,6 @@ This book is INCREDIBLY well copy-edited...
 Section 2.2 p. 98
 "The ability to create pairs... is the essence of list structure's importance"
 - shouldn't it be "the list structure's" or "list structures'"?
+
+Section 2.2.4 p. 126 they do it again... maybe "list structure" is plural??
+"arbitrarily complicated list structure [sic]"
