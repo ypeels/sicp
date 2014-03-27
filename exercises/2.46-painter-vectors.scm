@@ -26,21 +26,14 @@
 ; with all the error-checking in the constructor, fly fast and free in the selectors    
 (define (xcor-vect v) 
     (car v))
-(define (ycor-vect v) 
+(define (ycor-vect v)           ; not actually used 
     (cadr v))
     
     
 (define (add-vect v1 v2) (op2-vect + v1 v2))
 (define (sub-vect v1 v2) (op2-vect - v1 v2))
 (define (op2-vect op v1 v2)
-    (make-vect-from-list (map op v1 v2))
-    
-        
-    ; hard-coded is for chumps
-    ;    (op (xcor-vect v1) (xcor-vect v2))
-    ;    (op (ycor-vect v1) (ycor-vect v2))
-    ;)
-)
+    (make-vect-from-list (map op v1 v2)))
 
 (define (scale-vect scale vect)
     (make-vect-from-list 
@@ -48,9 +41,6 @@
             (lambda (t) (* t scale))
             vect)))
 
-
-(newline) (display (make-vect 5 6))
-;(newline) (display (make-vect 1 2 3))
 
 (define (test-2.46)
 
@@ -64,7 +54,7 @@
     )
     
     (test 1 2)
-    ;(test 3 4 5)
+    ;(test 3 4 5) ; should raise error in the "2d-only" case
     (test -3 6)
 )
 
