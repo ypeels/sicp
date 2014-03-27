@@ -75,10 +75,57 @@
 (define (permutations s)
   (if (null? s)                         ; empty set?
       (list nil)                        ; sequence containing empty set
-      (flatmap (lambda (x)
-                 (map (lambda (p) (cons x p))
-                      (permutations (remove x s))))
-               s)))
+      (flatmap                              ; 1. map loops over each x in s, returning a list of permutations for each x
+                                            ; 2. "flat" concatenates all the lists of permutations for the next iteration/recursion level
+                                        
+        (lambda (x)                         ; for EACH x in s
+            (map                            ; generate a list
+                (lambda (p) (cons x p))     ; where you have tacked x to the beginning of all the members of
+                (permutations (remove x s)) ; the permutations of s - x
+            )
+        )
+        s
+      )
+  )
+)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ok, so the basic algorithm is to
+; LOOP over every x in S
+    ; prepend x to all permutations of (S-x)
+    ; this gives you all permutations STARTING WITH x
+; since you loop over EVERY x in S, 
+    ; this gives you all permutations starting with every x in S
+    ; i.e., all permutations of S, full stop.
+; example: s = (1)
+    ; (permutations s)
+    ; = (flatmap (lambda (x) (map (lambda (p) (cons x p)) (permutations ()))) (1))
+    ; = (flatmap (lambda (x) (map (lambda (p) (cons x p))      (())        )) (1))
+    ; = (flatmap (lambda (x)                                   ((x))       )) (1))
+    ; = (accumulate append nil (map ( lambda (x) ((x)) ) (1)))  ; where ((x)) is shorthand for (list (list x))
+    ; = (accumulate append nil (((1))))
+    ; = ((1)).
+    ; you can see here that (map) instead of (flatmap) would add a level of nesting.
+; example: s = (1 2)
+    ; (permutations (1 2))
+    ; = (flatmap (lambda (x) (map (lambda (p) (cons x p)) (permutations (remove x s))) (list 1 2))
+        ; lambdas evaluate from outside in, but regular expressions evaluate from inside out?
+        ; x = 1:    (map (lambda (p) (cons 1 p)) (permutations (remove 1 (1 2))))
+            ; =     (map (lambda (p) (cons 1 p)) (permutations      ((2))      ))
+            ; =     (map (lambda (p) (cons 1 p))                    ((2))       )
+            ; =                                ((1 2))
+        ; similarly, x = 2 case yields         ((2 1))
+    ; = (accumulate append nil ( ((1 2)), ((2 1)) ))
+    ; = ((1 2), (2 1)).
+; example: s = (1 2 3)
+    ; x = 1: prepend x to (2 3) and (3 2) to yield (1 2 3) (1 3 2)
+    ; x = 2: prepend x to (1 3) and (3 1) to yield (2 1 3) (2 3 1)
+    ; x = 3: prepend x to (1 2) and (2 1) to yield (3 1 2) (3 2 1)
+
+; these recursive algorithms seem easiest/most natural to prove/understand by induction...
+; also, this doesn't seem like something i'd come up with very naturally...
+
+    
+               
 
 (define (remove item sequence)
   (filter (lambda (x) (not (= x item)))
@@ -128,6 +175,18 @@
 (display "\nbook: ") (display (map make-pair-sum (filter prime-sum? (all-pairs 6)))) 
 (display "\nflip: ") (display (filter prime-sum? (map make-pair-sum (all-pairs 6))))    ; yep, order of map and filter doesn't matter in this case! (at least w.r.t. correctness)
 
+
+(define (test-perm n)
+    (newline)
+    (display n)
+    (newline)
+    (display (permutations (enumerate-interval 1 n)))
+    (newline)
+)
+(test-perm 1)
+(test-perm 2)
+(test-perm 3)
+(test-perm 4)
 
 
 
