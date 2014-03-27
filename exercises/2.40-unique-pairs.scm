@@ -7,18 +7,6 @@
 (define (unique-pairs n)  
 
     
-    ; this function generates ((i 1) (i 2) ... (i i-1))
-    (define (unique-pairs-with-i i)
-    
-        (define (pair-with-i j)                 ; originally (lambda (j) (list i j))    
-            (list i j))                         ; must be nested, because it needs to bind i
-    
-        (map 
-            pair-with-i
-            (enumerate-interval 1 (- i 1))
-        )
-    )
-    
     ; map generates ( ((2 1))  ((3 1) (3 2))  ((4 1) (4 2) (4 3))  ... ((n 1) ... (n n-1)) )
     ; flatmap takes it a step further and concatenates all the results to ((2 1) (3 1) (3 2) ... (n n-1))
     (flatmap ;(map 
@@ -26,6 +14,19 @@
         (enumerate-interval 1 n)
     )
     
+)
+
+
+; this function generates ((i 1) (i 2) ... (i i-1))
+(define (unique-pairs-with-i i)
+
+    (define (pair-with-i j)                 ; this was originally (lambda (j) (list i j))    
+        (list i j))                         ; this function must be nested, because it needs to know i
+
+    (map 
+        pair-with-i
+        (enumerate-interval 1 (- i 1))
+    )
 )
 
 
