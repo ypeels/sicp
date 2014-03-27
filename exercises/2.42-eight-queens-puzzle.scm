@@ -44,10 +44,51 @@
     (if (and (<= 1 j) (<= j (length board)))
         (list-ref board (- j 1))
         (error "queen-board out of range" j (length board))))
-        
+     
+; this function returns true iff the kth queen in board is not in check by any other queen
 (define (safe? k board)
-    #f
+    (define (iter j)
+        (cond 
+        
+            ; final termination: didn't get checked by any of the other queens
+            ((>= j k)
+                #t)
+
+            ; early termination: check!!
+            ((check-queens? (queen-board j board) (queen-board k board))
+                #f)
+                
+            ; next iteration
+            (else
+                (iter (+ j 1)))
+        )
+    )    
+    
+    ;(display-board board)
+    ;(display (iter 1)) (newline)
+    (iter 1)
 )
+
+
+; returns true if q1 and q2 check each other.
+(define (check-queens? q1 q2)
+    (let (  (r1 (row-queen q1)) (c1 (col-queen q1))
+            (r2 (row-queen q2)) (c2 (col-queen q2)))
+         
+
+        (cond
+            ((= r1 r2) #t)  ; horizontal and vertical checks are easy
+            ((= c1 c2) #t)  
+            
+            ; diagonal check: |rise| = |run|
+            ((= (abs (- r1 r2)) (abs (- c1 c2))) #t)
+
+            
+            (else #f)
+        )
+    )
+)
+        
 
 
 
@@ -102,8 +143,11 @@
         )
     )
     
-    ;(test 2)
-    (test 3)
+    ;(test 1) ; useful to make sure infrastructure is working
+    ;(test 2) ; useful to check horizontal/vertical checks
+    ;(test 3) ; there really ARE no solutions for n = 3! try disabling diagonal checks and you'll see.
+    (test 4) ; just a parallelogram and its rotation
+    ;(test 8) ; a little bit TOO much output (how do you scroll in this stupid window?)
     (display "\nthat's all, folks!")
 )
 
