@@ -18,22 +18,25 @@
 
 ; Rule 1: '<expr> is equivalent to (quote <expr>)
 ; quote is built-in. But why is it necessarily a "special form"?
+    ; oh i see, because it DOESN'T EVALUATE ITS ARGUMENT
 (newline) (display "Rule 1: ") (display (eq? 'aaa (quote aaa)))     ; #t
     ; another new built-in: (eq?)
     ; "takes two symbols as arguments and tests whether they are the same...
     ; We can consider two symbols to be ``the same'' if they consist of the same characters in the same order."
-                                                     
+    ; Footnote 36: "The question of whether two numerically equal numbers (as tested by =) are also eq? 
+        ; is highly implementation-dependent."                                                 
 
 ; Rule 2a: 'a returns the SYMBOL a
     ; not totally sure what that means... but (display 'a) outputs the literal character "a", and not its value
-; Rule 2b: '123 returns the NUMBER 123. similarly #t and #f
+; Rule 2b: '123 returns the NUMBER 123. similarly #t and #f. 
     ; MAYBE this resolves the puzzle about nil? it could be a VALUE, and therefore immune to "symbolization"?
-
+(newline) (display "Rule 2: ") (display (symbol? '1))               ; #f
 
 ; Rule 3: '(a b c) is equivalent to (list 'a 'b 'c). 
     ; PARENTHESES CHANGE THE BEHAVIOR of the single quotation mark.
     ; an historical form?
     ; (eq?) does NOT work between lists, but only its elements
+        ; update (from Exercise 2.54): (equal?) works on lists, symbols, AND values!?!?
 (newline) (display "Rule 3: ") (display (eq? (car '(a b c)) 'a))    ; #t
 ; maybe (quote) is considered a special form because it does different things depending on the first character?
     ; no, you could conceive of a function that simply checked the first character before acting...
@@ -49,6 +52,7 @@
         ; By Rule 3, '() is (list)
     ; Is there a difference? Especially in practice
 (newline) (display "Nil... ") (display (eq? () '()))                ; #t        
+(newline) (display (symbol? ()))                                    ; #f. there you go - proof positive.
     
 
 
@@ -67,6 +71,13 @@
     ; memq does NOT go into nested lists, so it scans all the way to ('apple 'pear)
 
 
+    
+; oh oh oh don't forget that pathological example from the footnote
+; the goal is the SYMBOLIC expression (car '(a b c)), which is equivalent to: 
+; (car (quote (a b c)))
+; (list 'car (list 'quote '(a b c)))    ; the book gives this, but i think it's half-assed
+; (list (quote car) (list (quote quote) (quote (a b c))))
+; '(car (a b c))    ; i think this works too? not QUITE sure what footnote 34 is talking about
 
 
 ; Remarks
