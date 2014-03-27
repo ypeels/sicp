@@ -6,3 +6,6 @@ Section 2.2 p. 98
 
 Section 2.2.4 p. 126 they do it again... maybe "list structure" is plural??
 "arbitrarily complicated list structure [sic]"
+
+Exercise 2.52a p. 141 - finally, a spacing error (2 spaces between "exercise" and "2.49")
+- also present in the web full text
