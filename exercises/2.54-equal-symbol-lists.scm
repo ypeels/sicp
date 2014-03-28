@@ -15,7 +15,7 @@
             (and    (equal? (car x) (car y))
                     (equal? (cdr x) (cdr y))))
                     
-        ((and (number? x) (number? y))          ; some extra tests not mentioned in the text
+        ((and (number? x) (number? y))          ; some extra tests not mentioned in the text. (well, (number?) introduced later on p. 147)
             (= x y))
         ((and (null? x) (null? y))
             #t)
