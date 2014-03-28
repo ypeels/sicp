@@ -3,7 +3,7 @@
 ;;;SECTION 2.3.2
 
 (define (deriv expr var)
-  (cond ((number? expr) 0)
+    (cond ((number? expr) 0)
         ((variable? expr)
          (if (same-variable? expr var) 1 0))
         ((sum? expr)
@@ -16,7 +16,7 @@
            (make-product (deriv (multiplier expr) var)
                          (multiplicand expr))))
         (else
-         (error "unknown exprression type -- DERIV" expr))))
+         (error "unknown expression type -- DERIV" expr))))
          
 ;; representing algebraic expressions
 

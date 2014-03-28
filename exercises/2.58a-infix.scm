@@ -48,8 +48,8 @@
         ((or (=number? m1 0) (=number? m2 0)) 0)
         ((=number? m1 1) m2)
         ((=number? m2 1) m1)
-        ((and (number? m1) (number? m2)) (* m1 m2))     ; the only difference
-        (else (list m1 '* m2))
+        ((and (number? m1) (number? m2)) (* m1 m2))     
+        (else (list m1 '* m2))                          ; the only difference
     )
 )
 
@@ -57,10 +57,11 @@
 
 (define (test-2.58a)
     
-    (display (deriv '(x + (3 * (x + (y + 2)))) 'x))     ; 4
     (newline) (display (deriv '(x * x) 'x))
+    (newline) (display (deriv '(x + (3 * (x + (y + 2)))) 'x))     ; 4
+    
 )
 
-(test-2.58a)
+;(test-2.58a)
            
            
