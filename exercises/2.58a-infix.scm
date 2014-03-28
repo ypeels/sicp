@@ -58,7 +58,8 @@
 (define (test-2.58a)
     
     (newline) (display (deriv '(x * x) 'x))
-    (newline) (display (deriv '(x + (3 * (x + (y + 2)))) 'x))     ; 4
+    (newline) (display (deriv '(x + (3 * (x + (y + 2)))) 'x))       ; 4
+    (newline) (display (deriv '((x * y) * (x + 3)) 'x))             ; (x * y) + (y * (x + 3))
     
 )
 

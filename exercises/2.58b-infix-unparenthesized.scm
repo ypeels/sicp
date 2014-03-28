@@ -6,7 +6,7 @@
     ; otherwise returns the sublist beginning with the first occurrence of item
 
 (define (sum? x)
-    (not (equal? #f (memq '+ x))))
+    (not (equal? #f (memq '+ x))))  ; too conservative. apparently, ANY value except #f will evaluate to #t. footnote 17 p. 18 (1.1.6)
     
 ; really this should also check that it's not a sum, but (deriv only calls (product? AFTER ruling out (sum?
     ; i.e., i think order of operations is ALREADY enforced by (deriv; no need to worry about it here
@@ -63,7 +63,16 @@
     
     ; then test the new form, very quickly
     (newline) (display (deriv '(x + 3 * (x + y + 2)) 'x))   ; should be 4
+    
+    (newline) (display (deriv '(x + 3) 'x))                 ; 1
+    (newline) (display (deriv '(x * y * (x + 3)) 'x))       ; (x * y) + (y * (x + 3))
+    
+    
 )
 ; (test-2.58b)
 
 ; see http://community.schemewiki.org/?sicp-ex-2.58 for more/better solutions
+    ; ACTUALLY, 2 of the 3 solutions use memq for the key operation anyway...
+    ; the LONG and overengineered solution worries unnecessarily about order of operations...
+    
+; this was another CS 1 problem, right?? finally getting "closure" haha
