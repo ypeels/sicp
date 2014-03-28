@@ -9,7 +9,7 @@
             (car end)                   ; surprisingly, the rest of deriv is enough to handle summing multiple terms!
         )                                     ; this is because (deriv (augend exp)) and (deriv multiplicand exp) 
     )                                         ; recurse down the exp...?
-)
+)                                       ; see http://community.schemewiki.org/?sicp-ex-2.57 for more and better sols
 (define (augend-2.57 expr) 
     (addmul-2.57 expr '+))
 (define (multiplicand-2.57 expr)
