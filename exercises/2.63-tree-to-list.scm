@@ -16,3 +16,16 @@
   (copy-to-list tree '()))
   
   
+  
+(define (test-2.63)
+
+    (define (test tree)
+        (display "\nversion 1: ") (display (tree->list-1 tree))
+        (display "\nversion 2: ") (display (tree->list-2 tree))
+    )
+    
+    ; trees from Figure 2.16
+    ;    (test '(7 (3 (1 5
+)
+
+(test-2.63)
