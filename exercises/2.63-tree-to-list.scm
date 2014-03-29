@@ -91,6 +91,9 @@
     (test '(7 (3 (1 () ()) (5 () ())) (9 () (11 () ()))))
     (test '(3 (1 () ()) (7 (5 () ()) (9 () (11 () ())))))
     (test '(5 (3 (1 () ()) ()) (9 (7 () ()) (11 () ()))))
+    
+    ; order is always the SAME for both methods, and ASCENDING.
 )
 
 ; (test-2.63)
+

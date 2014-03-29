@@ -46,7 +46,7 @@
     (test 1 3 5 7 9 11) 
 )
 
-(test-2.64)
+; (test-2.64)
 
 ; Exercise 2.64a paragraph
 ; 1. Take the first "half" of the list and make the left subtree.
