@@ -39,6 +39,16 @@
     ; new result-list = (cons entry (copy right)) = (cons entry right-subtree)
     ; then pass this along to the final call with the left-subtree
     
+; third glance: v2
+    ; (copy-to-list right) will return SOME result from the right 
+    ; (cons current right) builds the result further
+    ; pass this running result to the left
+    ; always recurse right first
+    ; builds list from right to left using cons, thus result is in ascending order
+    
+; third glance: v1
+    ; a little easier to wrap your brain around, because (append) means traversal order == final list order
+    
 ; subtle, insidious differences
     ; v1 returns null but appends return values. EXPLOITS (append L '()) == L.
     ; v2 returns result-list (unmodified at null nodes) and does NOT use append
@@ -57,6 +67,7 @@
 ; unlike searching, tree UNBUILDING is an O(n) operation.
 
 ; sols: v1 is O(n log n) but v2 is O(n). hmmmmm.....
+    ; "append is O(n)". why?? couldn't you just change a null pointer to the head of the next list?
   
 (define (test-2.63)
 
@@ -82,4 +93,4 @@
     (test '(5 (3 (1 () ()) ()) (9 (7 () ()) (11 () ()))))
 )
 
-(test-2.63)
+; (test-2.63)
