@@ -1,0 +1,51 @@
+Exercise 2.71
+
+Try n = 5:
+1 2 4 8 16
+3 4 8 16
+7 8 16
+15 16
+31
+
+Claim sum(n-1) := sum(2^k from k=0 to k=n-1) = 2^n - 1
+
+Quickie proof by induction?
+cases n = 1, 2, 3 are self-evident
+sum(n) = 2^n + (2^n - 1) by inductive hypothesis
+       = 2^(n+1) - 1 which proves the nth case
+
+Therefore, the "tree" will look like a linear comb, if you always branch leaves off in the same direction.
+
+obviously 1 bit to encode the most frequent symbol
+2 bits for 2nd symbol
+by induction, n bits to encode the nth symbol.
+
+This is LIKE "base 1"
+
+A = 1
+B = 10
+C = 100
+D = 1000
+
+think of "1" as the "separator" or sommat
+
+
+
+Exercise 2.72
+I guess ignore the general case?
+In the special case, you can search only to the leaf side, so that's a fixed search cost per node.
+
+Most frequent symbol is encoded with O(1) cost
+Least frequent symbol is encoded with O(n) cost
+
+When searches occur with the relative frequencies 1, 2, 4,... then 
+
+1 encoding with n-1 searches (final leaf doesn't need a search)
+2 encodings with n-1 searches
+4 encodings with n-2 searches
+...
+2^(n-1) encodings with 1 search
+
+Average # searches will vary (decreasingly!) with n
+ 
+
