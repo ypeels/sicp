@@ -1,0 +1,25 @@
+Explicit dispatch
+- potential namespace collisions (but you could conceivably establish a convention)
+- add operation? the new procedure would have a (cons, with 1 case per existing data type
+- add type? from pp. 177-178, you'd have to modify EVERY routine, which is error-prone and not "additive"
+
+
+"Message passing" (keeping operations in constructor)
+- add an operation? have to add to every constructor (unless you are willing to eat errors)
+- add a type? add a new constructor, implementing operations that may be invoked
+
+"Data-directed" (table lookup) 
+- add an operation? call (put again for each. Need not modify constructor
+- add a type? implement existing operations and install all in table.
+
+
+Data-directed seems strictly preferable for adding new operations...
+ESPECIALLY since you don't have to modify any existing code at all.
+
+For adding new TYPES, message passing EDGES OUT data-directed?
+- explicit dispatch MUST modify existing code. unacceptably "non-additive"
+- message passing: new constructor with anonymous methods (lookup-by-convention)
+	- also, there's no overhead for maintaining a table!!
+- data-directed: define methods AND have to register them in the table
+	- you have to type slightly more code?
+
