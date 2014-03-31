@@ -3,6 +3,8 @@
 ; 2.4.3 does a LITTLE better... but it uses some table entity that must be accessible to all tables...
     ; they've deferred how they implement this table until Section 3.3.3, when you've long forgotten about it...
     ; and how do you enforce scoping for (get and (put??
+    
+; afterthought: maybe they are trying to teach us HOW languages implement type systems? or am i overestimating them?
 
 ; """
 ;  To implement this plan, assume that we have two procedures, put and get, for manipulating the operation-and-type table:
