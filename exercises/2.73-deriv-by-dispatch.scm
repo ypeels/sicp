@@ -8,10 +8,12 @@
 (define (deriv expr var)
    (cond ((number? expr) 0)
          ((variable? expr) (if (same-variable? expr var) 1 0))
-         (else ((get 'deriv (operator expr)) (operands expr)
+         (else ((get-2.73 'deriv (operator expr)) (operands expr)   ; changed from (get for part d.
                                             var))))
 (define (operator expr) (car expr))
 (define (operands expr) (cdr expr))
+(define get-2.73 get)
+(define put-2.73 put)
 
 
 ; "a.  Explain what was done above. Why can't we assimilate the predicates number? and variable? into the data-directed dispatch?"
@@ -88,9 +90,9 @@
     
     
     ; i think they want to treat PRODUCTS and SUMS as different TYPES!? yes - see part d.
-    (put 'deriv '+ sum-rule-v1-cheap)
-    ;(put 'deriv '+ sum-rule-v2) ; works, but i likes my cheapness
-    (put 'deriv '* product-rule-v2)
+    (put-2.73 'deriv '+ sum-rule-v1-cheap)
+    ;(put-2.73 'deriv '+ sum-rule-v2) ; works, but i likes my cheapness
+    (put-2.73 'deriv '* product-rule-v2)
 )
         
 
@@ -127,9 +129,10 @@
     )
         
         
-    (put 'deriv '** power-rule)
+    (put-2.73 'deriv '** power-rule)
 )
-        
+
+ 
         
         
         
@@ -157,5 +160,25 @@
     
 )
 
-(test-2.73)
+; (test-2.73)
+
+
+
     
+; d.  Suppose, however, we indexed the procedures in the opposite way, so that the dispatch line in deriv looked like
+    ; ((get (operator exp) 'deriv) (operands exp) var)
+; What corresponding changes to the derivative system are required? 
+
+; previously 
+    ; ((get 'deriv (operator exp)) (operands exp) var)
+
+
+; well, all the (put statements would have to flip too
+    ; what is happening here? 
+    ; 2.4.3: (put <op> <type> <procedure>)
+    ; now 'deriv is a "data TYPE" and <op> ('*, '+) is the "operation"
+    ; you're JUST flipping rows and cols of your table, so it should work just fine if you flip the order in (put...
+    ; who knows what the correct row/column mapping is, if there is one...
+
+; here; i'll prove it to you.    
+; (define (get-2.73 a b) (get b a)) (define (put-2.73 a b c) (put b a c)) (test-2.73)

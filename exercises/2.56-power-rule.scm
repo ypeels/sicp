@@ -51,4 +51,4 @@
     ;(test '(** x x))               ; fails with "x cannot be passed to integer-subtract"
 )
 
-(test-2.56)
+; (test-2.56)
