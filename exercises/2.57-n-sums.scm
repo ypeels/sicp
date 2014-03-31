@@ -19,15 +19,18 @@
 
 
 
+(define (test-2.57)
 
-(display "\noriginal results, for reference\n")
-(display (deriv '(* (* x y) (+ x 3)) 'x)) (newline)   
-(display (deriv '(* (* x x) x) 'x) ) (newline)
+    (display "\noriginal results, for reference\n")
+    (display (deriv '(* (* x y) (+ x 3)) 'x)) (newline)   
+    (display (deriv '(* (* x x) x) 'x) ) (newline)
 
-(display "\nnew results using n-argument product/sum\n")
-(define augend augend-2.57) (define multiplicand multiplicand-2.57) 
-(display (deriv '(* x y (+ x 3)) 'x)) (newline)
-(display (deriv '(* x x x) 'x)) (newline)
+    (display "\nnew results using n-argument product/sum\n")
+    (define augend augend-2.57) (define multiplicand multiplicand-2.57) 
+    (display (deriv '(* x y (+ x 3)) 'x)) (newline)
+    (display (deriv '(* x x x) 'x)) (newline)
+)
+; (test-2.57)
 
 
 ; (+ (* x y) (* y (+ x 3)))
