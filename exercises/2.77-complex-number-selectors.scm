@@ -26,7 +26,7 @@
     ; all it does in the case of (one or more) 'complex tags is to strip them off    
 
 
-
+    ; in louis' case, (apply-generic gets called TWICE.
 
 (define (test-2.77)
     (define (test z)
