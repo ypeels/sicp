@@ -6,18 +6,22 @@
 
 ;;;SECTION 2.4.2
 
-(define (attach-tag type-tag contents)
+(define (attach-tag-2.4.2 type-tag contents)
   (cons type-tag contents))
 
-(define (type-tag datum)
+(define (type-tag-2.4.2 datum)
   (if (pair? datum)
       (car datum)
       (error "Bad tagged datum -- TYPE-TAG" datum)))
 
-(define (contents datum)
+(define (contents-2.4.2 datum)
   (if (pair? datum)
       (cdr datum)
       (error "Bad tagged datum -- CONTENTS" datum)))
+      
+(define attach-tag attach-tag-2.4.2)
+(define type-tag type-tag-2.4.2)
+(define contents contents-2.4.2)
       
       
 ;;;SECTION 2.4.3
