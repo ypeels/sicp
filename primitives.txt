@@ -9,6 +9,7 @@ Introduced in main text but not indicated as built-in*
 2.2.3 p. 115: filter (accumulate is NOT built-in, yet exercises focus on it)
 2.2.3 p. 124: comments by semicolon. omfg wtf, NOW they give us this? i didn't even know they didn't
 2.3.1 p. 144: memq
+2.4.3 p. 182: magnitude (a built-in which they OVERRODE)
 
 *MAYBE their manuscript predates my current MIT Scheme version (9.1) by too much?
 
