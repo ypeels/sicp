@@ -63,4 +63,6 @@
     ; the trailing 'done in (install-rectangular-package and (install-polar-package is their UNUSED RETURN VALUE
         ; it has NOTHING to do with the fabled get/put table.
 
+        
+; oh WAIT - (get and (put are implemented in ch2support.scm!!
 
