@@ -42,7 +42,14 @@
     (install-complex-reps-2.77)
     (test (cons 'complex (cons 'rectangular (cons 3 4))))   ; 5
     ; (test '(complex rectangular 3 4)) ; actually doesn't work... why??
+    
+    ; should fail (keeps loop-forwarding until the 'rectangular)
+    (test (cons 'complex (cons 'complex (cons 'complex (cons 'rectangular (cons 3 4))))))   ; 5
+    
+    ; all these should fail, because 'rectangular is the END OF THE LINE, not a forwarder
+    ;(test (cons 'rectangular (cons 'rectangular (cons 3 4))))
+    ;(test (cons 'rectangular (cons 'complex (cons 3 4))))
 )
         
         
-(test-2.77)
+; (test-2.77)
