@@ -39,4 +39,7 @@
     (test 25 5)    
 )
 
-(define attach-tag attach-tag-2.78) (define type-tag type-tag-2.78) (define contents contents-2.78) (test-2.78)
+
+(display "\nExercise 2.78: allowing lazyfolk to skip (make-scheme-number\n") (define attach-tag attach-tag-2.78) (define type-tag type-tag-2.78) (define contents contents-2.78)
+
+; (test-2.78)
