@@ -15,16 +15,20 @@
                       (t2->t1 (get-coercion type2 type1)))
                   (cond ((eq? type1 type2)                                                  ; Exercise 2.81c: don't try coercion if arguments have the same type 
                          (error "No self-coercion for you!"))                               ; a better fix would prevent the unnecessary (get-coercion calls
-                    (t1->t2                                                                 ; but i don't feel like altering the indentation
+                        (t1->t2                                                             ; but i don't feel like altering the indentation
                          (apply-generic op (t1->t2 a1) a2))
-                        (t2->t1
+                        (t2->t1                                                             ; this is a null check, NOT an invocation!!
                          (apply-generic op a1 (t2->t1 a2)))
                         (else
                          (error "Coercion unavailable"; "No method for these types"         ; error message modified for Exercise 2.81
                                 (list op type-tags))))))
-              (error "Coercion only implemented for 2-arg ops" ;"No method for these types" ; error message modified for Exercise 2.81
-                     (list op type-tags)))))))
-(define apply-generic apply-generic-2.81-86)                   
+              (coercion-n-args op args)
+              ;(error "Coercion only implemented for 2-arg ops" ;"No method for these types" ; error message modified for Exercise 2.81
+              ;       (list op type-tags))
+          )))))
+(define apply-generic apply-generic-2.81-86)     
+(define (coercion-n-args op args)                                                           ; for Exercise 2.82. Unlike 2.81, doesn't require a logic change!
+    (error "Coercion only implemented for 2-arg ops" op args));(map type-tag args)))
                      
 
 ;: (put-coercion 'scheme-number 'complex scheme-number->complex)                     
@@ -45,14 +49,18 @@
     )
 )
 
+(define (install-sample-coercion)
+    (define (scheme-number->complex n)
+      (make-complex-from-real-imag (contents n) 0))      
+    (put-coercion 'scheme-number 'complex scheme-number->complex) 
+    "\nSample coercion installed: scheme-number -> complex"
+)
+
                      
                      
 (define (test-2.81-86)
 
-    (define (scheme-number->complex n)
-      (make-complex-from-real-imag (contents n) 0))
-      
-    (put-coercion 'scheme-number 'complex scheme-number->complex)                     
+    (display (install-sample-coercion))
     
     (newline)
     (display (scheme-number->complex (make-scheme-number 3.1)))
