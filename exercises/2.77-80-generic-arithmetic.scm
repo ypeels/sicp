@@ -82,7 +82,7 @@
 ;: (apply + (list 1 2 3 4))
 
 
-(define (apply-generic op . args)
+(define (apply-generic-2.77-80 op . args)
   (let ((type-tags (map type-tag args)))
     (let ((proc (get op type-tags)))
       (if proc
@@ -90,6 +90,8 @@
           (error
             "No method for these types -- APPLY-GENERIC"
             (list op type-tags))))))
+(define apply-generic apply-generic-2.77-80)                ; added for exercises 2.81-86            
+
 
 ;; Generic selectors
 

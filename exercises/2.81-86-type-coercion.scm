@@ -1,7 +1,7 @@
 (load "2.77-80-generic-arithmetic.scm")
 
 ; from ch2.scm
-(define (apply-generic op . args)
+(define (apply-generic-2.81-86 op . args)
   (let ((type-tags (map type-tag args)))
     (let ((proc (get op type-tags)))
       (if proc
@@ -13,16 +13,18 @@
                     (a2 (cadr args)))
                 (let ((t1->t2 (get-coercion type1 type2))
                       (t2->t1 (get-coercion type2 type1)))
-                  (cond (t1->t2
+                  (cond ((eq? type1 type2)                                                  ; Exercise 2.81c: don't try coercion if arguments have the same type 
+                         (error "No self-coercion for you!"))                               ; a better fix would prevent the unnecessary (get-coercion calls
+                    (t1->t2                                                                 ; but i don't feel like altering the indentation
                          (apply-generic op (t1->t2 a1) a2))
                         (t2->t1
                          (apply-generic op a1 (t2->t1 a2)))
                         (else
-                         (error "No method for these types"
+                         (error "Coercion unavailable"; "No method for these types"         ; error message modified for Exercise 2.81
                                 (list op type-tags))))))
-              (error "No method for these types"
+              (error "Coercion only implemented for 2-arg ops" ;"No method for these types" ; error message modified for Exercise 2.81
                      (list op type-tags)))))))
-                     
+(define apply-generic apply-generic-2.81-86)                   
                      
 
 ;: (put-coercion 'scheme-number 'complex scheme-number->complex)                     
