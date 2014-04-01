@@ -1,5 +1,5 @@
 (load "2.77-80-generic-arithmetic.scm")
-;(load "2.81-86-type-coercion.scm")
+(load "2.81-86-type-coercion.scm")
 
 ; you can raise scheme-number to rational using the public constructor (make-rational
 ; but you CAN'T raise rational to real ...
@@ -26,14 +26,18 @@
     (integer? i))
 ;(define (is-rational? r)
 ;    (eq? 'rational (type-tag r)))
-(define (is-real? r)
-    (and (real? r) (not (integer? r))));  (not (rational? r)))) ; scheme is smart enough to know "1.5" is rational. but THAT'S NOT WHAT THIS PROBLEM WANTS
+(define (is-real? r)                            ; had to nerf all the way for Exercise 2.84; probably wasn't working well enough here anyway...
+    (and (real? r))); (not (integer? r))));  (not (rational? r)))) ; scheme is smart enough to know "1.5" is rational. but THAT'S NOT WHAT THIS PROBLEM WANTS
 ;(define (is-complex? z)
 ;    (eq? 'complex (type-tag z)))
     
+    
+; ugh, most of this exercise was spent struggling with the syntax of building the stupid infrastructure of 'integer and 'real
+    
 
-        
-            
+; sols http://community.schemewiki.org/?sicp-ex-2.83
+; apparently the preparer didn't realize that our generic system doesn't HAVE 'integer or 'real...
+             
 
 
 (define (install-raise-2.83)
@@ -74,7 +78,7 @@
     "\nInstalled int-rat-real-complex tower for Exercise 2.83."
 )
 
-(define (raise-2.83 x)
+(define (raise x)
     (apply-generic 'raise x))
 
 
@@ -99,7 +103,7 @@
         (display "\nraised = ") (display (raise x))
     )
     
-    (define raise raise-2.83)
+    ;(define raise raise-2.83)
     
     ;(test (make-integer (/ 3 2))) ; should give "bad input" error
     (test (make-integer 5))
@@ -108,4 +112,4 @@
     
 )
 
-; (test-2.83)
+;(test-2.83)

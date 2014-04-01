@@ -123,15 +123,15 @@
 (define (install-builtin-number-package tag-value)
   (define (tag x)
     (attach-tag tag-value x))
-  (put 'add '(scheme-number scheme-number)
+  (put 'add (list tag-value tag-value)
        (lambda (x y) (tag (+ x y))))
-  (put 'sub '(scheme-number scheme-number)
+  (put 'sub (list tag-value tag-value)
        (lambda (x y) (tag (- x y))))
-  (put 'mul '(scheme-number scheme-number)
+  (put 'mul (list tag-value tag-value)
        (lambda (x y) (tag (* x y))))
-  (put 'div '(scheme-number scheme-number)
+  (put 'div (list tag-value tag-value)
        (lambda (x y) (tag (/ x y))))
-  (put 'equ? '(scheme-number scheme-number) =)                          ; added for Exercise 2.79
+  (put 'equ? (list tag-value tag-value) =)                          ; added for Exercise 2.79
   (put '=zero? '(scheme-number) (lambda (x) (= 0 x)))                   ; added for Exercise 2.80
   (put 'make tag-value
        (lambda (x) (tag x)))                                           
