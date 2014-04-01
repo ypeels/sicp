@@ -28,14 +28,30 @@
 ;: (put-coercion 'scheme-number 'complex scheme-number->complex)                     
 ; this function and (get-coercion were UNIMPLEMENTED in all their sample code...
 ; i'm gonna hack (get and (put to handle this...and hope there's no name collisions
-;(define (get-coercion type1 type2)
-;
+(define (get-coercion type1 type2)
+    (get
+        (symbol-append type1 '-> type2) ; op
+        (list type1 type2)              ; type
+    )
+)
 
-; but to use existing (get, need to be able to COMBINE SYMBOLS? oh i don't need to convert to function name
+(define (put-coercion type1 type2 proc)
+    (put
+        (symbol-append type1 '-> type2)
+        (list type1 type2)
+        proc
+    )
+)
+
                      
                      
 (define (test-2.81-86)
 
     (define (scheme-number->complex n)
       (make-complex-from-real-imag (contents n) 0))
+      
+    (put-coercion 'scheme-number 'complex scheme-number->complex)                     
+    
+    (newline)
+    (display (scheme-number->complex (make-scheme-number 3.1)))
 )
