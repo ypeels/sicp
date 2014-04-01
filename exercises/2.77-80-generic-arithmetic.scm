@@ -88,7 +88,7 @@
       (if proc
           (apply proc (map contents args))
           (error
-            "No method for these types -- APPLY-GENERIC"
+            "No method for these types -- APPLY-GENERIC-2.77-80"
             (list op type-tags))))))
 (define apply-generic apply-generic-2.77-80)                ; added for exercises 2.81-86            
 

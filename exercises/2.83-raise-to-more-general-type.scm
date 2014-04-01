@@ -1,4 +1,4 @@
-(load "2.77-80-generic-arithmetic.scm")
+(load "2.77-80-generic-arithmetic.scm") (install-complex-reps-2.77) ; omfg i'm louis
 (load "2.81-86-type-coercion.scm")
 
 ; you can raise scheme-number to rational using the public constructor (make-rational
@@ -50,12 +50,14 @@
             (error "Bad input - RAISE-INT-TO-RAT" x)
         )
     )
+    (put 'raise '(integer) raise-int-to-rat)
     
     (define (raise-rat-to-real x)        
         (let ((r (attach-tag 'rational x)))                                    ; stupid custom rationals breaking my symmetry
             (make-real (/ (numer-rational r) (denom-rational r) 1.0))
         )
     )
+    (put 'raise '(rational) raise-rat-to-real)
     
     (define (raise-real-to-comp x)
         (if (is-real? x)
@@ -63,22 +65,13 @@
             (error "Bad input - RAISE-REAL-TO-COMP" x)
         )
     )
-    
-    
-    ;; install coercions into the table. this made me realize i needed 'real and 'integer...
-    ;(put-coercion 'integer 'rational raise-int-to-rat)
-    ;(put-coercion 'rational 'real raise-rat-to-real)
-    ;(put-coercion 'real 'complex raise-real-to-comp)
-    
-    
-    (put 'raise '(integer) raise-int-to-rat)
-    (put 'raise '(rational) raise-rat-to-real)
     (put 'raise '(real) raise-real-to-comp)
+    
     
     "\nInstalled int-rat-real-complex tower for Exercise 2.83."
 )
 
-(define (raise x)
+(define (raise-2.83 x)
     (apply-generic 'raise x))
 
 
@@ -97,6 +90,7 @@
 (define (test-2.83)
 
     (display (install-raise-2.83))
+    (define raise raise-2.83)
 
     (define (test x)
         (display "\n\nx = ") (display x)

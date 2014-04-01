@@ -3,8 +3,12 @@
 
 
 
-(define (can-raise? type)
+(define (can-raise-type?-2.84 type)
     (get 'raise (list type)))
+(define (raise x)
+    (if (can-raise-type?-2.84 (type-tag x))                         ; added for Exercise 2.85
+        (raise-2.83 x)
+        x))
 
 ; using this function to climb the tower in (get-coercion 
 ; all because i don't want to modify the upstream code at all...
@@ -28,7 +32,7 @@
     (define (default-complex) (make-complex-from-real-imag 0 0))
     (put 'default 'complex default-complex)
 )
-(define (default-value type)
+(define (default-value-2.84 type)
     ((get 'default type))
 )
     
@@ -36,11 +40,15 @@
     
 ; i'm gonna do this by overriding (get-coercion.
 (define (get-coercion-2.84 type1 type2)
+
+    (define can-raise-type? can-raise-type?-2.84)
+    (define default-value default-value-2.84)
+
     (define (iter rising-type n)
         (cond 
             ((eq? rising-type type2)                        ; positive termination
                 (repeated raise n))                         ; i don't remember or CARE to remember how to repeat an operation...
-            ((not (can-raise? rising-type))                 ; negative termination (can raise no further)
+            ((not (can-raise-type? rising-type))            ; negative termination (can raise no further)
                 false)
             (else
                 (iter                                       ; a hack to get the next higher type...

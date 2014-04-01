@@ -99,7 +99,7 @@
     ; attempt to coerce all the arguments to the type of the first argument, then to the type of the second argument, and so on.
     (define (iter n)
         (if (>= n (length args))
-            (error "No coerced function available: COERCION-N-ARGS-2.82" args)
+            (error "No function (coerced or otherwise) found: COERCION-N-ARGS-2.82" args)
             (let ((nth-type (type-tag (list-ref args n))))
                 (if (or
                         ; check via if a function taking n x nth type exists

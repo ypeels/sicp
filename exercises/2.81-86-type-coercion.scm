@@ -2,6 +2,8 @@
 
 ; from ch2.scm
 (define (apply-generic-2.81-86 op . args)
+  ;(display op)
+  ;(display args)
   (let ((type-tags (map type-tag args)))
     (let ((proc (get op type-tags)))
       (if proc
@@ -29,7 +31,7 @@
 (define apply-generic apply-generic-2.81-86)  
    
 (define (coercion-n-args op args)                                                           ; overridden in Exercise 2.82. Unlike 2.81, doesn't require a logic change!
-    (error "Coercion only implemented for 2-arg ops" op args));(map type-tag args)))
+    (error "Either the op wasn't found, or it wasn't implemented for 2-arg ops" op args));(map type-tag args)))
                      
 
 ;: (put-coercion 'scheme-number 'complex scheme-number->complex)                     
