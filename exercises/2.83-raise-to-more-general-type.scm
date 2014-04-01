@@ -79,7 +79,7 @@
 (define (can-raise?-2.83 x)
     (get 'raise (list (type-tag x))))
 
-
+(define raise raise-2.83)
 
 
 
@@ -89,7 +89,7 @@
 (define (test-2.83)
 
     (display (install-raise-2.83))
-    (define raise raise-2.83)
+    ;(define raise raise-2.83)
 
     (define (test x)
         (display "\n\nx = ") (display x)

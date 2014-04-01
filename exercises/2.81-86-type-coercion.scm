@@ -2,8 +2,6 @@
 
 ; from ch2.scm
 (define (apply-generic-2.81-86 op . args)
-  (display op)
-  (display args) (newline)
   (let ((type-tags (map type-tag args)))
     (let ((proc (get op type-tags)))
       (if proc

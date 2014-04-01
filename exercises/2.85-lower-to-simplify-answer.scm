@@ -1,7 +1,17 @@
-(load "2.77-complex-number-selectors.scm") (install-complex-reps-2.77) ; omfg like louis reasoner, i needed this hack too!? 
-;(load "2.83-raise-to-more-general-type.scm")
-;(load "2.84-coercion-by-slow-raising.scm")
+(load "2.83-raise-to-more-general-type.scm")
+(load "2.84-coercion-by-slow-raising.scm")
 
+(load "2.77-complex-number-selectors.scm") ; omfg like louis reasoner, i needed this hack too!! the shame... 
+
+
+(install-complex-reps-2.77) ; but why does it have to be called AFTER 2.83 and 2.84 load?? ugh the stupid intricacies of the scheme runtime...
+(install-builtin-number-package 'integer)  ; and why do these have to be called again!?!? well, at least it's deterministic...
+(install-builtin-number-package 'real)
+(install-raise-2.83)
+(install-default-values-2.84) (define get-coercion get-coercion-2.84)
+
+
+                                                                       
 ; by analogy with raise. this might better be named "lower", but whatever, just more stupidity. chapter 4 better be worth it...
     ; well they are saving "drop" for the simplification procedure that gets called if (raise (project == identity
 (define (project x)
@@ -99,14 +109,15 @@
 
 (define (test-2.85)
 
+    (display "\nwelcome to test-2.85\n")
 
     (define (pre-test x)
         (display "\n\nx = ") (display x)
         (display "\nraise = ") (display (raise x))
         (display "\nproject = ")(display (project x))
     )
-
-
+    
+    
     (define (test x y)
         (newline)
         (display x) (display " + ") (display y) (display " = ")
@@ -116,34 +127,35 @@
     (let (  (i (make-integer 1))
             (q (make-rational 1 2))
             (r (make-real 1.5))
-            (z (make-complex-from-real-imag 3 0)))
-            
-        (pre-test i)
-        (pre-test q) ; wtf
-        (pre-test r)
-        (pre-test z)
+            (z (make-complex-from-real-imag 3 1))
+        )
+
+        ;(pre-test i)
+        ;(pre-test q)
+        ;(pre-test r)
+        ;(pre-test z)
             
         (test i i)
         (test i q)
         (test q q)
         (test r r)
         (test r q)
-        ;(test z z)
-        ;(test z r)
-        ;(test r z)
+        (test z z)
+        (test z r)
+        (test r z)
     )
-    
+    "goodbye world"
 )
        
 
        
 
-;(define apply-generic apply-generic-2.85) (test-2.85)
+(define apply-generic apply-generic-2.85) (test-2.85)
 
 
 
-(display "\nhello world\n")
-; (define apply-generic apply-generic-2.77-80)
-(define z (make-complex-from-real-imag 1 2))
-(display (real-part z))
+; (display "\nhello world\n")
+; ; (define apply-generic apply-generic-2.77-80)
+; (define z (make-complex-from-real-imag 1 2))
+; (display (real-part z))
 

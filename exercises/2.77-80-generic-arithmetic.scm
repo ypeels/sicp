@@ -83,7 +83,6 @@
 
 
 (define (apply-generic-2.77-80 op . args)
-    (display op) (display args) (newline)
   (let ((type-tags (map type-tag args)))
     (let ((proc (get op type-tags)))
       (if proc
