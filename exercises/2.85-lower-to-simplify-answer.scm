@@ -1,6 +1,6 @@
-(load "2.77-complex-number-selectors.scm")  ; omfg like louis reasoner, i needed this hack too!? 
+(load "2.77-complex-number-selectors.scm") (install-complex-reps-2.77) ; omfg like louis reasoner, i needed this hack too!? 
 ;(load "2.83-raise-to-more-general-type.scm")
-(load "2.84-coercion-by-slow-raising.scm")
+;(load "2.84-coercion-by-slow-raising.scm")
 
 ; by analogy with raise. this might better be named "lower", but whatever, just more stupidity. chapter 4 better be worth it...
     ; well they are saving "drop" for the simplification procedure that gets called if (raise (project == identity
@@ -121,7 +121,7 @@
         (pre-test i)
         (pre-test q) ; wtf
         (pre-test r)
-       ; (pre-test z)
+        (pre-test z)
             
         (test i i)
         (test i q)
@@ -138,10 +138,12 @@
 
        
 
-(define apply-generic apply-generic-2.85) (test-2.85)
+;(define apply-generic apply-generic-2.85) (test-2.85)
 
 
 
-
-
+(display "\nhello world\n")
+; (define apply-generic apply-generic-2.77-80)
 (define z (make-complex-from-real-imag 1 2))
+(display (real-part z))
+

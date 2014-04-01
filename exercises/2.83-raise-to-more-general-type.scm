@@ -1,4 +1,5 @@
-(load "2.77-80-generic-arithmetic.scm") (install-complex-reps-2.77) ; omfg i'm louis
+(load "2.77-80-generic-arithmetic.scm") 
+(load "2.77-complex-number-selectors.scm") (install-complex-reps-2.77) ; omfg i'm louis
 (load "2.81-86-type-coercion.scm")
 
 ; you can raise scheme-number to rational using the public constructor (make-rational
@@ -72,13 +73,11 @@
 )
 
 (define (raise-2.83 x)
-    (apply-generic 'raise x))
-
-
-
-
-
-
+    (if (can-raise?-2.83 x)
+        (apply-generic 'raise x)
+        x))
+(define (can-raise?-2.83 x)
+    (get 'raise (list (type-tag x))))
 
 
 
@@ -103,7 +102,11 @@
     (test (make-integer 5))
     (test (make-rational 3 2))
     (test (make-real (sqrt 2)))
+    (test (make-complex-from-real-imag 1 2))
+    
+    (load "2.77-complex-number-selectors.scm") (install-complex-reps-2.77)
+    (display (real-part (make-complex-from-real-imag 1 2)))
     
 )
 
-;(test-2.83)
+; (test-2.83)

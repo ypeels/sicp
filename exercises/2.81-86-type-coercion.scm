@@ -2,8 +2,8 @@
 
 ; from ch2.scm
 (define (apply-generic-2.81-86 op . args)
-  ;(display op)
-  ;(display args)
+  (display op)
+  (display args) (newline)
   (let ((type-tags (map type-tag args)))
     (let ((proc (get op type-tags)))
       (if proc
@@ -67,5 +67,13 @@
     
     ;(newline) (display (scheme-number->complex (make-scheme-number 3.1)))
     (newline) (display ((get-coercion 'scheme-number 'complex) (make-scheme-number 3.1)))
+    
+    ; some regression testing
+    (load "2.77-complex-number-selectors.scm")
+    (install-complex-reps-2.77)
+    (let ((z (make-complex-from-real-imag 1 2)))
+        (newline) (display "Re of ") (display z) (display (real-part z))
+    )
+    
 )
 ; (test-2.81-86)

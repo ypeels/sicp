@@ -33,11 +33,11 @@
         (newline) (display (magnitude z))
     )
     
-    
     (test (make-from-real-imag 3 4))                        ; 5 - works out of the box.
     
     ; out of the box: "No method for these types -- APPLY GENERIC (magnitude (complex))"
     ;(test (cons 'complex (cons 'rectangular (cons 3 4))))
+    ;(test (make-complex-from-real-imag 1 2))    
     
     (install-complex-reps-2.77)
     (test (cons 'complex (cons 'rectangular (cons 3 4))))   ; 5
@@ -49,7 +49,12 @@
     ; all these should fail, because 'rectangular is the END OF THE LINE, not a forwarder
     ;(test (cons 'rectangular (cons 'rectangular (cons 3 4))))
     ;(test (cons 'rectangular (cons 'complex (cons 3 4))))
+    
+    ; these require alyssa's patch too.   
+    (test (make-complex-from-real-imag 1 2))    
+    (test (make-complex-from-mag-ang 3 1.57))    
 )
         
         
 ; (test-2.77)
+
