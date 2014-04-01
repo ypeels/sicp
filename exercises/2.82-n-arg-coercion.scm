@@ -124,7 +124,7 @@
             )
         )
     )
-    ; this is soooo ugly... sols?
+    ; this is soooo ugly... sols? meh, they're not short either. i guess there's no short, "scheming" way to do this? (hence relegation to exercise)
 
         
     (iter 0)
@@ -135,6 +135,7 @@
 ; perform the operation by converting both objects to a third type."
 
 ; but i can't really think of any CONCRETE examples off the top of my head... sols??
+    ; they didn't answer this part. meh.
             
     
 
