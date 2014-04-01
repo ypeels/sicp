@@ -2,6 +2,7 @@
 (load "2.78-obsoleting-scheme-number.scm") ; ugh, thanks to my horrible implementation, (load must be at global scope...
 ; just like the definitions of (add, (sub, ...
 (define (equ? x y) (apply-generic 'equ? x y))
+    ; implemented in "2.77-2.80"
 
 ;;;(define (install-equality-2.79)
 ;;;

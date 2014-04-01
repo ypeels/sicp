@@ -127,6 +127,7 @@
   (put 'div '(scheme-number scheme-number)
        (lambda (x y) (tag (/ x y))))
   (put 'equ? '(scheme-number scheme-number) =)                          ; added for Exercise 2.79
+  (put '=zero? '(scheme-number) (lambda (x) (= 0 x)))                   ; added for Exercise 2.80
   (put 'make 'scheme-number
        (lambda (x) (tag x)))
   'done)
@@ -168,6 +169,7 @@
   (put 'div '(rational rational)
        (lambda (x y) (tag (div-rat x y))))
   (put 'equ? '(rational rational) equ?)                                 ; added for Exercise 2.79. bool return (not a rat), so no tag
+  (put '=zero? '(rational) (lambda (r) (= 0 (numer r))))                ; added for Exercise 2.80
   (put 'make 'rational
        (lambda (n d) (tag (make-rat n d))))
   'done)
@@ -214,6 +216,7 @@
   (put 'div '(complex complex)
        (lambda (z1 z2) (tag (div-complex z1 z2))))
   (put 'equ? '(complex complex) equ?)                                   ; added for Exercise 2.79
+  (put '=zero? '(complex) (lambda (z) (= 0 (magnitude z))))             ; added for Exercise 2.80
   (put 'make-from-real-imag 'complex
        (lambda (x y) (tag (make-from-real-imag x y))))
   (put 'make-from-mag-ang 'complex
