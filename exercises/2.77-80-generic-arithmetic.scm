@@ -117,9 +117,12 @@
 (define (mul x y) (apply-generic 'mul x y))
 (define (div x y) (apply-generic 'div x y))
 
+;(define (install-scheme-number-package)                                 ; generalized for Exercise 2.83 to allow 'integer and 'real
 (define (install-scheme-number-package)
+    (install-builtin-number-package 'scheme-number))
+(define (install-builtin-number-package tag-value)
   (define (tag x)
-    (attach-tag 'scheme-number x))
+    (attach-tag tag-value x))
   (put 'add '(scheme-number scheme-number)
        (lambda (x y) (tag (+ x y))))
   (put 'sub '(scheme-number scheme-number)
@@ -130,8 +133,8 @@
        (lambda (x y) (tag (/ x y))))
   (put 'equ? '(scheme-number scheme-number) =)                          ; added for Exercise 2.79
   (put '=zero? '(scheme-number) (lambda (x) (= 0 x)))                   ; added for Exercise 2.80
-  (put 'make 'scheme-number
-       (lambda (x) (tag x)))
+  (put 'make tag-value
+       (lambda (x) (tag x)))                                           
   'done)
 
 (define (make-scheme-number n)
@@ -172,6 +175,8 @@
        (lambda (x y) (tag (div-rat x y))))
   (put 'equ? '(rational rational) equ?)                                 ; added for Exercise 2.79. bool return (not a rat), so no tag
   (put '=zero? '(rational) (lambda (r) (= 0 (numer r))))                ; added for Exercise 2.80
+  (put 'numer '(rational) numer)                                        ; numer and denom made public for Exercise 2.83
+  (put 'denom '(rational) denom)                                        
   (put 'make 'rational
        (lambda (n d) (tag (make-rat n d))))
   'done)

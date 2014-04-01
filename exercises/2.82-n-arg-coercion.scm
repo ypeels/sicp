@@ -59,7 +59,7 @@
                 ((eq? a b)
                     (lambda (x) x))                     ; remember exercise 2.81?
                 (coercer 
-                    (lambda (x)
+                    (lambda (x)                         ; watch out!! the syntax here is tricky. (i had the cond inside the lambda for a bit)
                         (if (eq? a (type-tag x))
                             (coercer x)
                             (error "invalid argument: COERCE-A-TO-B" x a b)
@@ -84,7 +84,7 @@
         (cond
             ((null? L)
                 true)
-            ((not (coerce-a-to-b (type-tag (car L)) target-type))   ; checks for self-coercion
+            ((not (coerce-a-to-b (type-tag (car L)) target-type))   ; accounts for self-coercion too
                 false)
             (else 
                 (can-coerce-list (cdr L) target-type))

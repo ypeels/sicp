@@ -1,0 +1,30 @@
+Isn't the complex system as currently implemented in terms of built-in scheme numbers
+perfectly capable of handling int, rational, and real?
+
+Didn't really know how to proceed here...
+
+Sols http://community.schemewiki.org/?sicp-ex-2.86
+Apparently the point is allowing it to handle NEW generic number types...
+
+For example
+ (define (sine x) (apply-generic 'sine x)) 
+ (put 'sine 'integer
+      (lambda (x) (tag (sin x)))) 
+ (put 'sine 'rational 
+      (lambda (x) (tag (sin x)))) 
+ (put 'sine 'real 
+      (lambda (x) (tag (sin x)))) 
+ (define (add-complex z1 z2) 
+   (make-from-real-imag (add (real-part z1) (real-part z2)) 	; instead of (+ (real-part...
+                        (add (imag-part z1) (imag-part z2)))) 
+
+The sols are incomplete in many respects.
+- the (put statements above should be INSIDE each package to access "private" (tag
+- the (add-complex override, of course, belongs inside the complex package
+- the (define, however, is correctly placed at global scope
+- the solution writer did not implement generic sqrt or atan (straightforward?)
+
+
+...but you get the picture.
+
+Are the book authors setting the stage for the final section on SYMBOLIC algebra?
