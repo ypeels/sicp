@@ -18,7 +18,7 @@
                         (t1->t2                                                             ; but i don't feel like altering the indentation
                          (apply-generic op (t1->t2 a1) a2))
                         (t2->t1                                                             ; this is a null check, NOT an invocation!!
-                         (apply-generic op a1 (t2->t1 a2)))
+                         (apply-generic op a1 (t2->t1 a2)))                                 ; wait, is this branch ever going to be called at all??
                         (else
                          (error "Coercion unavailable"; "No method for these types"         ; error message modified for Exercise 2.81
                                 (list op type-tags))))))
@@ -26,8 +26,9 @@
               ;(error "Coercion only implemented for 2-arg ops" ;"No method for these types" ; error message modified for Exercise 2.81
               ;       (list op type-tags))
           )))))
-(define apply-generic apply-generic-2.81-86)     
-(define (coercion-n-args op args)                                                           ; for Exercise 2.82. Unlike 2.81, doesn't require a logic change!
+(define apply-generic apply-generic-2.81-86)  
+   
+(define (coercion-n-args op args)                                                           ; overridden in Exercise 2.82. Unlike 2.81, doesn't require a logic change!
     (error "Coercion only implemented for 2-arg ops" op args));(map type-tag args)))
                      
 
@@ -62,6 +63,7 @@
 
     (display (install-sample-coercion))
     
-    (newline)
-    (display (scheme-number->complex (make-scheme-number 3.1)))
+    ;(newline) (display (scheme-number->complex (make-scheme-number 3.1)))
+    (newline) (display ((get-coercion 'scheme-number 'complex) (make-scheme-number 3.1)))
 )
+; (test-2.81-86)

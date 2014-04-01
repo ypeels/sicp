@@ -51,7 +51,41 @@
 
 
 
-(define (coercion-n-args . unused-args) (error "giggity")) ; yes, this lets us override as desired
+(define (coercion-n-args-2.82 . args)
+
+    (define (coerce x target-type)
+        (if (eq? target-type (type-tag x))
+            x                                           ; no self coercions. Remember Exercise 2.81?
+            ((get-coercion (type-tag x) target-type) x)
+        )
+    )
+    
+    ; attempt to coerce all the arguments to the type of the first argument, then to the type of the second argument, and so on.
+    (define (iter n)
+        (cond 
+            ((>= n (length args))
+                (error "No coerced function available: COERCION-N-ARGS-2.82" args))
+            
+            ; first check that all of args CAN be coerced to nth type 
+            ; then check via (get if a function taking n x nth type exists
+            ; all clear? invoke the function that you (got
+            (else (error "empty stub - i am here"))
+            
+            ; (list-ref args n)
+        )
+    )
+
+        
+    (iter 0)
+)
+; this strategy fails in the case mentioned in the text, right? (the last paragraph before "Hierarchies of types"
+; "On the other hand, there may be applications for which our coercion scheme is not general enough. 
+; Even when neither of the objects to be combined can be converted to the type of the other it may still be possible to 
+; perform the operation by converting both objects to a third type."
+
+; but i can't really think of any CONCRETE examples off the top of my head... sols??
+            
+    
 
 
 (define (install-3-arg-function)
@@ -88,7 +122,7 @@
         (test x x z)
     )
 )
-(test-2.82)
+(define coercion-n-args coercion-n-args-2.82) (test-2.82)
         
 
 
