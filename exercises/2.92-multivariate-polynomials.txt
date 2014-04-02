@@ -1,0 +1,10 @@
+I THINK what they want is for something like
+
+(add 
+    (make-polynomial 'x '((1 1)))
+    (make-polynomial 'y '((1 1)))
+)
+
+to return something meaningful.
+
+Not posted at http://community.schemewiki.org/?sicp-solutions as of this writing!
