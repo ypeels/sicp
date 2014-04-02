@@ -8,7 +8,7 @@
 
 ;; *incomplete* skeleton of package
 (define (install-polynomial-package)
-    (install-polynomial-package-2.89 'sparse))
+    (install-polynomial-package-2.89 'sparse))  ; '((order coeff))
 
 (define (install-polynomial-package-2.89 package-term-type)
   ;; internal procedures
@@ -23,77 +23,24 @@
 
     (define (same-variable? v1 v2)
       (and (variable? v1) (variable? v2) (eq? v1 v2)))
-      
-      
-  ;;Exercise 2.87 - required to get (adjoin-term, and thus (add and (mul working
-    ; needs access to private member functions like (term-list
-    (define (=zero-poly? p) ; do NOT name it =zero?, because that GENERIC function is called INTERNALLY
-        (define (iter terms)
-            (cond
-                ((empty-termlist? terms)
-                    true)                               ; scanned all terms without finding a nonzero coeff.                    
-                ((not (= 0 (coeff (first-term terms))))
-                    false)
-                (else 
-                    (iter (rest-terms terms)))
-            )
-        )
-        
-        (iter (term-list p))
-    )
-    
 
   ;; representation of terms and term lists
   ;;[procedures adjoin-term ... coeff from text below]
     ;; Representing term lists
     
-    (define (adjoin-term-original term term-list)
+    (define (adjoin-term-original term term-list)                   ; renamed for Exercise 2.89
       (if (=zero? (coeff term))
         term-list
         (cons term term-list)))
     
     (define (the-empty-termlist) '())
-    (define (first-term-original term-list) (car term-list))
+    (define (first-term-original term-list) (car term-list))        ; renamed for Exercise 2.89
     (define (rest-terms term-list) (cdr term-list))
     (define (empty-termlist? term-list) (null? term-list))
     
     (define (make-term order coeff) (list order coeff))
     (define (order term) (car term))
-    (define (coeff term) (cadr term))
-    
-  ;; Exercise 2.89 - "dense" polynomial term representation, via quick backwards-compatible changes
-    (define (adjoin-term term term-list)
-        (cond 
-            ((not (eq? 'dense package-term-type))               ; backwards compatibility
-                (adjoin-term-original term term-list))      
-            ((=zero? (coeff term))                              ; works because ONLY (first-term blah) gets passed to (adjoin-term)!!
-                term-list)
-            ((> (order term) (length term-list))                ; need a zero coefficient
-                (adjoin-term term (cons 0 term-list)))
-            ((< (order term) (length term-list))
-                (error "Hmm, i thought adjoin-term was only supposed to be called on a growing list" term term-list))
-            (else
-                (cons (coeff term) term-list))
-        )
-    )
-    (define (first-term term-list)
-        (if (not (eq? 'dense package-term-type))                ; backwards compatibility
-            (first-term-original term-list)
-            (make-term (car term-list) (- (length term-list) 1))
-        )
-    )
-        ; ohhhhh (from sols): you can KEEP (order and (coeff  (and you probably MUST, unless you want to rewrite (add-terms )
-            ; and you can even keep (make-term, as long as (adjoin-term stores the result in a DENSE LIST.
-            ; all you have to do is HACK FIRST-TERM! clever clever Schemers...
-                           
-
-    
-
-    
-    
-    
-    ; 2.90 - do it like polar/rect, possibly also triggered by term-type
-    
+    (define (coeff term) (cadr term))    
     
 
   ;;(define (add-poly p1 p2) ... )
@@ -149,8 +96,26 @@
              (make-term (+ (order t1) (order t2))
                         (mul (coeff t1) (coeff t2)))
              (mul-term-by-all-terms t1 (rest-terms L))))))
-             
-             
+       
+      
+      
+  ;;Exercise 2.87 - required to get (adjoin-term, and thus (add and (mul working
+    ; needs access to private member functions like (term-list
+    (define (=zero-poly? p) ; do NOT name it =zero?, because that GENERIC function is called INTERNALLY
+        (define (iter terms)
+            (cond
+                ((empty-termlist? terms)
+                    true)                               ; scanned all terms without finding a nonzero coeff.                    
+                ((not (= 0 (coeff (first-term terms))))
+                    false)
+                (else 
+                    (iter (rest-terms terms)))
+            )
+        )
+        
+        (iter (term-list p))
+    )
+    
   ;;Exercise 2.88: sub-poly by simply negating and adding.
     ; could ALMOST define this externally, but need the private accessor (variable...
     (define (sub-poly p1 p2)
@@ -159,9 +124,34 @@
         (mul-poly                       ; meh. this probably won't work for coeffs that are polynomials, without coercion...
             p
             (make-poly (variable p) '((0 -1)))))
-        
-        
-
+            
+  ;; Exercise 2.89 - "dense" polynomial term representation, via quick backwards-compatible changes
+    (define (adjoin-term term term-list)
+        (cond 
+            ((not (eq? 'dense package-term-type))               ; backwards compatibility
+                (adjoin-term-original term term-list))      
+            ((=zero? (coeff term))                              ; works because ONLY (first-term blah) gets passed to (adjoin-term)!!
+                term-list)
+            ((> (order term) (length term-list))                ; need a zero coefficient
+                (adjoin-term term (cons 0 term-list)))
+            ((< (order term) (length term-list))
+                (error "Hmm, i thought adjoin-term was only supposed to be called on a growing list" term term-list))
+            (else
+                (cons (coeff term) term-list))
+        )
+    )
+    (define (first-term term-list)
+        (if (not (eq? 'dense package-term-type))                ; backwards compatibility
+            (first-term-original term-list)
+            (make-term (car term-list) (- (length term-list) 1))
+        )
+    )
+        ; ohhhhh (from sols): you can KEEP (order and (coeff  (and you probably MUST, unless you want to rewrite (add-terms )
+            ; and you can even keep (make-term, as long as (adjoin-term stores the result in a DENSE LIST.
+            ; all you have to do is HACK FIRST-TERM! clever clever Schemers...
+       
+       
+       
   ;; interface to rest of the system
   (define (tag p) (attach-tag 'polynomial p))
   (put 'add '(polynomial polynomial) 
