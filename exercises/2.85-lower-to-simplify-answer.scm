@@ -21,7 +21,6 @@
     )
 )
 (define (can-project? x)
-    ;(display "\n\t\tcan-project? ") (display x)
     (and
         (pair? x)
         (get 'project (list (type-tag x)))
@@ -34,7 +33,6 @@
     
 ; by analogy with install-raise-2.83
 (define (install-project-2.85)
-    
     
     ; remember, these functions take UNTAGGED values as arguments
     (define (project-comp-to-real z-untagged)
@@ -73,23 +71,12 @@
 ; this function lowers objects in the tower if it doesn't destroy information.
 ; e.g., (raise (project 2.34 + 0i)) will be lowered to 2.34
 (define (drop x)
-    ;(display "\n\tdrop(): ") (display x)
     (cond
         ((not (can-project? x))
-            ;(display "no go\n")
             x)
         ((equ? x (raise (project x)))
-            ;(display "hello dolly\n")
             (drop (project x)))
-        (else 
-        
-            ;(display "project-raise destroys information: ")
-            ;(display x) 
-            ;(display (raise (project x)))
-            ;(newline)
-        
-        
-        x)                        ; COULD combine with the bottom rung code, but this shows intent a LITTLE more cleanly...?
+        (else x)                        ; COULD combine with the bottom rung code, but this shows intent a LITTLE more cleanly...?
     )
 )
 
@@ -97,7 +84,6 @@
 
 ; and here my compulsive numbering pays off...ALMOST
 (define (apply-generic-2.85 op . args)
-    ;(display "\n\tapply-generic-2.85 args = ") (display op) (display args)
     
     (let ((upstream-result (apply apply-generic-2.81-86 (cons op args))))  ; STUPID STUPID PARENTHESES    
         (cond   ; WHY do cond and cons only differ by ONE LETTER!? come ON, this is horribly like assembly...
@@ -175,9 +161,4 @@
 (define apply-generic apply-generic-2.85) (test-2.85)
 
 
-
-; (display "\nhello world\n")
-; ; (define apply-generic apply-generic-2.77-80)
-; (define z (make-complex-from-real-imag 1 2))
-; (display (real-part z))
 
