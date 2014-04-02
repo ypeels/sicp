@@ -45,6 +45,7 @@
                 (let ((n (max (order L1) (order L2))))
                     ;(display (padded-dense-coeffs L1 n))
                     ;(display (padded-dense-coeffs L2 n))
+                    ;(display "giggity")
                     
                     
                     (make-term-list-from-dense
@@ -67,7 +68,7 @@
             ; although note that this will punt to addition for the final sum...
             ; also, this means recycling lots of the original code, since that WAS sparse
     
-
+        ; this'd all be much cleaner if i just used COERCION instead of low-level rect/polar style, but no...
                  
 
   ;;(define (mul-poly p1 p2) ... )
@@ -81,18 +82,18 @@
               
               (cond
                   ((or (=zero-poly? p1) (=zero-poly? p2))
-                      (display "00 something... ")
+                     ; (display "00 something... ")
                       the-empty-term-list)
                   ((> (num-terms L1) 1)
                       ;(display "\nparing list 1")
                       
                       (let ((result1 (mul-poly (first-term-poly p1) p2)) (result2 (mul-poly (rest-terms-poly p1) p2)))
                       
-                         ; (display "\n\tparing list 1 results") (display result1) (display result2)
+                       ;   (display "\n\tparing list 1 results") (display result1) (display result2)
                       
                           (add-poly 
-                              (mul-poly (first-term-poly p1) p2)
-                              (mul-poly (rest-terms-poly p1) p2)
+                              result1;(mul-poly (first-term-poly p1) p2)
+                              result2;(mul-poly (rest-terms-poly p1) p2)
                           )
                       )
                   )
@@ -101,8 +102,8 @@
                       
                       (let ((result1 (mul-poly p1 (first-term-poly p2))) (result2 (mul-poly p1 (rest-terms-poly p2))))
                       
-                          ;(display "\n\tparing list 2 input") (display p1) (display (first-term-poly p2))
-                          ;(display "\n\tparing list 2 results") (display result1) (display result2)
+                        ;  (display "\n\tparing list 2 input") (display p1) (display (first-term-poly p2))
+                         ; (display "\n\tparing list 2 results") (display result1) (display result2)
                       
                           (add-poly
                               result1;(mul-poly p1 (first-term-poly p2))
@@ -124,8 +125,8 @@
                               )
                           )
                           ))
-                         ; (display "\tmul-poly result: ")
-                         ; (display result0)
+                          ;(display "\tmul-poly result: ")
+                          ;(display result0)
                           result0)
                   )
                   (else
@@ -158,7 +159,7 @@
     )
     
     (define (rest-terms-poly p)
-       ; (display "\nrest-term-poly") (display p)
+        ;(display "\nrest-term-poly") (display p)
         (make-poly
             (variable p)
             (trailing-terms (term-list p))
@@ -210,16 +211,34 @@
     
     
     ; new operations 
-    (define (order L) (max 0 (- (length L) 1)))
+    (define (order L) 
+       ; (display "\norder dense") (display L)
+        ;(error "\norder dense" L)
+        (cond 
+            ((null? L)
+                0)
+            ((and (pair? L) (=zero? (car L)))
+                ;(display "\ndense order pruning")
+                (order (cdr L)))
+            ((pair? L)
+                (max 0 (- (length L) 1)))
+            (else
+                (error "impossible case? order-dense" L))
+        )
+    )
     (put 'order '(dense) order)
     
     (define (padded-dense-coeffs L n)
+        ;(display "\npadded-dense-coeffs dense")
         (cond 
             ((not (integer? n))
                 (error "Need integer n -- PADDED-DENSE-COEFFS" n))
-            ((<= n (order L))
+            ((null? L)                                              
+                L)
+            ((<= n (- (length L) 1)) ; we want to know total # coeffs, NOT (order L)
                 L)
             (else
+                ;(newline) (display n) (display " and order ") (display (order L)) ;(display L) 
                 (padded-dense-coeffs (cons 0 L) n))
         )
     )
@@ -240,7 +259,7 @@
     (put 'leading-coeff '(dense) leading-coeff)
         
     (define (trailing-terms L)
-        ;(display "\ntrailing-terms dense")
+       ; (display "\ntrailing-terms dense") (display L)
         (if (pair? L)
             (cdr L)
             (error "bad input? TRAILING-TERMS dense" L)
@@ -249,13 +268,14 @@
     (put 'trailing-terms '(dense) (lambda (L) (tag (trailing-terms L))))
     
     (define (num-terms L)
+       ; (display "\nnum-terms dense") (display L)
         (cond
             ((null? L)
                 0)
             ((=zero? (car L))
-                (+ 1 (num-terms (cdr L))))
-            (else
                 (num-terms (cdr L)))
+            (else
+                (+ 1 (num-terms (cdr L))))
         )
     )       
     (put 'num-terms '(dense) num-terms)
@@ -287,6 +307,7 @@
     
     ; new operations
     (define (order L) 
+        ;(display "\norder sparse") (display L)
         (if (null? L)                              ; not sure why this corner case pops up, but whatever    
             0
             (order-term (first-term L))
@@ -296,7 +317,7 @@
     (put 'order '(sparse) order)
     
     (define (padded-dense-coeffs L n)
-        ;(display "\npacked-dense-coeffs dense: ") (display L) (display n)
+        ;(display "\npacked-dense-coeffs sparse: ")
         (cond
             ((< n 0)
                 the-empty-termlist)
@@ -374,6 +395,7 @@
     ;(display "\norder generic") (display term-list)
     (apply-generic 'order term-list))
 (define (padded-dense-coeffs term-list n)               ; SPECIFIED as (coeff_n ... coeff_1 coeff_0)
+    ;(display "\npacked-dense-coeffs generic") (display term-list) (display n)
     (apply-generic 'padded-dense-coeffs term-list n))
 
 (define (leading-coeff term-list)
