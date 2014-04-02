@@ -8,6 +8,12 @@
     ; and if this language is so wonderful and modular, then why is it SUCH A HASSLE to get this simple task done??
     
     
+; TODO
+    ; simplify result to sparse or dense, depending on which consumes less storage
+        ; current results display sums ONLY as dense (all coeffs, including 0)
+            ; this is exactly what the polar/rectangular package does from exercises 2.77-80! good enough for me too.
+            ; honestly, the dense results are much easier for humans to read
+    
 (define (install-polynomial-generic)
 
   ;; internal procedures
@@ -24,13 +30,6 @@
       (and (variable? v1) (variable? v2) (eq? v1 v2)))
       
 
-    ; like (install-complex-package) in 2.77-80, you just DON'T WORRY about the representation
-        ; just invoke PUBLIC FUNCTIONS only
-        
-        
-    
-    
-        
   ;;(define (add-poly p1 p2) ... )
     (define (add-poly p1 p2)
       (if (same-variable? (variable p1) (variable p2))
@@ -98,9 +97,15 @@
   
 (define (install-dense)
 
+    (define (tag x) (attach-tag 'dense x))  ; stupid scheme - to define a local variable, you'd have to wrap the WHOLE BLOCK in a let 
+
     ; constructors. HERE is where tag information gets appended; apply-generic automagically strips it and sends data here.
     (define (make-from-dense L) L)
     (put 'make-from-dense 'dense (lambda (L) (tag (make-from-dense L))))
+    
+    ;(define (make-from-sparse L)
+    ;)
+    ;(put 'make-from-sparse 'dense (lambda (L) (tag (make-from-sparse L))))
     
     
     ; operations on private data
@@ -119,16 +124,72 @@
     )
     (put 'padded-dense-coeffs '(dense scheme-number) padded-dense-coeffs)
     
+
     
-    ; misc.
-    (define (tag x) (attach-tag 'dense x))  ; stupid scheme - to define a local variable, you'd have to wrap the WHOLE BLOCK in a let 
     
     "\nInstalled dense term list representation for Exercise 2.90."
 )
 
+
+(define (install-sparse)
+
+    (define (tag x) (attach-tag 'sparse x))
+    
+    ; constructors
+    (define (make-from-sparse L) L)
+    (put 'make-from-sparse 'sparse (lambda (L) (tag (make-from-sparse L))))
+    
+    
+    ; original sparse API
+    (define (make-term order coeff) (list order coeff))
+    (define (order-term term) (car term))
+    (define (coeff-term term) (cadr term))
+    (define (first-term term-list) (car term-list))
+    (define (rest-terms term-list) (cdr term-list))
+    (define (the-empty-termlist) '())
+    
+    ; operations on private data
+    (define (order L) (order-term (first-term L)))
+    (put 'order '(sparse) order)
+    
+    (define (padded-dense-coeffs L n)
+        (cond
+            ((< n 0)
+                (the-empty-termlist))
+            ((< (order L) n)                        ; append leading 0 coeff
+                (cons 0 (padded-dense-coeffs L (- n 1))))
+            ((> (order L) n)                        ; don't destroy coeffs of order BIGGER than n, naturally
+                (cons 
+                    (coeff-term (first-term L)) 
+                    (padded-dense-coeffs (rest-terms L) n)
+                )
+            )
+            ((= (order L) n)
+                (cons 
+                    (coeff-term (first-term L))
+                    (padded-dense-coeffs (rest-terms L) (- n 1))
+                )
+            )            
+            (else
+                (error "wtf? impossible case - PADDED-DENSE-COEFFS for sparse" L n))
+        )
+            
+    )
+    (put 'padded-dense-coeffs '(sparse scheme-number) padded-dense-coeffs)
+    
+    
+    ; misc
+    
+    
+    
+    "\nInstalled sparse term list representation for Exercise 2.90."
+)
+
+
+
+
 (define (make-term-list-from-dense L)
     ((get 'make-from-dense 'dense) L))
-
 (define (make-poly-from-dense var L)
     ((get 'make 'polynomial-generic)
         var
@@ -136,17 +197,47 @@
     )
 )
 
+(define (make-term-list-from-sparse L)
+    ((get 'make-from-sparse 'sparse) L))
+(define (make-poly-from-sparse var L)
+    ((get 'make 'polynomial-generic)
+        var
+        (make-term-list-from-sparse L)
+    )
+)
+
 ; expose public functionality
-(define (order term-list)
+(define (order term-list)                               ; SPECIFIED as the order of the term list
     (apply-generic 'order term-list))
-(define (padded-dense-coeffs term-list n)
+(define (padded-dense-coeffs term-list n)               ; SPECIFIED as (coeff_n ... coeff_1 coeff_0)
     (apply-generic 'padded-dense-coeffs term-list n))
 
 
+    
+
 (display (install-polynomial-generic))
 (display (install-dense))
+(display (install-sparse))
 
-(define y (make-poly-from-dense 'x '(1 0 1)))
-(newline) (display y)
+(define (test-2.90)
+
+    (define (test y1 y2)
+        (newline)
+        (newline) (display y1) (display y2)
+        (display "\nadd: ") (display (add y1 y2))
+    )
+    
+    (let (  (yd (make-poly-from-dense 'x '(1 0 1)))
+            (ys (make-poly-from-sparse 'x '((3 1) (0 1))))
+            )
+        (test ys ys)
+        (test yd yd)
+        (test ys yd)
+    )
+
+)
+(test-2.90)
+    
+    
 
 
