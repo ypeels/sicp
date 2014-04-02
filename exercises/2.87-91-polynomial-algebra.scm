@@ -27,8 +27,8 @@
     (define (=zero-poly? p) ; do NOT name it =zero?, because that GENERIC function is called INTERNALLY
         (define (iter terms)
             (cond
-                ((null? terms)                          
-                    true)                               ; scanned all terms without finding a nonzero coeff                    
+                ((empty-termlist? terms)
+                    true)                               ; scanned all terms without finding a nonzero coeff.                    
                 ((not (= 0 (coeff (first-term terms))))
                     false)
                 (else 
@@ -38,8 +38,7 @@
         
         (iter (term-list p))
     )
-    (put '=zero? '(polynomial) =zero-poly?)        
-      
+    
 
   ;; representation of terms and term lists
   ;;[procedures adjoin-term ... coeff from text below]
@@ -113,6 +112,18 @@
              (make-term (+ (order t1) (order t2))
                         (mul (coeff t1) (coeff t2)))
              (mul-term-by-all-terms t1 (rest-terms L))))))
+             
+             
+  ;;Exercise 2.88: sub-poly by simply negating and adding.
+    ; could ALMOST define this externally, but need the private accessor (variable...
+    (define (sub-poly p1 p2)
+        (add-poly p1 (negate p2)))        
+    (define (negate p)
+        (mul-poly                       ; meh
+            p
+            (make-poly (variable p) '((0 -1)))))
+        
+        
 
   ;; interface to rest of the system
   (define (tag p) (attach-tag 'polynomial p))
@@ -120,7 +131,9 @@
        (lambda (p1 p2) (tag (add-poly p1 p2))))
   (put 'mul '(polynomial polynomial) 
        (lambda (p1 p2) (tag (mul-poly p1 p2))))
-
+  (put '=zero? '(polynomial) =zero-poly?)                           ; Exercise 2.87
+  (put 'sub '(polynomial polynomial)                                ; Exercise 2.88
+       (lambda (p1 p2) (tag (sub-poly p1 p2))))
   (put 'make 'polynomial
        (lambda (var terms) (tag (make-poly var terms))))
   'done)
@@ -129,6 +142,8 @@
 ;; Constructor
 (define (make-polynomial var terms)
   ((get 'make 'polynomial) var terms))
+  
+  
   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (load "2.77-80-generic-arithmetic.scm")
