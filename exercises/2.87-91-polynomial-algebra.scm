@@ -21,13 +21,32 @@
     (define (same-variable? v1 v2)
       (and (variable? v1) (variable? v2) (eq? v1 v2)))
       
+      
+  ;;Exercise 2.87 - required to get (adjoin-term, and thus (add and (mul working
+    ; needs access to private member functions like (term-list
+    (define (=zero-poly? p) ; do NOT name it =zero?, because that GENERIC function is called INTERNALLY
+        (define (iter terms)
+            (cond
+                ((null? terms)                          
+                    true)                               ; scanned all terms without finding a nonzero coeff                    
+                ((not (= 0 (coeff (first-term terms))))
+                    false)
+                (else 
+                    (iter (rest-terms terms)))
+            )
+        )
+        
+        (iter (term-list p))
+    )
+    (put '=zero? '(polynomial) =zero-poly?)        
+      
 
   ;; representation of terms and term lists
   ;;[procedures adjoin-term ... coeff from text below]
     ;; Representing term lists
     
     (define (adjoin-term term term-list)
-    (if (=zero? (coeff term))
+      (if (=zero? (coeff term))
         term-list
         (cons term term-list)))
     
@@ -113,22 +132,32 @@
   
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (load "2.77-80-generic-arithmetic.scm")
-(load "2.78-obsoleting-scheme-number.scm")  ; required! - footnote 58.
+(load "2.80-equals-zero.scm")               ; required to get (add and (mul to work even with NUMBER coeffs
+;(load "2.78-obsoleting-scheme-number.scm")
 (display "\nInstalling polynomial package...")(display (install-polynomial-package))
-
-
   
 ; first try some testing code
 (define (test-2.87-91)
     
     (define (test p1 p2)
+        (display "(test")
         (newline)
         (display p1) (display p2) (newline)
-        ;(display "\nadd: ") (display (add p1 p2)) ; won't work until after Exercise 2.87
+        (display "\nadd: ") (display (add p1 p2))
+        (display "\nmul: ") (display (mul p1 p2))
     )
     
-    (let ((p (make-polynomial 'x '((2 1) (1 2) (0 1)))))
+    (let (  (p (make-polynomial 'x '((1 1) (0 -1))))
+            (zero (make-polynomial 'x '((1 0) (0 0))))
+            )
         (test p p)
+        (cond 
+            ((=zero? zero)
+                (display "\nZero polynomial checks fine!")
+                'unused-return-value)
+            (else
+                (error "=zero? test failed" zero))
+        )
     )
 )
 ; (test-2.87-91)

@@ -20,8 +20,24 @@
       (error "Bad tagged datum -- CONTENTS" datum)))
       
 (define attach-tag attach-tag-2.4.2)
-(define type-tag type-tag-2.4.2)
-(define contents contents-2.4.2)
+;(define type-tag type-tag-2.4.2)
+;(define contents contents-2.4.2)
+
+(define (type-tag datum)                                        ; Exercise 2.78; merged because Exercises 2.87- have enough headaches...
+    (cond 
+        ((number? datum)
+            'scheme-number)
+        ((pair? datum)
+            (car datum))
+        (else (error "Bad tagged datum -- TYPE-TAG" datum))))
+(define (contents datum)
+    (cond
+        ((number? datum)
+            datum)
+        ((pair? datum)
+            (cdr datum))
+        (else (error "Bad tagged datum -- CONTENTS" datum))))
+            
       
       
 ;;;SECTION 2.4.3
@@ -124,17 +140,21 @@
   (define (tag x)
     (attach-tag tag-value x))
   (put 'add (list tag-value tag-value)
-       (lambda (x y) (tag (+ x y))))
+       (lambda (x y) ((get 'make tag-value) (+ x y))))              ; modified from "(tag (+ x y)) for Exercises 2.87- (and thus retroactively for 2.78)                 
   (put 'sub (list tag-value tag-value)
-       (lambda (x y) (tag (- x y))))
+       (lambda (x y) ((get 'make tag-value) (- x y))))
   (put 'mul (list tag-value tag-value)
-       (lambda (x y) (tag (* x y))))
+       (lambda (x y) ((get 'make tag-value) (* x y))))
   (put 'div (list tag-value tag-value)
-       (lambda (x y) (tag (/ x y))))
+       (lambda (x y) ((get 'make tag-value) (/ x y))))
   (put 'equ? (list tag-value tag-value) =)                          ; added for Exercise 2.79
-  (put '=zero? '(scheme-number) (lambda (x) (= 0 x)))                   ; added for Exercise 2.80
-  (put 'make tag-value
-       (lambda (x) (tag x)))                                           
+  (put '=zero? (list tag-value) (lambda (x) (= 0 x)))               ; added for Exercise 2.80
+  (put 'make tag-value  
+        ;(lambda (x) (tag x)))  
+        (lambda (x)                                                 ; modified for Exercises 2.87- (and thus retroactively for 2.78)
+            (if (eq? tag-value 'scheme-number)
+                x
+                (tag x))))
   'done)
 
 (define (make-scheme-number n)
