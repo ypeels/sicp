@@ -4,11 +4,6 @@
 (load "2.77-complex-number-selectors.scm") ; omfg like louis reasoner, i needed this hack too!! the shame... 
 
 
-(install-complex-reps-2.77) ; but why does it have to be called AFTER 2.83 and 2.84 load?? ugh the stupid intricacies of the scheme runtime...
-(install-builtin-number-package 'integer)  ; and why do these have to be called again!?!? well, at least it's deterministic...
-(install-builtin-number-package 'real)
-(install-raise-2.83)
-(install-default-values-2.84) (define get-coercion get-coercion-2.84)
 
 
                                                                        
@@ -61,8 +56,14 @@
 )
 
 
-; uh... required by (drop... 
-(display (install-project-2.85)) 
+
+
+(install-complex-reps-2.77) ; but why does it have to be called AFTER 2.83 and 2.84 load?? ugh the stupid intricacies of the scheme runtime...
+(install-builtin-number-package 'integer)  ; and why do these have to be called again!?!? well, at least it's deterministic...
+(install-builtin-number-package 'real)
+(install-raise-2.83)
+(install-default-values-2.84) (define get-coercion get-coercion-2.84)
+(display (install-project-2.85))    ; uh... required by (drop... 
 
 
 (define (drop x) x)
@@ -158,7 +159,7 @@
 
        
 
-(define apply-generic apply-generic-2.85) (test-2.85)
+; (define apply-generic apply-generic-2.85) (test-2.85)
 
 
 
