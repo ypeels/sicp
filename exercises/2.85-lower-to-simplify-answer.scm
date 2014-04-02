@@ -22,7 +22,11 @@
 )
 (define (can-project? x)
     ;(display "\n\t\tcan-project? ") (display x)
-    (get 'project (list (type-tag x))))
+    (and
+        (pair? x)
+        (get 'project (list (type-tag x)))
+    )
+)
 
 ; finally using the result of Exercise 2.79
 (define (equ? x y)
@@ -66,36 +70,49 @@
 (define (drop x) x)
 
 
-; ; this function lowers objects in the tower if it doesn't destroy information.
-; ; e.g., (raise (project 2.34 + 0i)) will be lowered to 2.34
-; (define (drop x)
-;     (display "\n\tdrop(): ") (display x)
-;     (cond
-;         ((not (can-project? x))
-;             (display "no go\n")
-;             x)
-;         ((equ? x (raise (project x)))
-;             (display "hello dolly\n")
-;             (drop (project x)))
-;         (else 
-;         
-;             (display "project-raise destroys information: ")
-;             (display x) 
-;             (display (raise (project x)))
-;             (newline)
-;         
-;         
-;         x)                        ; COULD combine with the bottom rung code, but this shows intent a LITTLE more cleanly...?
-;     )
-; )
+; this function lowers objects in the tower if it doesn't destroy information.
+; e.g., (raise (project 2.34 + 0i)) will be lowered to 2.34
+(define (drop x)
+    ;(display "\n\tdrop(): ") (display x)
+    (cond
+        ((not (can-project? x))
+            ;(display "no go\n")
+            x)
+        ((equ? x (raise (project x)))
+            ;(display "hello dolly\n")
+            (drop (project x)))
+        (else 
+        
+            ;(display "project-raise destroys information: ")
+            ;(display x) 
+            ;(display (raise (project x)))
+            ;(newline)
+        
+        
+        x)                        ; COULD combine with the bottom rung code, but this shows intent a LITTLE more cleanly...?
+    )
+)
 
 
 
-; and here my compulsive numbering pays off        
-(define (apply-generic-2.85 . all-args)
-    (let ((unsimplified-result (apply apply-generic-2.81-86 all-args)))  ; STUPID STUPID PARENTHESES
-        ;(display "\napply-generic unsimplified result: ") (display unsimplified-result)
-        (drop unsimplified-result)
+; and here my compulsive numbering pays off...ALMOST
+(define (apply-generic-2.85 op . args)
+    ;(display "\n\tapply-generic-2.85 args = ") (display op) (display args)
+    
+    (let ((upstream-result (apply apply-generic-2.81-86 (cons op args))))  ; STUPID STUPID PARENTHESES    
+        (cond   ; WHY do cond and cons only differ by ONE LETTER!? come ON, this is horribly like assembly...
+        
+            ; need to watch out because this function is also used to get RAW numer-rational
+            ((not (can-project? upstream-result))
+                upstream-result)
+                
+            ; also do NOT try to (drop if the operation was raise/project. infinite recursion lies there...
+            ((or (eq? op 'raise) (eq? op 'project))
+                upstream-result)
+                
+            (else
+                (drop upstream-result))
+        )
     )
 )
 
@@ -109,8 +126,6 @@
 
 (define (test-2.85)
 
-    (display "\nwelcome to test-2.85\n")
-
     (define (pre-test x)
         (display "\n\nx = ") (display x)
         (display "\nraise = ") (display (raise x))
@@ -120,20 +135,25 @@
     
     (define (test x y)
         (newline)
-        (display x) (display " + ") (display y) (display " = ")
-        (display (add x y))
+        (display x) (display " + ") (display y)
+        (let ((ans (add x y)))
+            (display " = ")
+            (display ans)
+        )
     )
     
     (let (  (i (make-integer 1))
             (q (make-rational 1 2))
             (r (make-real 1.5))
-            (z (make-complex-from-real-imag 3 1))
+            (z (make-complex-from-real-imag 3 0))
+            (z2 (make-complex-from-real-imag 3 1))
         )
 
-        ;(pre-test i)
-        ;(pre-test q)
-        ;(pre-test r)
-        ;(pre-test z)
+        (pre-test i)
+        (pre-test q)
+        (pre-test r)
+        (pre-test z)
+        (newline)
             
         (test i i)
         (test i q)
@@ -143,6 +163,8 @@
         (test z z)
         (test z r)
         (test r z)
+        (test r z2)
+        (test z2 q)
     )
     "goodbye world"
 )

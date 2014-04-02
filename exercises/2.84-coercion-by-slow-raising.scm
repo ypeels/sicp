@@ -5,10 +5,7 @@
 
 (define (can-raise-type?-2.84 type)
     (can-raise?-2.83 (default-value-2.84 type)))
-;(define (raise x)
-;    (if (can-raise-type?-2.84 (type-tag x))                         ; added for Exercise 2.85
-;        (raise-2.83 x)
-;        x))
+
 
 ; using this function to climb the tower in (get-coercion 
 ; all because i don't want to modify the upstream code at all...
