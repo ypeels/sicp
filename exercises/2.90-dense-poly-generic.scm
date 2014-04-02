@@ -74,59 +74,65 @@
     (define (mul-poly p1 p2)
         ;(display "\nmul-poly: ")(display p1) (display p2)
       (if (same-variable? (variable p1) (variable p2))
-          (make-poly 
-            (variable p1)
+          ;(make-poly 
+          ;  (variable p1)
             
-            (let ((L1 (term-list p1)) (L2 (term-list p2)))
-                
-                (cond
-                    ((or (=zero-poly? p1) (=zero-poly? p2))
-                        (display "00 something... ")
-                        (make-poly-from-sparse (variable p1) the-empty-term-list))
-                    ((> (num-terms L1) 1)
-                        (display "\nparing list 1")
-                        (add-poly 
-                            (mul-poly (first-term-poly p1) p2)
-                            (mul-poly (rest-terms-poly p1) p2)
-                        )
-                    )
-                    ((> (num-terms L2) 1)
-                        (display "\nparing list 2")
-                        
-                        (let ((result1 (mul-poly p1 (first-term-poly p2))) (result2 (mul-poly p1 (rest-terms-poly p2))))
-                        
-                            (display "\n\tparing list 2 input") (display p1) (display (first-term-poly p2))
-                            (display "\n\tparing list 2 results") (display result1) (display result2)
-                        
-                            (add-poly
-                                result1;(mul-poly p1 (first-term-poly p2))
-                                result2;(mul-poly p1 (rest-terms-poly p2))
-                            )
-                        )
-                    )
-                    ((and (= 1 (num-terms L1)) (= 1 (num-terms L2)))    ; my algorithm pares it down to multiplication of single terms
-                        (display "\nend of the line")
-                        
-                        (let ((result0
-                            ;(make-poly
-                            ;    (variable p1)                          ; ~1-hour bug: there's a make-poly wraping this whole thing outside. that's what you get when you try to FORCIBLY enforce type in a weakly typed language...
-                                (make-term-list-from-sparse
-                                    (list (list 
-                                        (add (order L1) (order L2))
-                                        (mul (leading-coeff L1) (leading-coeff L2))
-                                    ))
-                                )
-                            ;)
-                            ))
-                            (display "\tmul-poly result: ")
-                            (display result0)
-                            result0)
-                    )
-                    (else
-                        (error "impossible case!? MUL-POLY: " p1 p2))
-                )
-            )
-          ) 
+          (let ((L1 (term-list p1)) (L2 (term-list p2)))
+              
+              (cond
+                  ((or (=zero-poly? p1) (=zero-poly? p2))
+                      (display "00 something... ")
+                      the-empty-term-list)
+                  ((> (num-terms L1) 1)
+                      ;(display "\nparing list 1")
+                      
+                      (let ((result1 (mul-poly (first-term-poly p1) p2)) (result2 (mul-poly (rest-terms-poly p1) p2)))
+                      
+                         ; (display "\n\tparing list 1 results") (display result1) (display result2)
+                      
+                          (add-poly 
+                              (mul-poly (first-term-poly p1) p2)
+                              (mul-poly (rest-terms-poly p1) p2)
+                          )
+                      )
+                  )
+                  ((> (num-terms L2) 1)
+                      ;(display "\nparing list 2")
+                      
+                      (let ((result1 (mul-poly p1 (first-term-poly p2))) (result2 (mul-poly p1 (rest-terms-poly p2))))
+                      
+                          ;(display "\n\tparing list 2 input") (display p1) (display (first-term-poly p2))
+                          ;(display "\n\tparing list 2 results") (display result1) (display result2)
+                      
+                          (add-poly
+                              result1;(mul-poly p1 (first-term-poly p2))
+                              result2;(mul-poly p1 (rest-terms-poly p2))
+                          )
+                      )
+                  )
+                  ((and (= 1 (num-terms L1)) (= 1 (num-terms L2)))    ; my algorithm pares it down to multiplication of single terms
+                      ;(display "\nend of the line")
+                      
+                      (let ((result0
+                          (make-poly
+                              (variable p1)                          ; ~1-hour bug: there's a make-poly wraping this whole thing outside. that's what you get when you try to FORCIBLY enforce type in a weakly typed language...
+                              (make-term-list-from-sparse
+                                  (list (list 
+                                      (add (order L1) (order L2))
+                                      (mul (leading-coeff L1) (leading-coeff L2))
+                                  ))
+                              )
+                          )
+                          ))
+                         ; (display "\tmul-poly result: ")
+                         ; (display result0)
+                          result0)
+                  )
+                  (else
+                      (error "impossible case!? MUL-POLY: " p1 p2))
+              )
+          )
+          
           (error "Polys not in same var -- MUL-POLY" (list p1 p2))
       )
     )
@@ -152,7 +158,7 @@
     )
     
     (define (rest-terms-poly p)
-        (display "\nrest-term-poly") (display p)
+       ; (display "\nrest-term-poly") (display p)
         (make-poly
             (variable p)
             (trailing-terms (term-list p))
@@ -234,6 +240,7 @@
     (put 'leading-coeff '(dense) leading-coeff)
         
     (define (trailing-terms L)
+        ;(display "\ntrailing-terms dense")
         (if (pair? L)
             (cdr L)
             (error "bad input? TRAILING-TERMS dense" L)
@@ -251,6 +258,7 @@
                 (num-terms (cdr L)))
         )
     )       
+    (put 'num-terms '(dense) num-terms)
 
     
     
@@ -398,8 +406,8 @@
             )
         (test ys2 ys3)
         (test ys ys)
-        ;(test yd yd)
-        ;(test ys yd)
+        (test yd yd)
+        (test ys yd)
     )
 
 )
