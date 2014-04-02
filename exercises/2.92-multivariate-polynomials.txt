@@ -8,3 +8,19 @@ I THINK what they want is for something like
 to return something meaningful.
 
 Not posted at http://community.schemewiki.org/?sicp-solutions as of this writing!
+
+What exactly do they mean "imposing an ordering on variables"?
+
+Well, from the text:
+"""
+One can impose a towerlike structure on this by ordering the variables and thus always 
+converting any polynomial to a ``canonical form'' with the highest-priority variable dominant
+ and the lower-priority variables buried in the coefficients. 
+This strategy works fairly well, except that the conversion may expand a polynomial unnecessarily, 
+making it hard to read and perhaps less efficient to work with.
+"""
+
+The "multivariate" extension from exercise 2.87 doesn't seem THAT hard...
+So by "not easy" they are probably referring to the "canonical form" converter...
+
+MEH!

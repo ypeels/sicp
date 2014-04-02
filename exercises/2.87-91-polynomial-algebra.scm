@@ -118,12 +118,44 @@
     
   ;;Exercise 2.88: sub-poly by simply negating and adding.
     ; could ALMOST define this externally, but need the private accessor (variable...
+    ;(define (sub-poly p1 p2)
+    ;    (add-poly p1 (negate p2)))        
+    ;(define (negate p)
+    ;    (mul-poly                       ; meh. this probably won't work for coeffs that are polynomials, without coercion...
+    ;        p
+    ;        (make-poly (variable p) '((0 -1)))
+    ;    )
+    ;)
+    
+    ; refactored for Exercise 2.91. added error checking instead of relying on (add-poly's, just so i can have a usable (sub-terms
     (define (sub-poly p1 p2)
-        (add-poly p1 (negate p2)))        
-    (define (negate p)
-        (mul-poly                       ; meh. this probably won't work for coeffs that are polynomials, without coercion...
-            p
-            (make-poly (variable p) '((0 -1)))))
+        (if (same-variable? (variable p1) (variable p2))
+            (make-poly 
+                (variable p1)
+                (sub-terms
+                    (term-list p1)
+                    (term-list p2)
+                )
+            )
+            (error "Polys not in same var -- SUB-POLY" (list p1 p2))
+        )
+    )
+    (define (sub-terms L1 L2)
+        (add-terms L1 (negate-terms L2)))
+    
+    ; by analogy with (mul-term-by-all-terms
+    (define (negate-terms term-list)        
+        (if (empty-termlist? term-list)
+            (the-empty-termlist)
+            (let ((t (first-term term-list)))
+                (adjoin-term
+                    (make-term (order t) (mul -1 (coeff t)))
+                    (negate-terms (rest-terms term-list))
+                )
+            )
+        )
+    )
+        
             
   ;; Exercise 2.89 - "dense" polynomial term representation, via quick backwards-compatible changes
     (define (adjoin-term term term-list)
@@ -150,6 +182,48 @@
             ; and you can even keep (make-term, as long as (adjoin-term stores the result in a DENSE LIST.
             ; all you have to do is HACK FIRST-TERM! clever clever Schemers...
        
+       
+  ;;Exercise 2.91: div-poly 
+    ; from problem statement
+    (define (div-terms L1 L2)
+      (if (empty-termlist? L1)
+          (list (the-empty-termlist) (the-empty-termlist))
+          (let ((t1 (first-term L1))
+                (t2 (first-term L2)))
+            (if (> (order t2) (order t1))
+                (list (the-empty-termlist) L1)
+                (let ((new-c (div (coeff t1) (coeff t2)))       ; divide the highest-order term of the dividend by the highest-order term of the divisor. 
+                      (new-o (- (order t1) (order t2))))        ; The result is the first term of the quotient.
+                  (let ((rest-of-result
+                  
+                  
+                         ;<compute rest of result recursively>
+                         ; multiply the result by the divisor, subtract that from the dividend, 
+                         ; and produce the rest of the answer by recursively dividing the difference by the divisor.                         
+                         (div-terms
+                             (sub-terms 
+                                 L1                                          ; the dividend (L1 / L2 = dividend / divisor)
+                                 (mul-terms 
+                                     (adjoin-term 
+                                         (make-term new-o new-c)             ; "the result" of dividing L1 by the highest term of L2
+                                         (the-empty-termlist)
+                                     )
+                                     L2                                      ; the divisor
+                                 )
+                             )
+                             L2
+                         )
+                         
+                         )) ; let rest of result
+                    
+                    ;<form complete result>
+                    ;(cons
+                    ;    (add-terms
+                    
+                    
+                    ))))))
+  
+           
        
        
   ;; interface to rest of the system
