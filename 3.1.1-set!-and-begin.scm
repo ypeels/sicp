@@ -65,3 +65,10 @@
 (test 0)
 (test -1)
 (test 100)
+
+
+; footnote 2: The value of a set! expression is implementation-dependent. Set! should be used only for its effect, not for its value.
+(define x 0)                      ; result in MIT-Scheme 9.1
+(newline) (display (set! x 1))    ; 0
+(newline) (display (set! x 2001)) ; 1
+(newline) (display (set! x 3))    ; 2001    
