@@ -31,5 +31,5 @@
     (newline) (display (s 100))   ; 10
     (newline) (display (s 'how-many-calls?)) ; 3
 )
-(test-3.02)
+; (test-3.02)
     
