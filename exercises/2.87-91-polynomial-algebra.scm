@@ -220,13 +220,19 @@
                          (div-terms
                              (sub-terms 
                                  L1                                          ; the dividend (L1 / L2 = dividend / divisor)
-                                 (mul-terms 
-                                     (adjoin-term 
-                                         (make-term new-o new-c)             ; "the result" of dividing L1 by the highest term of L2
-                                         (the-empty-termlist)
-                                     )
-                                     L2                                      ; the divisor
+                                 
+                                 (mul-term-by-all-terms
+                                    (make-term new-o new-c)                  ; "the result" of dividing L1 by the highest term of L2
+                                    L2                                       ; the divisor
                                  )
+                                 
+                                 ;(mul-terms 
+                                 ;    (adjoin-term 
+                                 ;        (make-term new-o new-c)             ; "the result" of dividing L1 by the highest term of L2
+                                 ;        (the-empty-termlist)
+                                 ;    )
+                                 ;    L2                                      ; the divisor
+                                 ;)
                              )
                              L2
                          )
@@ -245,9 +251,13 @@
                     ))))))
                     
   ;;Exercise 2.94: gcd-poly
+  
+    ; refactored for Exercise 2.96
+    (define (gcd-poly-v1 p1 p2)
+        (gcd-poly-driver p1 p2 gcd-terms-v1))
     
     ; The procedure should signal an error if the two polys are not in the same variable.
-    (define (gcd-poly p1 p2)
+    (define (gcd-poly-driver p1 p2 gcd-terms)
         (if (same-variable? (variable p1) (variable p2))
             (make-poly
                 (variable p1)
@@ -258,14 +268,41 @@
     )
     
     ; from main text
-    (define (gcd-terms a b)
+    (define (gcd-terms-v1 a b)
       (if (empty-termlist? b)
           a
-          (gcd-terms b (remainder-terms a b))))
+          (gcd-terms-v1 b (remainder-terms a b))))
           
     ; new for this Exercise
     (define (remainder-terms a b)
         (cadr (div-terms a b)))
+        
+  ;;Exercise 2.96: pseudodivision, which guarantees no rational coeffs in quotient, starting from all integer coeffs in divisor/dividend
+    (define (pseudoremainder-terms P Q)
+        (let (  (c (coeff (first-term Q)))
+                (O1 (order (first-term P)))
+                (O2 (order (first-term Q)))
+                )
+            (remainder-terms
+                (mul-term-by-all-terms 
+                    (make-term 0 (expt c (- (+ 1 O1) O2)))
+                    P
+                )
+                Q
+            )
+        )
+    )
+    
+    (define (gcd-terms-v2 a b)
+        (if (empty-termlist? b)
+            a
+            (gcd-terms-v2 b (pseudoremainder-terms a b))
+        )
+    )
+    
+    (define (gcd-poly-v2 p1 p2)
+        (gcd-poly-driver p1 p2 gcd-terms-v2))
+            
         
   
            
@@ -290,7 +327,9 @@
         )
        )
   )
-  (put 'gcd '(polynomial polynomial) gcd-poly)
+  (put 'gcd-2.94 '(polynomial polynomial) gcd-poly-v1)                 ; added for Exercise 2.96 to prevent "breaking" 2.95
+  (put 'gcd '(polynomial polynomial) gcd-poly-v2)
+  
     
   (put 'make 'polynomial
        (lambda (var terms) (tag (make-poly var terms))))
