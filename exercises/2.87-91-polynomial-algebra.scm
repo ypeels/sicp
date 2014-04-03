@@ -184,6 +184,21 @@
        
        
   ;;Exercise 2.91: div-poly 
+  
+    ; checks to see if the two polys have the same variable. 
+    ; If so, div-poly strips off the variable and passes the problem to div-terms, which performs the division operation on term lists. 
+    ; Div-poly finally reattaches the variable to the result supplied by div-terms.
+    (define (div-poly p1 p2)
+        (if (same-variable? (variable p1) (variable p2))
+            (let ((quotient-and-remainder (div-terms (term-list p1) (term-list p2))))
+                (list
+                    (make-poly (variable p1) (car quotient-and-remainder))
+                    (make-poly (variable p1) (cdr quotient-and-remainder))
+                )
+            )
+        )
+    )
+        
     ; from problem statement
     (define (div-terms L1 L2)
       (if (empty-termlist? L1)
@@ -217,11 +232,18 @@
                          )) ; let rest of result
                     
                     ;<form complete result>
-                    ;(cons
-                    ;    (add-terms
-                    
-                    
+                    ; return a list of the quotient term list and the remainder term list
+                    (list
+                        (adjoin-term 
+                            (make-term new-o new-c)
+                            (car rest-of-result)
+                        )
+                        (cadr rest-of-result)
+                    )
                     ))))))
+                    
+
+        
   
            
        
@@ -235,6 +257,17 @@
   (put '=zero? '(polynomial) =zero-poly?)                           ; Exercise 2.87
   (put 'sub '(polynomial polynomial)                                ; Exercise 2.88
        (lambda (p1 p2) (tag (sub-poly p1 p2))))
+  (put 'div '(polynomial polynomial)                                ; Exercise 2.91
+       (lambda (p1 p2) 
+        (let ((quotient-and-remainder (div-poly p1 p2)))
+            (list
+                (tag (car quotient-and-remainder))                  ; quotient
+                (tag (cadr quotient-and-remainder))                 ; remainder
+            )
+        )
+       )
+  )
+    
   (put 'make 'polynomial
        (lambda (var terms) (tag (make-poly var terms))))
   'done)
