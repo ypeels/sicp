@@ -134,6 +134,8 @@
 (define (div x y) (apply-generic 'div x y))
 (define (greatest-common-divisor x y)                               ; added for Exercise 2.94
     (apply-generic 'gcd x y))
+(define (reduce x y)                                                ; added for Exercise 2.97
+    (apply-generic 'reduce x y))
 
 ;(define (install-scheme-number-package)                            ; generalized for Exercise 2.83 to allow 'integer and 'real
 (define (install-scheme-number-package)
@@ -141,6 +143,9 @@
 (define (install-builtin-number-package tag-value)
   (define (tag x)
     (attach-tag tag-value x))
+  (define (reduce-integers n d)                                     ; Exercise 2.97b (problem statement)
+    (let ((g (gcd n d)))
+      (list (/ n g) (/ d g))))    
   (put 'add (list tag-value tag-value)
        (lambda (x y) ((get 'make tag-value) (+ x y))))              ; modified from "(tag (+ x y)) for Exercises 2.87- (and thus retroactively for 2.78)                 
   (put 'sub (list tag-value tag-value)
@@ -153,6 +158,19 @@
   (put '=zero? (list tag-value) (lambda (x) (= 0 x)))               ; added for Exercise 2.80
   (put 'gcd (list tag-value tag-value)                              ; added for Exercise 2.94
        (lambda (x y) ((get 'make tag-value) (gcd x y))))
+  (put 'reduce (list tag-value tag-value)                           ; added for Exercise 2.97
+       (lambda (x y)
+        (let (  (untagged-result (reduce-integers x y))
+                (make (get 'make tag-value))
+                )
+            (list
+                (make (car untagged-result))
+                (make (cadr untagged-result))
+            )
+        )
+       )
+  )          
+            
   (put 'make tag-value  
         ;(lambda (x) (tag x)))  
         (lambda (x)                                                 ; modified for Exercises 2.87- (and thus retroactively for 2.78)
@@ -171,10 +189,16 @@
   (define (make-rat n d)
     ;(let ((g (gcd n d)))                                               ; "disabled" for Exercise 2.93    
     ;  (cons (/ n g) (/ d g))))                                         ; i mean, why break old code?
-    (if (or (eq? 'polynomial (type-tag n)) (eq? 'polynomial (type-tag d)))
-        (cons n d)
-        (let ((g (gcd n d)))
-            (cons (/ n g) (/ d g))
+    ;(if (or (eq? 'polynomial (type-tag n)) (eq? 'polynomial (type-tag d)))
+    ;    (cons n d)                                                     ; disabled for Exercise 2.97
+    ;    (let ((g (gcd n d)))
+    ;        (cons (/ n g) (/ d g))
+    ;    )
+    ;)
+    (let ((numer-and-denom (reduce n d)))
+        (cons 
+            (car numer-and-denom)
+            (cadr numer-and-denom)
         )
     )
   )

@@ -392,10 +392,10 @@
         )
        )
   )
-  (put 'gcd-2.94 '(polynomial polynomial) gcd-poly-v1)                 ; added for Exercise 2.96 to prevent "breaking" 2.95
+  (put 'gcd-2.94 '(polynomial polynomial) gcd-poly-v1)              ; added for Exercise 2.96 to prevent "breaking" 2.95
   (put 'gcd-2.96a '(polynomial polynomial) gcd-poly-v2)
   (put 'gcd '(polynomial polynomial) gcd-poly-v3)
-  (put 'reduce '(polynomial polynomial) 
+  (put 'reduce '(polynomial polynomial)                             ; Exercise 2.97
        (lambda (p1 p2)
         (let ((result (reduce-poly p1 p2)))
             (list 

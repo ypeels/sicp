@@ -1,7 +1,6 @@
 (load "2.87-91-polynomial-algebra.scm")
 
-(define (reduce x y)
-    (apply-generic 'reduce x y))
+
     
     
     

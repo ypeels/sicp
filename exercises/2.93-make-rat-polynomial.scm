@@ -23,6 +23,7 @@
         )
     )
     
+    (display "\nExercise 2.93 starting regression tests...")
     (regression-test 1 1 1 1)
     (regression-test 1 2 1 3)
     (regression-test 1 2 1 2)
