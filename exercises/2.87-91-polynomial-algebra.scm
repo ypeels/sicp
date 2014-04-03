@@ -279,17 +279,12 @@
         
   ;;Exercise 2.96: pseudodivision, which guarantees no rational coeffs in quotient, starting from all integer coeffs in divisor/dividend
     (define (pseudoremainder-terms P Q)
-        (let (  (c (coeff (first-term Q)))
-                (O1 (order (first-term P)))
-                (O2 (order (first-term Q)))
-                )
-            (remainder-terms
-                (mul-term-by-all-terms 
-                    (make-term 0 (expt c (- (+ 1 O1) O2)))
-                    P
-                )
-                Q
+        (remainder-terms
+            (mul-term-by-all-terms 
+                (make-term 0 (integerizing-factor P Q))
+                P
             )
+            Q
         )
     )
     
@@ -307,24 +302,42 @@
     ; and one more version, for Exercise 2.96 part b    
     (define (gcd-terms-v3 a b)
         (let ((unnormalized-termlist (gcd-terms-v2 a b)))
-            (let ((g 
-                    ; gcd of all the coeffs (yes, it takes multiple arguments!
-                    (apply gcd                    
-                        ; list of coeffs
-                        (map coeff unnormalized-termlist)
-                    )))
-                (mul-term-by-all-terms                              ; div-terms gives an extra trailing '() - oh that's the REMAINDER
-                    (make-term 0 (/ 1 g))           
-                    unnormalized-termlist
-                )
+            (mul-term-by-all-terms                              ; div-terms gives an extra trailing '() - oh that's the REMAINDER
+                (make-term 0 (/ 1 (gcd-of-coeffs unnormalized-termlist)))     
+                unnormalized-termlist
             )
         )
     )
 
     (define (gcd-poly-v3 p1 p2)
         (gcd-poly-driver p1 p2 gcd-terms-v3))
+        
+    ; refactored retroactively for reuse in Exercise 2.97
+    (define (integerizing-factor P Q) ; for P / Q
+        (let (  (c (coeff (first-term Q)))
+                (O1 (order (first-term P)))
+                (O2 (order (first-term Q)))
+                )   
+            (expt c (- (+ 1 O1) O2))
+        )
+    )    
+    (define (gcd-of-coeffs term-list)
+        (apply gcd (map coeff term-list)))
+        
+        
             
         
+  ;;Exercise 2.97
+  
+    ; pull off as procedures
+        ; integerizing factor of p and q
+        ; gcd-of-coeffs
+        
+        
+    ; for numer and denom
+        ; multiply by max(integerizing factor(g, n), integerizing factor (g, d))
+        ; div-terms by gcd-terms-v3
+        ; multiply by 1/(gcd of coeffs of 
   
            
        
