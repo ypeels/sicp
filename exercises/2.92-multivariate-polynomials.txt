@@ -23,4 +23,10 @@ making it hard to read and perhaps less efficient to work with.
 The "multivariate" extension from exercise 2.87 doesn't seem THAT hard...
 So by "not easy" they are probably referring to the "canonical form" converter...
 
+Or maybe they mean that when you (add, a polynomial with lower symbol will be demoted to a constant term?
+
+You COULD just decree symbols to be ordered alphanumerically...
+
+But what about general polynomials that were written as functions of two lower-priority variables?
+
 MEH!
