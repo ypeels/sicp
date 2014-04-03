@@ -29,4 +29,6 @@ You COULD just decree symbols to be ordered alphanumerically...
 
 But what about general polynomials that were written as functions of two lower-priority variables?
 
+I guess this is why people pay $$$ for Mathematica (which is probably not written in Lisp)
+
 MEH!
