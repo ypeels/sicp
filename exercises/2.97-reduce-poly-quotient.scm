@@ -12,6 +12,14 @@
         (display "\nreduce: ")
         (display (reduce p1 p2))
     )
+    
+    (define (test-sum q1 q2)
+        (newline)
+        (newline) (display q1) (display q2)
+        (display "\nadd: ")
+        (display (add q1 q2))
+    )
+        
 
     (let (  (p1 (make-polynomial 'x '((1 1)(0 1))))
             (p2 (make-polynomial 'x '((3 1)(0 -1))))
@@ -22,6 +30,19 @@
         (test p3 p3)
         (test p1 p3)
         (test p1 p4)
+        
+        ; (load "2.93-make-rat-polynomial.scm") (test-2.93) ; meh
+        (let (  (rf1 (make-rational p1 p2)) ; (x+1) / (x**3 - 1)
+                (rf2 (make-rational p3 p4)) ; x / (x^2 - 1)
+                )
+            (test-sum rf1 rf1)      ; unlike exercise 2.93, this is just 2*rf1 now
+            (test-sum rf2 rf2)
+            
+            
+            (test-sum rf1 rf2)
+            ; TODO: check this
+            
+        )
     )
 )
 (test-2.97)

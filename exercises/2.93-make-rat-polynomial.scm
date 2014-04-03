@@ -32,8 +32,8 @@
     ; data from problem statement
     (let ((L1 '((2 1)(0 1))) (L2 '((3 1)(0 1))))
         (test L1 L1)                                ; far from the simplified answer (2) before gcd-terms is implemented
-        (test L2 L2)
+        (test L2 L2)                                ; unfortunately, "broken" by Exercise 2.97    
         (test L1 L2)
     )
 )
-(test-2.93)
+;(test-2.93)
