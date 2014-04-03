@@ -11,7 +11,7 @@
 
     
 (define deposit
-    (let ((balance 0))              ; interestingly, this initial value binds ONLY ONCE
+    (let ((balance 0))              ; interestingly, this initial value binds ONLY ONCE...?? see section 3.2?
         (lambda (amt)
             (if (> amt 0)
                 (begin
@@ -69,6 +69,25 @@
 
 ; footnote 2: The value of a set! expression is implementation-dependent. Set! should be used only for its effect, not for its value.
 (define x 0)                      ; result in MIT-Scheme 9.1
+(newline)
 (newline) (display (set! x 1))    ; 0
 (newline) (display (set! x 2001)) ; 1
 (newline) (display (set! x 3))    ; 2001    
+
+
+
+(define (make-withdraw balance)                 ; balance binds to the lambda on the call to (make-withdraw
+  (lambda (amount)
+    (if (>= balance amount)
+        (begin (set! balance (- balance amount))
+               balance)
+        "Insufficient funds")))
+        
+(define W1 (make-withdraw 100))
+(define W2 (make-withdraw 100))
+
+(newline)
+(newline) (display (W1 20))     ; 80
+(newline) (display (W2 10))     ; 90
+(newline) (display (W1 85))     ; "Insufficient funds"
+(newline) (display (W2 85))     ; 5
