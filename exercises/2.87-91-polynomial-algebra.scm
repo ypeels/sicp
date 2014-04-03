@@ -280,10 +280,7 @@
   ;;Exercise 2.96: pseudodivision, which guarantees no rational coeffs in quotient, starting from all integer coeffs in divisor/dividend
     (define (pseudoremainder-terms P Q)
         (remainder-terms
-            (mul-term-by-all-terms 
-                (make-term 0 (integerizing-factor P Q))
-                P
-            )
+            (mul-terms-by-number (integerizing-factor P Q) P)
             Q
         )
     )
@@ -302,8 +299,8 @@
     ; and one more version, for Exercise 2.96 part b    
     (define (gcd-terms-v3 a b)
         (let ((unnormalized-termlist (gcd-terms-v2 a b)))
-            (mul-term-by-all-terms                              ; div-terms gives an extra trailing '() - oh that's the REMAINDER
-                (make-term 0 (/ 1 (gcd-of-coeffs unnormalized-termlist)))     
+            (mul-terms-by-number                            ; div-terms gives an extra trailing '()? - oh that's the REMAINDER
+                (/ 1 (gcd-of-coeffs unnormalized-termlist))
                 unnormalized-termlist
             )
         )
@@ -324,20 +321,54 @@
     (define (gcd-of-coeffs term-list)
         (apply gcd (map coeff term-list)))
         
+    (define (mul-terms-by-number n terms)
+        (mul-term-by-all-terms 
+            (make-term 0 n)
+            terms
+        )
+    )
         
+  ;;Exercise 2.97: reduce-poly, which divides p1 and p2 by their (polynomial) gcd
+    (define (reduce-poly p1 p2)
+        (if (same-variable? (variable p1) (variable p2))
+            (let ((reduced-termlists (reduce-terms (term-list p1) (term-list p2))))                
+                (list
+                    (make-poly (variable p1) (car reduced-termlists))
+                    (make-poly (variable p1) (cadr reduced-termlists))
+                )
+            )
+            (error "Polys not in same var -- REDUCE-POLY" (list p1 p2))
+        )
+    )
+    
+    (define (reduce-terms L1 L2)
+    
+        ; gp = POLYNOMIAL gcd (well, its term list, strictly speaking)
+        (let ((gp (gcd-terms-v3 L1 L2)))  
+        
+            ; i = integerizing factor
+            (let ((int-factor (max (integerizing-factor L1 gp) (integerizing-factor L2 gp))))
             
-        
-  ;;Exercise 2.97
-  
-    ; pull off as procedures
-        ; integerizing factor of p and q
-        ; gcd-of-coeffs
-        
-        
-    ; for numer and denom
-        ; multiply by max(integerizing factor(g, n), integerizing factor (g, d))
-        ; div-terms by gcd-terms-v3
-        ; multiply by 1/(gcd of coeffs of 
+                ; Q1, Q2 = L1*i/gp, L2*i/gp. still need to normalize coeffs
+                (let (  (Q1 (quotient-terms (mul-terms-by-number int-factor L1) gp))             
+                        (Q2 (quotient-terms (mul-terms-by-number int-factor L2) gp))
+                        )
+                    
+                    ; hey, scheme programs like this actually read from top down! but unfortunately, they also NEST IN...
+                    (let ((gc (gcd (gcd-of-coeffs Q1) (gcd-of-coeffs Q2))))
+                        (list
+                            (mul-terms-by-number (/ 1 gc) Q1)
+                            (mul-terms-by-number (/ 1 gc) Q2)
+                        )
+                    )
+                )
+            )
+        )
+    )
+
+    (define (quotient-terms a b)    ; cf. remainder-terms
+        (car (div-terms a b)))
+
   
            
        
@@ -364,6 +395,16 @@
   (put 'gcd-2.94 '(polynomial polynomial) gcd-poly-v1)                 ; added for Exercise 2.96 to prevent "breaking" 2.95
   (put 'gcd-2.96a '(polynomial polynomial) gcd-poly-v2)
   (put 'gcd '(polynomial polynomial) gcd-poly-v3)
+  (put 'reduce '(polynomial polynomial) 
+       (lambda (p1 p2)
+        (let ((result (reduce-poly p1 p2)))
+            (list 
+                (tag (car result))
+                (tag (cadr result))
+            )
+        )
+       )
+  )
   
     
   (put 'make 'polynomial
