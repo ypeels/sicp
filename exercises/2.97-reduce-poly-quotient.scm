@@ -40,7 +40,9 @@
             
             
             (test-sum rf1 rf2)
-            ; TODO: check this
+            ; should be (x**3 + 2x**2 + 3x + 1) / (x**4 + x**3 - x - 1)
+            ; (rational (polynomial x (3 -1) (2 -2) (1 -3) (0 -1)) polynomial x (4 -1) (3 -1) (1 1) (0 1))
+
             
         )
     )
