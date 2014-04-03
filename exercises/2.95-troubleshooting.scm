@@ -13,6 +13,12 @@
     (define q1 (mul p1 p2))
     (define q2 (mul p1 p3))
 
+    (display "\np1: ") (display p1)
+    (display "\np2: ") (display p2)    
+    (display "\nq1: ") (display q1)  ; '((4 11) (3 -22) (2 18) (1 -14) (0 7))
+    (display "\nq2: ") (display q2)  ; '((3 13) (2 -21) (1 3) (0 5))
+    
+    
     (display "\n(gcd p1 p1): ") (display (greatest-common-divisor p1 p1))   ; '((2 1) (1 -2) (0 1))
     (display "\n(gcd q1 q2): ") (display (greatest-common-divisor q1 q2))   ; '((2 1458/169) (1 -2916/169) (0 1458/169))
 
@@ -20,8 +26,6 @@
     ; but end users want answers to look CLEAN... sheesh
 
     ; should i trace gcd-terms by hand?
-    (newline) (display q1)  ; '((4 11) (3 -22) (2 18) (1 -14) (0 7))
-    (newline) (display q2)  ; '((3 13) (2 -21) (1 3) (0 5))
     ; gcd-terms -> remainder-terms
     ; remainder-terms -> div-terms
     ; div-terms -> (div (coeff a) (coeff b)), hence the rational numbers

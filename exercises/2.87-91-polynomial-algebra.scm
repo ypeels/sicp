@@ -302,6 +302,27 @@
     
     (define (gcd-poly-v2 p1 p2)
         (gcd-poly-driver p1 p2 gcd-terms-v2))
+        
+    
+    ; and one more version, for Exercise 2.96 part b    
+    (define (gcd-terms-v3 a b)
+        (let ((unnormalized-termlist (gcd-terms-v2 a b)))
+            (let ((g 
+                    ; gcd of all the coeffs (yes, it takes multiple arguments!
+                    (apply gcd                    
+                        ; list of coeffs
+                        (map coeff unnormalized-termlist)
+                    )))
+                (mul-term-by-all-terms                              ; div-terms gives an extra trailing '() - oh that's the REMAINDER
+                    (make-term 0 (/ 1 g))           
+                    unnormalized-termlist
+                )
+            )
+        )
+    )
+
+    (define (gcd-poly-v3 p1 p2)
+        (gcd-poly-driver p1 p2 gcd-terms-v3))
             
         
   
@@ -328,7 +349,8 @@
        )
   )
   (put 'gcd-2.94 '(polynomial polynomial) gcd-poly-v1)                 ; added for Exercise 2.96 to prevent "breaking" 2.95
-  (put 'gcd '(polynomial polynomial) gcd-poly-v2)
+  (put 'gcd-2.96a '(polynomial polynomial) gcd-poly-v2)
+  (put 'gcd '(polynomial polynomial) gcd-poly-v3)
   
     
   (put 'make 'polynomial
