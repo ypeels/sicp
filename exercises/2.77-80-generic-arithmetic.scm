@@ -132,8 +132,10 @@
 (define (sub x y) (apply-generic 'sub x y))
 (define (mul x y) (apply-generic 'mul x y))
 (define (div x y) (apply-generic 'div x y))
+(define (greatest-common-divisor x y)                               ; added for Exercise 2.94
+    (apply-generic 'gcd x y))
 
-;(define (install-scheme-number-package)                                 ; generalized for Exercise 2.83 to allow 'integer and 'real
+;(define (install-scheme-number-package)                            ; generalized for Exercise 2.83 to allow 'integer and 'real
 (define (install-scheme-number-package)
     (install-builtin-number-package 'scheme-number))
 (define (install-builtin-number-package tag-value)
@@ -149,6 +151,8 @@
        (lambda (x y) ((get 'make tag-value) (/ x y))))
   (put 'equ? (list tag-value tag-value) =)                          ; added for Exercise 2.79
   (put '=zero? (list tag-value) (lambda (x) (= 0 x)))               ; added for Exercise 2.80
+  (put 'gcd (list tag-value tag-value)                              ; added for Exercise 2.94
+       (lambda (x y) ((get 'make tag-value) (gcd x y))))
   (put 'make tag-value  
         ;(lambda (x) (tag x)))  
         (lambda (x)                                                 ; modified for Exercises 2.87- (and thus retroactively for 2.78)

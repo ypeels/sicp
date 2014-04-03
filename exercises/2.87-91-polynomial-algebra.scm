@@ -157,7 +157,7 @@
     )
         
             
-  ;; Exercise 2.89 - "dense" polynomial term representation, via quick backwards-compatible changes
+  ;;Exercise 2.89 - "dense" polynomial term representation, via quick backwards-compatible changes
     (define (adjoin-term term term-list)
         (cond 
             ((not (eq? 'dense package-term-type))               ; backwards compatibility
@@ -195,7 +195,9 @@
                     (make-poly (variable p1) (car quotient-and-remainder))
                     (make-poly (variable p1) (cdr quotient-and-remainder))
                 )
+                ;(make-poly (variable p1) (car quotient-and-remainder))      ; return only "truncated quotient" for Exercise 2.9x
             )
+            (error "Polys not in same var -- DIV-POLY" (list p1 p2))
         )
     )
         
@@ -242,7 +244,28 @@
                     )
                     ))))))
                     
-
+  ;;Exercise 2.94: gcd-poly
+    
+    ; The procedure should signal an error if the two polys are not in the same variable.
+    (define (gcd-poly p1 p2)
+        (if (same-variable? (variable p1) (variable p2))
+            (make-poly
+                (variable p1)
+                (gcd-terms (term-list p1) (term-list p2))
+            )            
+            (error "Polys not in same var -- GCD-POLY" (list p1 p2))
+        )
+    )
+    
+    ; from main text
+    (define (gcd-terms a b)
+      (if (empty-termlist? b)
+          a
+          (gcd-terms b (remainder-terms a b))))
+          
+    ; new for this Exercise
+    (define (remainder-terms a b)
+        (cadr (div-terms a b)))
         
   
            
@@ -267,6 +290,7 @@
         )
        )
   )
+  (put 'gcd '(polynomial polynomial) gcd-poly)
     
   (put 'make 'polynomial
        (lambda (var terms) (tag (make-poly var terms))))
