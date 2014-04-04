@@ -32,7 +32,7 @@
 
 
 
-(define (test-3.18)
+(define (test-3.18-19)
 
     (newline) (display (is-cycle? '(1 2)))  ; #f, phew
 
@@ -40,11 +40,13 @@
     (define (test L)
         (set-cdr! (last-pair L) L)  ; FORCE a cyclic list
         (display "\nNow this is either gonna give #t or hang forever... ")
-        (display (is-cycle? L))   ; #f or infinite loop
-    )
+        (display (is-cycle? L))   ; #t or infinite loop
+        
+        (display "\nand now the cheap check: ") (display (not (list? L)))   ; a cyclic list will never hit null
+    )                                                                       ; realized this when i tried (length
 
     (test '(1 2))
     (test '(3 4 4))
     (test '(3 (4 5) 548 (3 3 (2))))
 )
-; (test-3.18)
+(test-3.18-19)
