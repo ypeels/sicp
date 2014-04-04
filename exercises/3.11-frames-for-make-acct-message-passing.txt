@@ -22,10 +22,6 @@ make-account: the following procedure
     env: G
     parameters: balance
     body: (define (withdraw ... dispatch))
-    
-    
-
-
   
 
   
@@ -35,12 +31,12 @@ Stage 1 ===============================================================
 ---------------------------------------
 Global frame G
 
-add new symbol
-acc: evaluation of (make-account 50)
-
+make-account: (define ... )
+NEW -- acc: (make-account 50)
+evaluate in new frame E1, child of G (since that is make-account's env)
 
 ---------------------------------------
-Frame E1: evaluation of (make-account 50)
+Frame E1 (child of G): (make-account 50)
 
 arguments bound
 balance: 50
@@ -49,3 +45,181 @@ body evaluation
 withdraw: proc with env E1
 deposit: proc with env E1
 dispatch: proc with env E1
+
+return procedure dispatch (E1)
+    env: E1
+    parameters: m
+    body: (cond ... )
+    
+---------------------------------------
+Final result in G
+acc: dispatch (E1)
+    
+    
+    
+Stage 2a ===============================================================
+((acc 'deposit) 40)
+p. 238
+- evaluate subexpression values
+- apply operator subexpression to operand subexpression
+
+---------------------------------------
+Global frame G
+
+(acc 'deposit) = (dispatch [E1] 'deposit)
+evaluate in new frame E1a, child of E1 (since E1 IS DISPATCH'S ENV!!)
+
+---------------------------------------
+Frame E1a (child of E1): (dispatch 'deposit)
+
+m: 'deposit
+evaluate (cond)
+
+searches for "deposit" in current frame E1a - not found.
+searches for "deposit in parent frame E1 - found!
+returns procedure deposit (E1)
+    env: E1
+    parameter: amount
+    body: (set! balance...) - see Stage 0.
+    
+---------------------------------------
+Final result in G
+(acc 'deposit): dep
+osit (E1)
+    
+
+Stage 2b ===============================================================
+((acc 'deposit) 40)
+
+---------------------------------------
+Global frame G
+
+(acc 'deposit): deposit (E1) from stage 2a.
+
+(deposit[E1] 40)
+evaluate in new frame E1b, child of E1, since since that is deposit's env
+
+---------------------------------------
+Frame E1b (child of E1): (deposit[E1] 40)
+
+amount: 40
+
+return
+(set! balance (+ balance amount))
+    balance)
+    
+    search for balance in E1b: not found
+    search for balance in E1: 50 (from stage 1)
+    
+---------------------------------------
+Frame E1 (child of G)
+
+balance: 50 -> 90
+
+---------------------------------------
+Final result in G
+((acc 'deposit) 40): 90
+
+
+
+Stage 3a ===============================================================
+((acc 'withdraw) 60)
+
+---------------------------------------
+Global frame G
+
+(acc 'withdraw): (dispatch [E1] 'withdraw)
+evaluate in new frame E1c, child of E1 (since E1 is dispatch's env)
+
+---------------------------------------
+Frame E1c (child of E1): (dispatch 'withdraw)
+
+m: 'withdraw
+evaluate (cond)
+
+searches for "withdraw" in current frame E1c - not found.
+searches for "withdraw in parent frame E1 - found!
+returns procedure withdraw (E1)
+    env: E1
+    parameter: amount
+    body: (if ... ) - see Stage 0.
+    
+---------------------------------------
+Final result in G
+(acc 'withdraw): withdraw (E1)
+
+
+
+Stage 3b ===============================================================
+((acc 'withdraw) 60)
+
+---------------------------------------
+Global frame G
+
+(acc 'withdraw): withdraw (E1) from stage 3a.
+
+(withdraw[E1] 60)
+evaluate in new frame E1d, child of E1, since since that is withdraw's env
+
+---------------------------------------
+Frame E1d (child of E1): (withdraw[E1] 60)
+
+amount: 60
+
+return
+    (if (>= balance amount)
+        (begin (set! balance (- balance amount))
+               balance)
+        "Insufficient funds")
+        
+    search for balance in E1d: not found
+    search for balance in E1: 90 (Stage 2b)
+    
+    return 30
+    
+---------------------------------------
+Frame E1 (child of G)
+
+balance: 90 -> 30
+
+---------------------------------------
+Final result in G
+((acc 'withdraw) 60): 30
+
+
+
+Interlude ==============================================================
+The local state for acc is kept frame in frame E1 (balance).
+
+
+
+
+Stage 4 ===============================================================
+(define acc2 (make-account 100))
+; analogous to Stage 1.
+
+---------------------------------------
+Global frame G
+
+NEW -- acc2: (make-account 100)
+evaluate in new frame E2, child of G (since that is make-account's env)
+
+---------------------------------------
+Frame E2
+
+balance: 100
+
+withdraw, deposit
+env: E2
+bodies: shared with E1's functions (footnote 15 p. 247)
+
+return dispatch (E2)
+    env: E2
+    parameters: m
+    body: (cond...) - SHARED with dispatch (E1)
+    
+---------------------------------------
+Final result in G
+acc2: dispatch (E2)
+
+Operations (acc2 'deposit) and (acc2 'withdraw) will affect balance in E2, NOT in E1.
