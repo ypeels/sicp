@@ -39,18 +39,23 @@
       dispatch
   )
 )
-  
-  
-; test code from Exercise 3.3 problem statement
-(define acc (make-account 100 'secret-password))
-(newline) (display ((acc 'secret-password 'withdraw) 40))     ; 60
-(newline) (display ((acc 'some-other-password 'deposit) 50))  ; "Incorrect password"
-(newline) (display ((acc 'secret-password 'withdraw) 40))     ; 20, and resets incorrect password count
 
 
-(define (f) ((acc 'wrong-password 'deposit) 50))
-(f) (f) (f) (f) (f) (f) (f)
-(display "\nand now one more to trigger the lockout")
-(f)
+(define (test-3.03-04)  
+  
+    ; test code from Exercise 3.3 problem statement
+    (define acc (make-account 100 'secret-password))
+    (newline) (display ((acc 'secret-password 'withdraw) 40))     ; 60
+    (newline) (display ((acc 'some-other-password 'deposit) 50))  ; "Incorrect password"
+    (newline) (display ((acc 'secret-password 'withdraw) 40))     ; 20, and resets incorrect password count
+
+
+    (define (f) ((acc 'wrong-password 'deposit) 50))
+    (f) (f) (f) (f) (f) (f) (f)
+    (display "\nand now one more to trigger the lockout")
+    (f)
+)
+
+;(test-3.03-04)
 
 
