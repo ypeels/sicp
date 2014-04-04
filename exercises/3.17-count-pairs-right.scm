@@ -46,9 +46,9 @@
 
 (load "3.16-count-pairs-wrong.scm")
 
-(test a3)
-(test a4)
-(test a7)
-(test ainf)
+(test a3)   ; 3
+(test a4)   ; 3
+(test a7)   ; 3
+(test ainf) ; 3
         
     
