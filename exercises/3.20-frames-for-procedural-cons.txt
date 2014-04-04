@@ -1,0 +1,103 @@
+Stage 0 ==============================================
+
+Global frame G ------------------------------------
+(define (cons x y)
+  (define (set-x! v) (set! x v))
+  (define (set-y! v) (set! y v))
+  (define (dispatch m)
+    (cond ((eq? m 'car) x)
+          ((eq? m 'cdr) y)
+          ((eq? m 'set-car!) set-x!)
+          ((eq? m 'set-cdr!) set-y!)
+          (else (error "Undefined operation -- CONS" m))))
+  dispatch)
+  
+(define (car z) (z 'car))
+(define (cdr z) (z 'cdr))
+(define (set-car! z new-value)
+  ((z 'set-car!) new-value)
+  z)
+(define (set-cdr! z new-value)
+  ((z 'set-cdr!) new-value)
+  z)
+  
+  
+  
+Stage 1 ================================================
+(define x (cons 1 2))
+
+Global frame G ----------------------------------------
+cons: procedure that lives here
+x: (cons 1 2)
+
+Evaluate (cons 1 2) in new frame Ex, child of G (where cons lives)
+
+Frame Ex (child of G): evaluating (cons 1 2) ----------
+bound arguments
+x: 1
+y: 2
+
+from evaluation of (cons 1 2) - these procedures live here
+set-x! (Ex)
+set-y! (Ex)
+dispatch (Ex)
+
+return dispatch (Ex)
+
+Final result in global frame G --------------------------
+x: dispatch (Ex)
+
+
+
+Stage 2 ================================================
+(define z (cons x x))
+
+Global frame G ----------------------------------------
+cons: procedure that lives here
+x: dispatch (Ex)
+z: (cons x x)
+
+Evaluate (cons x x) in new frame Ez, child of G (where cons lives)
+
+Frame Ez (child of G): evaluating (cons x x) ----------
+bound arguments:
+x: x = dispatch (Ex)
+y: x = dispatch (Ex)
+
+search for x automagically in parent frame - found in G.
+(interpreter shouldn't get confused HERE...)
+
+from evaluation of (cons x x) - these procedures live here
+set-x! (Ez) - code body shared with set-x! (Ex)
+set-y! (Ez) - code body shared with set-y! (Ex)
+dispatch (Ez) - code body shared with dispatch (Ex)
+
+return dispatch (Ez)
+
+Final result in global frame G -------------------------
+z: dispatch (Ez)
+
+
+
+Stage 3a =================================================
+(set-car! (cdr z) 17)
+
+Global frame G -----------------------------------------
+z: dispatch (Ez)
+
+First need to evaluate (cdr z) in new frame E, child of G (where cdr lives)
+
+Frame E (child of G): evaluating (cdr z) ---------------
+z: dispatch (Ez)
+
+( dispatch[Ez] 'cdr )
+Evaluate this in new frame Ez', child of Ez (where dispatch[Ez] lives!!)
+
+
+; to be continued
+
+
+
+
+  
+  
