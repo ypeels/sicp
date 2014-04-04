@@ -1,0 +1,207 @@
+OHHHH "Recall from section 1.3.2 that let is simply syntactic sugar for a procedure call:
+
+(let ((<var> <exp>)) <body>)
+
+is interpreted as an alternate syntax for
+
+((lambda (<var>) <body>) <exp>)"
+
+This should give just enough information to draw the frame structures for 
+(make-withdraw)
+(new-withdraw) - not in exercise, but I wanted to see this for myself
+
+; simplified version without balance check
+(define (make-withdraw initial-amount)
+  (let ((balance initial-amount))
+    (lambda (amount)
+      (begin (set! balance (- balance amount))
+             balance))))
+
+; desugared
+(define (make-withdraw initial-amount)
+    (
+        (lambda (balance)
+            (lambda (amount)
+                (begin
+                    (set! balance (- balance amount))
+                    balance
+                )
+            )
+        )
+        initial-amount
+    )
+)
+
+So make-withdraw is a procedure (not a procedure APPLICATION like new-withdraw...).
+The procedure and the "make-withdraw" symbol live at global scope, because that is where the (define) was called.
+
+----------------------------
+Global frame G
+
+procedure make-withdraw
+env: G
+parameters: initial-amount
+return a procedure APPLICATION:
+(
+    (lambda (balance)
+        ...
+    )
+    initial-amount
+)
+
+W1 = (make-withdraw 100) - evaluate in new frame E1, child of G (where make-withdraw lives)
+W2 = (make-withdraw 200) - evaluate in new frame E2, child of G (where make-withdraw lives)
+
+
+----------------------------
+Frame E1 (child of G)
+initial-amount: 100
+evaluate body of make-withdraw
+
+returns a procedure APPLICATION, ((lambda (balance) ...) initial-amount)
+- do this in a new frame E1' (child of E1, where (lambda (balance)) lives.)
+    - this is because "The new frame has as its enclosing environment the environment part of the procedure object being applied."
+    - and (lambda (balance)) is the procedure object being applied.
+
+note that scheme procedures can return 1 of 2 things
+- a procedure
+- a procedure APPLICATION
+
+----------------------------
+Frame E1' (child of E1)
+balance: 100
+evaluate body of (lambda(balance)...)
+
+return the following PROCEDURE (lambda (amount)...) 
+
+env: E1' (where lambda(amount) was "evaluated" or "declared")
+parameters: amount
+body:
+(begin
+    (set! balance (- balance amount))
+    balance
+)
+
+Thus, W1 = this procedure that lives in E1'.
+
+
+
+Similarly for W2.
+----------------------------
+Frame E2 (child of G)
+initial-amount: 200
+evaluate body of make-withdraw
+
+returns a procedure APPLICATION, ((lambda (balance) ...) initial-amount)
+- do this in a new frame E2' (child of E2, where (lambda (balance)) lives??)
+
+----------------------------
+Frame E2' (child of E2)
+balance: 200
+evaluate body of (lambda(balance)...)
+
+return the following PROCEDURE (lambda (amount)...) 
+
+env: E2'
+parameters: amount
+body:
+(begin
+    (set! balance (- balance amount))
+    balance
+)
+
+Thus, W2 = this procedure that lives in E2'.
+
+
+----------------------------------------------------
+Finally, to EVALUATE (W1 50) we follow the rules AGAIN.
+- create a new frame whose parent is the env of W1
+
+---------------------------- 
+Frame E1'' (child of E1')
+amount: 50
+
+evaluate body of the E1' procedure
+(begin
+    (set! balance (- balance amount))
+    balance
+)
+
+This has the net result of
+- setting balance (E1') = 50
+- return balance (E1') = 50
+
+Thus, the value of this first evaluation of (W1 50) is 50, and the state of E1' has changed.
+Note that the diagrams are SNAPSHOTS of a particular state.
+
+
+                    
+
+
+===============================================================================
+; simplified version without balance check
+(define new-withdraw
+  (let ((balance 100))
+    (lambda (amount)
+      (begin (set! balance (- balance amount))
+             balance))))
+
+; desugared
+(define new-withdraw     
+    (
+        (lambda (balance)
+            (lambda (amount)
+                (begin 
+                    (set! balance (- balance amount))
+                    balance
+                )
+            )
+        )
+        100
+    )
+)
+ 
+Now it is transparent that new-withdraw is the result of APPLYING (lambda(balance)...) to 100.
+(lambda (balance)...) is applied in whatever frame the (define) was invoked: GLOBAL frame.
+
+-----------------------
+Frame E1
+balance: 100
+
+returns a procedure with
+environment: E1
+code:
+(lambda (amount)
+    (begin 
+        (set! balance (- balance amount))
+        balance
+    )
+)
+
+So the end result is that new-withdraw = the procedure which lives in E1.
+Thus, repeated calls to new-withdraw will alter E1's balance repeatedly.
+
+UNRESOLVED QUESTION: where does (lambda (balance)...) live??
+tentative answer: it doesn't live anywhere, since nobody has bound it. a function without a home...
+WRONG.
+
+Going back to the rules from Section 3.2, 
+Rule 1: "A procedure object is applied to a set of arguments by constructing a frame...
+The new frame has as its enclosing environment the environment part of the procedure object being applied."
+
+Therefore, (lambda (balance)...) MUST live in the global frame! Even if nobody has any way to reference it.
+You can maybe rationalize this as "where it was invoked/applied"?
+    - the rules don't tell you where (lambda (balance) ...) lives, though... had to deduce that from the behavior?
+
+Hmm, maybe the second rule clears everything up? (this is so abstract and poorly worded):
+Rule 2: "A procedure is created by evaluating a lambda expression relative to a given environment.
+The resulting procedure object is a pair consisting of the text of the lambda expression and 
+a pointer to the environment in which the procedure was created."
+    - (lambda (x) x) is "evaluating a lambda"
+    - ((lambda (x) x) 1) is "applying a procedure"
+    
+    no, doesn't clear up the unresolved question
+
+
+
+
