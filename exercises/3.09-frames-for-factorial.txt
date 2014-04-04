@@ -1,0 +1,116 @@
+-----------------------------------
+Global frame R
+(define (factorial n)
+  (if (= n 1)
+      1
+      (* n (factorial (- n 1)))))
+
+(factorial 6) - evaluated in new frame R6 ("Recursive 6")
+
+-----------------------------------
+R6: evaluating (factorial 6)
+n: 6
+(* n (factorial (- n 1))
+Finds "factorial" in parent frame R
+Evaluates (factorial 5) in new frame R5
+R5 is a child of R, where "factorial" lives.
+
+-----------------------------------
+R5: evaluating (factorial 5)
+n: 5
+(* n (factorial (- n 1))
+Finds "factorial" in parent frame R
+Evaluates (factorial 4)
+
+...
+-----------------------------------
+R1: evaluating (factorial 1)
+n: 1
+1
+Returns 1 and pops the recursion stack. How? "we will not dwell on how"
+
+
+=======================================================
+
+-----------------------------------
+Global frame I
+(define (factorial n)
+  (fact-iter 1 1 n))
+(define (fact-iter product counter max-count)
+  (if (> counter max-count)
+      product
+      (fact-iter (* counter product)
+                 (+ counter 1)
+                 max-count)))
+
+(factorial 6) - evaluated in new child frame IF
+
+-----------------------------------
+Frame IF: evaluating (factorial 6)
+n: 6
+(fact-iter 1 1 n)
+Finds "fact-iter" in parent frame I
+Evaluates (fact-iter 1 1 n) in new frame I1
+I1 is a child of I, where "fact-iter" lives
+
+-----------------------------------
+Frame I1: evaluating (fact-iter 1 1 6)
+product: 1
+counter: 1
+max-count: 6
+(fact-iter 1 2 6)
+Finds "fact-iter" in parent frame I
+Evaluates (fact-iter 1 2 6) in new frame I2 (child of I)
+
+-----------------------------------
+Frame I2: evaluating (fact-iter 1 2 6)
+product: 1
+counter: 2
+max-count: 6
+(fact-iter 2 3 6)
+Finds "fact-iter" in parent frame I
+Evaluates (fact-iter 2 3 6) in new frame I3 (child of I)
+
+-----------------------------------
+Frame I3: evaluating (fact-iter 2 3 6)
+product: 2
+counter: 3
+max-count: 6
+(fact-iter 6 4 6)
+Finds "fact-iter" in parent-frame I
+Evaluates (fact-iter 6 4 6) in new frame I4 (child of I)
+
+-----------------------------------
+Frame I4: evaluating (fact-iter 6 4 6)
+product: 6
+counter: 4
+max-count: 6
+(fact-iter 24 5 6)
+Finds "fact-iter" in parent-frame I
+Evaluates (fact-iter 24 5 6) in new frame I5 (child of I)
+
+-----------------------------------
+Frame I5: evaluating (fact-iter 24 5 6)
+product: 24
+counter: 5
+max-count: 6
+(fact-iter 120 6 6)
+Finds "fact-iter" in parent-frame I
+Evaluates (fact-iter 120 6 6) in new frame I6 (child of I)
+
+-----------------------------------
+Frame I6: evaluating (fact-iter 120 6 6)
+product: 120
+counter: 6
+max-count: 6
+(fact-iter 720 7 6). not terminated yet in I6! watch out for "off by 1" logic
+Finds "fact-iter" in parent-frame I
+Evaluates (fact-iter 720 7 6) in new frame I7 (child of I)
+
+-----------------------------------
+Frame I7: evaluating (fact-iter 720 7 6)
+product: 720
+counter: 7
+max-count: 6
+(> counter max-count) is finally true! 
+Just return product = 720, which gets shuttled along SOMEHOW to IF
