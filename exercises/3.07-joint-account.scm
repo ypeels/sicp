@@ -7,10 +7,10 @@
 
 (define (make-joint old-acc old-pw new-pw)
 
-    (define (dispatch password transaction)
+    (define (dispatch password transaction)                 ; sols: this is perhaps clearer as a LAMBDA!
         (if (eq? password new-pw)
             (old-acc old-pw transaction)
-            (lambda (x) "Incorrect password - MAKE-JOINT")
+            (lambda (x) "Incorrect password - MAKE-JOINT")  ; sols: ooh you can invoke (old-acc bad-pw) to leverage existing lockout
         )
     )
     dispatch
