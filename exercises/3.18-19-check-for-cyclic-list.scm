@@ -49,4 +49,6 @@
     (test '(3 4 4))
     (test '(3 (4 5) 548 (3 3 (2))))
 )
-(test-3.18-19)
+;(test-3.18-19) 
+
+; see sols for some REAL algorithms
