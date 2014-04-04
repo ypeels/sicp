@@ -1,0 +1,40 @@
+Stage 0 ===============================================================
+(define (make-account balance)
+  (define (withdraw amount)
+    (if (>= balance amount)
+        (begin (set! balance (- balance amount))
+               balance)
+        "Insufficient funds"))
+  (define (deposit amount)
+    (set! balance (+ balance amount))
+    balance)
+  (define (dispatch m)
+    (cond ((eq? m 'withdraw) withdraw)
+          ((eq? m 'deposit) deposit)
+          (else (error "Unknown request -- MAKE-ACCOUNT"
+                       m))))
+  dispatch)
+  
+---------------------------------------
+Global frame G
+
+make-account: the following procedure
+    env: G
+    parameters: balance
+    body: (define (withdraw ... dispatch))
+    
+    
+
+
+  
+
+  
+Stage 1 ===============================================================
+(define acc (make-account 50))
+
+---------------------------------------
+Global frame G
+
+add new symbol
+acc: evaluation of (make-account 50)
+

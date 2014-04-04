@@ -200,7 +200,11 @@ a pointer to the environment in which the procedure was created."
     - (lambda (x) x) is "evaluating a lambda"
     - ((lambda (x) x) 1) is "applying a procedure"
     
-    no, doesn't clear up the unresolved question
+    no, doesn't clear up the unresolved question, but i think this is good enough...
+    
+    programming is really better learned through many code examples, not this abstract discussion...
+    
+
 
 
 
