@@ -38,3 +38,14 @@ Global frame G
 add new symbol
 acc: evaluation of (make-account 50)
 
+
+---------------------------------------
+Frame E1: evaluation of (make-account 50)
+
+arguments bound
+balance: 50
+
+body evaluation
+withdraw: proc with env E1
+deposit: proc with env E1
+dispatch: proc with env E1
