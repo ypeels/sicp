@@ -52,3 +52,9 @@
 ;(test-3.18-19) 
 
 ; see sols for some REAL algorithms
+    ; my intuition was right: storing just ONE element, you'd be hard pressed
+    ; but storing TWO elements, you could come up with something
+    ; floyd's idea is ingenious (whereas mine is utter cheapness)
+        ; i++, j += 2
+            ; if j ever falls off the list, you're done (no cycle)
+            ; if j ever comes BACK within 1 of i, you're done (cycle!)
