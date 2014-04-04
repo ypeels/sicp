@@ -1,0 +1,12 @@
+I just have to point out that their torturous discussion on p. 231 just says that
+"before set!, we could initialize variables, but we couldn't MODIFY them"
+- so of course you could substitute the same value everywhere previously...
+
+MOV AX, BX ; assignment is a FUNDAMENTAL operation - to work without it in a programming language is PERVERSE AT BEST
+
+I guess their point that it is nevertheless Turing complete to work in a purely functional programming language
+It just makes things that much harder for the end user
+But things will be easier for people writing the compiler/interpreter? Good for you...
+
+I think a Pragmatic Programmer would use WHATEVER mode of expression was the clearest,
+be it functional, imperative, object-oriented, or anything else...
