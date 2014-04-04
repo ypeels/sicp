@@ -5,42 +5,38 @@
 
 ; based loosely on (rand) from ch3.scm
 (define random-init 7)			;**not in book**
-(define (rand sym)
 
-    (define rand-generate
-        (let ((x random-init))
-          (lambda ()
-            (set! x (rand-update x))
-            x))
-    )
-
-        
-    ; sigh, HOW does this syntax work?? refer back to exercises 3.3-3.4
-
-        (cond 
-            ((eq? sym 'generate)
-                ;(set! x (rand-update x))
-                (rand-generate)         ; nope, the x inside (rand-generate is getting reset on every call
-                ;(rand-generate)
+(define rand                            ; DO NOT bind any arguments that you want actually PASSED to dispatch
+                                        ; arguments of rand become part of dispatch's ENVIRONMENT.
+    (let ((x random-init))              ; one-time initialization of x MUST take place outside of dispatch,
+        (define (dispatch sym)
+            (cond 
+                ((eq? sym 'generate)
+                    (set! x (rand-update x))
+                    x         
+                )
+                ((eq? sym 'reset)
+                    (lambda (new-x)
+                        (set! x new-x)
+                        x
+                    )
+                )
+                (else (error "Unknown symbol - RAND" sym))
             )
-            (else (error "asdf"))
         )
-    
-
-
+        dispatch
+    )
 )
 
-;(define rand
-;    (let ((x random-init))
-;      (lambda ()
-;        (set! x (rand-update x))
-;        x))
-;)
 
 (newline)(display (rand 'generate))
 (newline)(display (rand 'generate))
 (newline)(display (rand 'generate))
 (newline)(display (rand 'generate))
-            
+(newline)(display "resetting: ")(display ((rand 'reset) random-init))
+(newline)(display (rand 'generate))
+(newline)(display (rand 'generate))
+(newline)(display (rand 'generate))
+(newline)(display (rand 'generate))            
             
 
