@@ -1,13 +1,10 @@
-; Footnote 23: "Be careful not to make the interpreter try to print a structure that contains cycles."
-; This suggests the design of (front-ptr . rear-ptr), where rear-ptr points INWARD toward front-ptr.
-
 ; Implement like (make-queue) in Section 3.3.2, which even the authors seem to regard as more intuitive than Exercise 3.32.
 
 ; "internal" accessors and mutators, for "encapsulation"
 (define (front-ptr deque) (car deque))  
 (define (rear-ptr deque) (cdr deque))
-(define (set-front-ptr! deque pair) (set-car! deque pair))
-(define (set-rear-ptr! deque pair) (set-cdr! deque pair))
+(define (set-front-ptr! deque item) (set-car! deque item))
+(define (set-rear-ptr! deque item) (set-cdr! deque item))
 
 ; specification from problem statement
 
@@ -24,90 +21,79 @@
     (selector-deque deque front-ptr "FRONT-DEQUE"))
 (define (rear-deque deque)
     (selector-deque deque rear-ptr "REAR-DEQUE"))    
-(define (selector-deque deque select-pair name)
+(define (selector-deque deque select-item name)
     (if (empty-deque? deque)
         (error "Empty deque --" name)
-        (car (select-pair deque))
+        (select-item deque)
     )
 )
 
 
-; currently broken (well, it'll work up to n = 2)
-    ; need DOUBLY linked list, which CANNOT be implemented by simple pairs.
-    ; start with front-insert! and THEN generalize; don't go confusing yourself unnecessarily.
+; internal data type for doubly-linked list
+(define (make-deque-item value)
+    (list '() value '()))       ; looks more sensical than (value () ()). 
+
+(define (ahead-item item) 
+    (car item))
+(define (set-ahead-item! item new-ahead)
+    (set-car! item new-ahead))
+
+(define (value-item item)
+    (cadr item))
+(define (set-value-item! item new-value)
+    (set-car! (cdr item) new-value))
+    
+(define (behind-item item)
+    (caddr item))
+(define (set-behind-item! item new-behind)
+    (set-car! (cddr item) new-behind))
+
 
 ; mutators - using a shared driver to emphasize symmetry, reduce code size, and consolidate bugs into one nontrivial routine
-(define (front-insert-deque! deque item)
-    (insert-deque! deque item front-ptr set-front-ptr! rear-ptr set-rear-ptr!))
-(define (rear-insert-deque! deque item)
-    (insert-deque! deque item rear-ptr set-rear-ptr! front-ptr set-front-ptr!))
-(define (insert-deque! deque new-item select-entry set-entry! select-exit set-exit!)
-    (let ((new-pair (cons new-item '())))
-    
+; my convention: (front-insert) and (front-delete) are push/pop pairs at the FRONT.
+    ; in other words, the single-ended queue was using front-delete! and rear-insert!
+    ; might be better to view this as a double-ended stack...
+(define (front-insert-deque! deque value)
+    (insert-deque! deque value front-ptr set-front-ptr! set-ahead-item! set-behind-item!))  ; phoowhee getting confused
+(define (rear-insert-deque! deque value)
+    (insert-deque! deque value rear-ptr set-rear-ptr! set-behind-item! set-ahead-item!))
+(define (insert-deque! deque value select-deque-entry set-deque-entry! set-next-item! set-previous-item!)
+        
+    (let ((new-item (make-deque-item value)))    
         (if (empty-deque? deque)
             (begin
-                (set-cdr! new-pair new-pair)
-                (set-entry! deque new-pair)
-                (set-exit! deque new-pair)
-            ) ; damn you scheme nesting, damn you straight to hell
+                (set-front-ptr! deque new-item) 
+                (set-rear-ptr! deque new-item)
+            ) 
             
-            (let (  (old-entry (select-entry deque))
-                    (old-exit (select-exit deque))
-                    )
-            
-                (define (regular-insert!)                    
-                    (set-cdr! new-pair old-exit)
-                    (set-cdr! old-exit new-pair)
-                    (set-exit! deque new-pair)
-                    'unused-return-value
-                )
-                
-               
-               ;
-               ;    ; deque has 1 item: needs to be handled separately, to break the loop on the non-entry side
-               ;    ; alternative to passing in the exit procedures: break the symmetry here by assigning another local variable based on whether select-entry eq? front-ptr
-               ;    ; (but symmetry was ALREADY broken when choosing which fn to pass in as select-entry, so...)
-               ;    ;(begin                        
-               ;    ;    (set-cdr! (select-exit deque) new-pair) ; break the loop!                    
-               ;        (regular-insert!)
-               ;    ;)                    
-                   (regular-insert!)   ; i think this is a little clearer than having the else clause do nothing
-               ;)   
-            
+            ; deque not empty. the new item is "next in line"
+            (let ((old-entry (select-deque-entry deque)))            
+                (set-next-item! old-entry new-item)
+                (set-previous-item! new-item old-entry)
+                (set-deque-entry! deque new-item)            
             )
-            
-            
         )
+
     )
-    (display "\nshared exit")
-    (printable-deque deque)
+    (printable-deque deque)    
 )
 
 
-
-; 
-
-;(define (rear-deque deque)  ; COULD combine into a driver with front-deque, but then 
-;    (if (empty-deque? deque)
-;        (error "Empty deque -- FRONT-DEQUE")
-;        (car (rear-ptr deque))
-;    )
-;)
 
 ; my custom convenience functions
 (define (printable-deque deque)
-    (define (iter front rear)
-        (if (eq? front rear)
-            (cons (car front) '())
-            (cons (car front) (iter (cdr front) rear))
+    (define (iter item)  ;need to drop down from deque into item doubly-linked-list
+       (if (null? item)
+            '()
+            (begin
+                (cons 
+                    (value-item item) 
+                    (iter (behind-item item))
+                )
+            )
         )
     )
-    
-    (if (empty-deque? deque)
-        '()
-        (iter (front-ptr deque) (rear-ptr deque))
-    )
-    ;'giggity
+    (iter (front-deque deque))
 )
         
        
@@ -115,13 +101,13 @@
 (define (test-3.33)
 
     (let ((d (make-deque)))
-        ;(newline) (display (front-insert-deque! d 1))
-        ;(newline) (display (front-insert-deque! d 2))
+        (newline) (display (front-insert-deque! d 1))
+        (newline) (display (front-insert-deque! d 2))
         (newline) (display (front-insert-deque! d 3))
         (display "first rear-insert!")
         (newline) (display (rear-insert-deque! d 4))
-        ;(display "second rear-insert!")
-        ;newline) (display (rear-insert-deque! d 5))
+        (display "second rear-insert!")
+        (newline) (display (rear-insert-deque! d 5))
     )
 )
-(test-3.33)
+;(test-3.33)
