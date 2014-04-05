@@ -57,7 +57,7 @@
     (insert-deque! deque value front-ptr set-front-ptr! set-ahead-item! set-behind-item!))  ; phoowhee getting confused
 (define (rear-insert-deque! deque value)
     (insert-deque! deque value rear-ptr set-rear-ptr! set-behind-item! set-ahead-item!))
-(define (insert-deque! deque value select-deque-entry set-deque-entry! set-next-item! set-previous-item!)
+(define (insert-deque! deque value deque-entry set-deque-entry! set-next-item! set-previous-item!)
         
     (let ((new-item (make-deque-item value)))    
         (if (empty-deque? deque)
@@ -67,7 +67,7 @@
             ) 
             
             ; deque not empty. the new item is "next in line"
-            (let ((old-entry (select-deque-entry deque)))            
+            (let ((old-entry (deque-entry deque)))            
                 (set-next-item! old-entry new-item)
                 (set-previous-item! new-item old-entry)
                 (set-deque-entry! deque new-item)            
@@ -77,6 +77,30 @@
     )
     (printable-deque deque)    
 )
+
+(define (front-delete-deque! deque)
+    (delete-queue! deque front-ptr set-front-ptr! behind-item set-ahead-item! "FRONT-DELETE-DEQUE!"))
+(define (rear-delete-deque! deque)
+    (delete-queue! deque rear-ptr set-rear-ptr! ahead-item set-behind-item! "REAR-DELETE-DEQUE!"))
+(define (delete-queue! deque deque-exit set-deque-exit! next-item set-previous-item! name)
+    
+    (if (empty-deque? deque)
+        (error "Empty deque --" name)
+        (let ((next (next-item (deque-exit deque))))
+        
+            (if (null? next)
+                (set! deque (make-deque))                       ; there IS no next item, and hence, no links to update...
+                (begin
+                    (set-previous-item! next '())               ; move to "head of deque", and ignore orphaned pointer like Figure 3.21
+                    (set-deque-exit! deque next)
+                )
+            )
+        )
+    )
+    (printable-deque deque)
+)
+
+            
 
 
 
@@ -93,7 +117,10 @@
             )
         )
     )
-    (iter (front-deque deque))
+    (if (empty-deque? deque)
+        '()
+        (iter (front-deque deque))
+    )
 )
         
        
@@ -101,13 +128,16 @@
 (define (test-3.33)
 
     (let ((d (make-deque)))
+        (newline) (display (printable-deque d))     
         (newline) (display (front-insert-deque! d 1))
         (newline) (display (front-insert-deque! d 2))
-        (newline) (display (front-insert-deque! d 3))
-        (display "first rear-insert!")
-        (newline) (display (rear-insert-deque! d 4))
-        (display "second rear-insert!")
-        (newline) (display (rear-insert-deque! d 5))
+        (newline) (display (front-insert-deque! d 3))       ; (3 2 1)
+        (newline) (display (rear-insert-deque! d 4))        ; (3 2 1 4)
+        (newline) (display (rear-insert-deque! d 5))        ; (3 2 1 4 5)
+        (newline) (display (front-delete-deque! d))         ; (2 1 4 5)
+        (newline) (display (front-insert-deque! d 6))
+        (newline) (display (front-insert-deque! d 7))       ; (7 6 2 1 4 5)
+        (newline) (display (rear-delete-deque! d))          ; (7 6 2 1 4)
     )
 )
-;(test-3.33)
+; (test-3.33)
