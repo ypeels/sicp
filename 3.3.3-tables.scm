@@ -6,10 +6,11 @@
         (cdr record)
         false)))
 
-(define (assoc key records)
-  (cond ((null? records) false)
-        ((equal? key (caar records)) (car records))
-        (else (assoc key (cdr records)))))
+; aha, this is a BUILT-IN!!!
+;(define (assoc key records)
+;  (cond ((null? records) false)
+;        ((equal? key (caar records)) (car records))
+;        (else (assoc key (cdr records)))))
 
 (define (insert! key value table)
   (let ((record (assoc key (cdr table))))
@@ -55,6 +56,7 @@
     ; this way, the value for the RESULT OF (make-table3) is unchanged
     ; the INTERNAL state variable pointer named "table" is changing, but that is not relevant to external users
     ; MAYBE their reason for adding the dummy node will have to do with their 2-d generalization??
+; see also the final subsection "Creating local tables"
 (define (empty-table3) '())
 (define (make-table3)
     (make-table3-concrete (empty-table3)))
@@ -74,10 +76,10 @@
     )        
 
     ; unchanged? can i use the external version? the BUILT-IN version?
-    (define (assoc key records)
-      (cond ((null? records) false)
-            ((equal? key (caar records)) (car records))
-            (else (assoc key (cdr records)))))            
+    ;(define (assoc key records)
+    ;  (cond ((null? records) false)
+    ;        ((equal? key (caar records)) (car records))
+    ;        (else (assoc key (cdr records)))))            
             
     (define (insert! key value)
       (let ((record (assoc key table)));(cdr table))))
@@ -148,3 +150,14 @@
 
 (test-3.3.3)
             
+            
+            
+; moar notes            
+; well i think an initial "dummy" DOES make things easier for an n-dimensional table - Exercise 3.25
+    ; the 2-d table in the text HAS self-similarity, but they don't exploit it
+; local 2-d table vs external: yes, the code is ESSENTIALLY identical
+    ; local version uses "local-table" instantiated by (make-table), unnecessary to pass as argument
+    ; local version has extra dispatch infrastructure, of course
+    ; the 2 version otherwise only differ in spacing.
+; local 2-d table vs. ch2support.scm
+    ; they are IDENTICAL, right down to the custom implementation of the built-in assoc
