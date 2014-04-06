@@ -10,7 +10,8 @@ Introduced in main text but not indicated as built-in*
 2.2.3 p. 124: comments by semicolon. omfg wtf, NOW they give us this? i didn't even know they didn't
 2.3.1 p. 144: memq
 2.4.3 p. 182: magnitude (a built-in which they OVERRODE)
-2.4.3 : hey, real-part, imag-part, and angle are all built-ins too...
+2.4.3 p. 178: hey, real-part, imag-part, and angle are all built-ins too...
+3.3.3 p. 268: assoc
 
 *MAYBE their manuscript predates my current MIT Scheme version (9.1) by too much?
 
