@@ -125,7 +125,7 @@
         
         
             (newline)
-            (insert! key value t) (display "\ntable 1 (book): ") (display (lookup key t))
+            (insert! key value t) (display "\ntable 1 (book): ") (display (lookup key t)) 
             
             (define t2-old t2) (insert2! key value t2) 
             (display "\ntable 2 (no dummy): ") (display (lookup2 key t2))
