@@ -1,0 +1,28 @@
+I'm not sure... couldn't you have an arbitrary order WITHIN the same time slice?
+
+
+
+0,1 -> 1,0
+
+FIFO order
+0->1 for the first argument causes a transient 1 output
+1->0 for the second argument causes a transient 0 output after that
+
+but is this desirable??
+
+well, i guess you can only trigger one action at a time, so this WOULD be more faithful
+
+LIFO order
+0->1 pushed
+1->0 pushed
+1->0 takes effect: AND output stays 0
+0->1 takes effect: AND output stays 0
+
+
+aha, sols are much more illuminating http://community.schemewiki.org/?sicp-ex-3.32
+"""
+((lambda () (set-signal! output 0)) (lambda () (set-signal! output 1))) 
+  
+ If the execution order of the above action list changed, 
+the final result of output will be different. 
+"""
