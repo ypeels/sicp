@@ -1,0 +1,23 @@
+initial: balance = 100
+Peter: balance += 10
+Paul: balance -= 20
+Mary: balance /= 2
+
+Peter and Paul's operations are interchangeable. Why you gotta be different, Mary?
+
+Part a.
+Mary #1: $40
+Mary #3: $45
+Peter Mary Paul: $35
+Paul Mary Peter: $50
+
+
+Part b.
+What if, like 3.29, money isn't even conserved??
+Peter overwrites Paul, then Mary: $55
+Paul overwrites Peter, then Mary: $40 (no, that's old)
+Peter or Paul overwrites Mary: $90
+Mary overwrites Peter: $30
+Mary overwrites Paul: $60
+Peter overwrites everybody: $110
+Paul overwrites everybody: $80
