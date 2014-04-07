@@ -235,8 +235,21 @@
 ;                            (memo-fib (- n 2)))))
 ; okay, HERE'S where things start to get interesting...
 
+; "Draw an environment diagram to analyze the computation of (memo-fib 3)."
+; it doesn't say FULL environment diagram of ALL steps.
+; as long as i've analyzed the computation, things should be fine.,
 
+; Need to evaluate (memo-fib 2) and (memo-fib 1).
+; Applicative order: first evaluate ONE of these completely, before doing the other.
+; (memo-fib 1) will be evaluated in a new child frame of F', where its body lives.
+    ; lookup will fail, so it will evaluate and tabulate (f 1) which will just return 1.
+    ; so in the end, the F' table will be updated.
+; (memo-fib 2) will be evaluated in a new child frame of F'
+    ; lookup will fail, so it will compute (f 2)
+        ; (memo-fib 1) will be found in the table
+        ; (memo-fib 0) will be computed in a new child frame of F', and it will return and tabulate 0.
 
+; they didn't say what ASPECT of this they wanted analyzed, so i'm stopping here. sick of this.
 
 
     
