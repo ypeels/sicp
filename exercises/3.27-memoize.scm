@@ -81,7 +81,13 @@
     ; this didn't work either, even though i thought it would...
     ; even though it works at the interpreter level, typing in (memo-fib-cheap 28, 29, 30)
     ; oh, table lookup is getting slower?
-    (display "\n(memoize fib) - hacked to be fast?: ") (display (memo-fib-cheap2 n))
+    ;(display "\n(memoize fib) - hacked to be fast?: ") (display (memo-fib-cheap2 n))
+    
+    ; NO! memo-fib-cheap will work fine for repeated calls for the same n
+    ; but for any different n, it will recompute from scratch, because fib calls fib, NOT memo-fib-cheap
+    ; the real mystery is why typing (memo-fib-cheap 30) (memo-fib-cheap 31) (memo-fib-cheap 32) 
+        ; at the interactive interpreter is not slow... maybe the interpreter is CACHING some results itself?
+        ; actually, i think i was just wrong about that - the first call seems JUST as slow as fib.
 )
 
 (test 10)
