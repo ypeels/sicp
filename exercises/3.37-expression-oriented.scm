@@ -18,7 +18,7 @@
 
 (define (c- x y)
     (let ((x-minus-y (make-connector)))
-        (adder y x-minus-y x)
+        (adder y x-minus-y x)                   ; or, "did you read the section?" Figure 3.28
         x-minus-y
     )
 )
