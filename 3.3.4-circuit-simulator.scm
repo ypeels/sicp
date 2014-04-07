@@ -144,7 +144,7 @@
         (remove-first-agenda-item! the-agenda)
         (propagate))))
 
-(define (probe name wire)
+(define (probe name wire)                                                   ; <------------------- without adding probes, changes propagate SILENTLY
   (add-action! wire
                (lambda ()        
                  (newline)
@@ -235,7 +235,7 @@
   (let ((q (segment-queue (first-segment agenda))))
     (delete-queue! q)
     (if (empty-queue? q)
-        (set-segments! agenda (rest-segments agenda)))))
+        (set-segments! agenda (rest-segments agenda)))))                    ; <------ Footnote 29: this is legal, but ELSE return value is UNDEFINED
 
 (define (first-agenda-item agenda)
   (if (empty-agenda? agenda)
