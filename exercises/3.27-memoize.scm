@@ -94,3 +94,4 @@
     
     
 ; and now the long/annoying part: drawing the frames (FRAMES!!!) to show where the state table is stored
+; ugh, so much random implicit stuff going on with storage... unlike C, where you explicitly control scope
