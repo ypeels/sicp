@@ -9,3 +9,9 @@
         'ok
     )
 )
+
+; "What is the delay time of the or-gate in terms of and-gate-delay and inverter-delay?"
+; if ONE of the input changes, you incur the sum of
+    ; inverter-delay
+    ; and-gate-delay
+    ; inverter-delay
