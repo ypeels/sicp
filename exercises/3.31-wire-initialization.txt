@@ -1,0 +1,28 @@
+Intuitively, I think that setting the action without running it will not propagate the 
+initial values into the circuit
+
+In that case, then inputs would ALL be initialized to 0 by (make-wire)
+At the very least, they won't know when they CHANGE from their initial state
+
+Half adder
+(half-adder a b s c)
+(or a b d)
+(and a b c)
+(inverter c e)
+(and d e s)
+
+Correct initial conditions
+a = b = 0
+d = 0
+c = 0
+e = 1 <------ the fallacious (accept-action-procedure!) has this missing
+s = 0
+
+
+Then (set-signal!) kicks a = 1, which would propagate down the system
+d -> 1 correctly
+c remains 0 correctly
+but since c didn't CHANGE, neither does e, and it remains e = 0 INCORRECTLY
+finally, s = d and e won't trigger to 1 correctly.
+
+Now, if there were no inverters, there would be no problem with a 0 initial state everywhere...
