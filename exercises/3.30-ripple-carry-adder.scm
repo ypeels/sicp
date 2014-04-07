@@ -74,3 +74,10 @@
 )
 
 ; untested...read sols (which are much more Scheming - but i find harder to understand)
+
+; What is the delay needed to obtain the complete output from an n-bit ripple-carry adder, 
+; expressed in terms of the delays for and-gates, or-gates, and inverters? 
+
+; Let o = or-delay, a = and-delay, i = inverter-delay
+; (half-adder): o + a + i + a = 2a + i + o
+; (full-adder): 2 x half-adder + or = 2(2a + i + o) + o = 4a + 2i + 3o.
