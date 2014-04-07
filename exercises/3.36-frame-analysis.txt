@@ -1,0 +1,104 @@
+frames!!! every time i think i'm done with them...
+
+Stage 0 ======================================================
+
+Global Frame G
+(define (make-connector)
+  (let ((value false) (informant false) (constraints '()))
+    ...
+    (define (me request)
+      ...
+    )
+    me
+  )
+)
+
+(define (set-value! connector new-value informant)
+  ((connector 'set-value!) new-value informant))
+
+
+Stage 1a ======================================================
+In G: (define a (make-connector))
+
+Evaluate (make-connector) in frame A, child of G (where make-connector lives)
+
+
+Frame A, child of G ---------------------------------------------
+no arguments
+
+desugared: apply (lambda (value informant false) ... ) to arguments (false false '())
+
+apply in frame A', child of A
+
+Frame A', child of A --------------------------------------------
+value: false
+informant: false
+constraints: '()
+
+local procedure definitions
+set-my-value
+forget-my-value
+connect
+me: dispatch function
+
+return me (A')
+
+Final result in G -----------------------------------------------
+a: me (A')
+
+
+Stage 1b =========================================================
+By symmetry
+
+Frame B, child of G ----------------------------------------------
+just used to apply (lambda (value informant false) ... ) to arguments (false false '())
+
+Frame B', child of B ----------------------------------------------
+value: false
+informant: false
+constraints: '()
+
+local procedure definitions (bodies shared with the procedures that "live" in A')
+set-my-value
+forget-my-value
+connect
+me: dispatch function
+
+return me (B')
+
+Final result in G
+a: me (A')
+b: me (B')
+state variables are stored in frames A' and B', which persist.
+
+
+
+Stage 2 =============================================================
+(set-value! a 10 'user)
+
+Frame E, child of G (where set-value! lives) ---------------------------
+connector: a
+new-value: 10
+informant: 'user
+
+Evaluate ((connector 'set-value!) new-value informant))
+- first looks up a in G
+- then evaluates (me[A'] 'set-value!) in new frame A'', where me[A'] lives
+
+
+Frame A'', child of A' -------------------------------------------------
+request: 'set-value!
+returns set-my-value (A')
+
+Back to Frame E ----------------------------------------------
+(set-my-value[A'] 10 'user)
+Evaluate in new frame A''', child of A' (where set-my-value[A'] lives)
+
+Frame A''' ----------------------------------------------
+newval: 10
+setter: 'user
+
+might need to evaluate "for-each-except", but i'm gettin pretty sick of this at this point
+
+
+
