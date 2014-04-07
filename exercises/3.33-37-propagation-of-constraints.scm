@@ -48,7 +48,7 @@
     (forget-value! a1 me)
     (forget-value! a2 me)
     (process-new-value))                                        ; a connector may have had a value that was not originally set by the adder; these values may need to be propagated back through the adder
-  (define (me request)
+  (define (me request)                                          ; actually, after Exercise 3.35, i'm not sure i understand this ^^^^^
     (cond ((eq? request 'I-have-a-value)  
            (process-new-value))
           ((eq? request 'I-lost-my-value) 
