@@ -1,0 +1,9 @@
+Balance is a READ-ONLY operation and won't create any race conditions.
+However, it MIGHT be a minor annoyance that the balance you pull isn't up to date.
+
+Then again, transactions might always occur after your serialized balance request,
+but before any withdrawals you might request.
+
+To the end user, these cases are indistinguishably annoying.
+Serialization of balance would reduce the probability of annoyance.
+You would have to weigh the potential performance hit to decide whether it's worthwhile.
