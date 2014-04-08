@@ -7,3 +7,10 @@ but before any withdrawals you might request.
 To the end user, these cases are indistinguishably annoying.
 Serialization of balance would reduce the probability of annoyance.
 You would have to weigh the potential performance hit to decide whether it's worthwhile.
+
+
+hmmm the shared account scenario in the following subsection seems to raise a possible concern...
+if you are going to use balances to determine transaction amounts, then out-of-date balances are bad...
+
+but then, the fine-grained serialization in even Ben's version isn't gonna save you...
+it has to do with whether your entire transaction is serialized
