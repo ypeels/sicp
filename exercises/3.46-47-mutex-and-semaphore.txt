@@ -1,0 +1,24 @@
+3.46
+well just imagine interleaving each of the operations
+both read (car cell) as false
+both set-car! cell to true (one is doing so redundantly)
+both think they have exclusive control over the cell
+
+3.47a
+suppose you can test the status of a mutex without trying to acquire it
+
+then a semaphore would be a "smart list" of mutexes
+loop through the list, looking for an unacquired one
+- if found, acquire it
+- if not found, loop through again
+
+releasing a semaphore
+- loop through, looking for an acquired mutex
+- simplest implementation: just release the first one you find
+
+3.47b
+modify test-and-set! to operate similarly over a LIST of cells
+modify clear! to operate similarly over that LIST of cells (clear the first uncleared one you find)
+not totally sure what they mean in this question
+
+don't really care - sols skipped 46-49 altogether

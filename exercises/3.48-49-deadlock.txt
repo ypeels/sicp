@@ -1,0 +1,36 @@
+48
+the rare deadlock in (serialized-exchange a1 a2) on p. 309 occurs when you have
+Peter: (serialized-exchange a1 a2)
+Paul: (serialized-exchange a2 a1)
+
+Peter locks a1
+Paul locks a2
+and now they're waiting forever!
+
+The text's solution is to make serialized-exchange smart enough to make the locks go
+in ascending order in both cases
+
+In general, if you're always waiting for someone higher than you, there's gotta be 
+SOMEONE all the way at the end of the (presumably) finite line that's not deadlocked
+
+It might be slow, but the traffic will all clear out by the end
+
+
+
+49
+hmmm this is trickier...?
+
+"""
+Consider a situation where a process must get access to some shared resources before 
+it can know which additional shared resources it will require.
+"""
+
+you'd have TWO kinds of operations in this case... does that make a difference?
+
+Okay, maybe if you break the assumption that the smart serializer can always 
+reorder all the operations??
+
+I'm not sure I really understand their implementation of serialization
+
+MEH this is too abstract.
+
