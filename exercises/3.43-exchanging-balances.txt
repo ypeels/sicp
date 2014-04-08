@@ -1,0 +1,71 @@
+Sequential exchanges, by DEFINITION, will just shuffle the locations of the balances.
+
+An exchange consists of a withdrawal and a deposit.
+Now suppose these 2 steps can be interrupted in between.
+
+A: 10
+B: 20
+C: 30
+
+suppose for simplicity that balances are read simultaneously
+exchange (B, A): 1a. withdraw 10 from B, 1b. deposit 10 in A
+exchange (C, B): 2a. withdraw 10 from C, 2b. deposit 10 in B
+
+now, the new orders that could occur would be
+1a 2a then (1b 2b) or (2b 1b). the last 2 are commutative.
+A: 20
+B: 20
+C: 20
+
+how about
+exchange (B, A): 1a. withdraw 10 from B, 1b. deposit 10 in A
+exchange (C, A): 2a. withdraw 20 from C, 2b. deposit 20 in A
+A: 40
+B: 10
+C: 10
+
+Now, there is an additional complication that deposits can be NEGATIVE... 
+- for THIS set of account balances
+- for THIS operation (exchange), it still seems like all transactions will clear...?
+- but not necessarily for subsequent exchanges?
+
+A second transaction could break the bank??
+Okay, here's the pathological case, proceeding from (40, 10, 10)
+exchange (B, A): 1a. withdraw -30 from B, 1b. deposit -30 in A
+exchange (C, A): 2a. withdraw -30 from C, 2b. deposit -30 in A
+
+order doesn't even matter here, it's the simultaneous balance read that mucks things up
+1a and 2a will always clear (just depositing positive amount), then only ONE of (1b, 2b) will clear
+but 1a and 2a both got their deposits
+thus, $$ is not conserved.
+
+does the problem just mean conserving money for ONE concurrent exchange??
+
+
+
+
+
+now what if balances are not read simultaneously??
+In (exchange), that just means "difference" could potentially be a strange amount
+
+
+
+
+
+
+
+
+If withdrawals themselves are not even serialized, then cases like Figure 3.29 p. 301 can occur.
+A: $10
+B: $20
+C: $30
+
+exchange (A, B) withdraws $10 from B
+exchange (B, C) deposits $10 in B
+
+A and C are safe, since there are no concurrent writes to them
+
+suppose the deposit overwrites the withdrawal. then the final balances would be
+A: $20
+B: $30
+C: $20

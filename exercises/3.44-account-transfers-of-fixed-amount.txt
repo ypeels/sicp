@@ -1,0 +1,5 @@
+Here, the transfer amount is INDEPENDENT of account balances. I think we should be okay.
+
+
+Do they need a little more error checking that the withdrawal actually CLEARED, before making the deposit?
+Also, it'd be nice to check that amount >= 0.
