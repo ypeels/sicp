@@ -1,0 +1,7 @@
+deadlock!
+
+(s transfer) means that no other (s ) functions can run
+
+that includes (s withdraw) and (s deposit)!
+
+thus, (s transfer) locks a serializer, and (s withdraw) waits forever.
