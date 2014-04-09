@@ -20,7 +20,7 @@
                 
             ;(let ((X (sub-streams one (mul-streams Sr X))))     ; really, just write down X = 1 - Sr X and let it run!?
             
-            ; a LET won't LET you be recursive, haha
+            ; a LET won't LET you be recursive, haha - see also Footnote 65 and Exercise 3.63
             ; but we know from exp-series that define CAN be recursive
             ;(define X (sub-streams one (mul-streams Sr X)))
             ; this doesn't work. need to stick X into the stream-cdr portion...            
