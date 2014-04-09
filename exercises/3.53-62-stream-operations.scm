@@ -8,6 +8,7 @@
 
 (define integers (integers-starting-from 1))
 
+
 ;;;Defining streams implicitly;;;Defining streams implicitly
 
 (define ones (cons-stream 1 ones))
@@ -16,3 +17,6 @@
   (stream-map + s1 s2))
 
 (define integers (cons-stream 1 (add-streams ones integers)))
+
+(define (scale-stream stream factor)
+  (stream-map (lambda (x) (* x factor)) stream))
