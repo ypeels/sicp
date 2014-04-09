@@ -1,19 +1,20 @@
 (load "3.53-62-stream-operations.scm")
+(load "3.54-mul-streams.scm")
 
-; from problem statement
-(define factorials (cons-stream 1 (mul-streams factorials integers)));<??> <??>)))
    
 
 ; this is just factorials, but with addition and a flexible input stream
 (define (partial-sums input-stream)
+    (partial-accum add-streams input-stream))
+(define (partial-products input-stream)
+    (partial-accum mul-streams input-stream))
 
 ; in fact, you should be able to re-define factorials in terms of "partial-products"
-
-
+(define (partial-accum stream-op input-stream)
     (cons-stream
         (stream-car input-stream)
-        (add-streams
-            (partial-sums input-stream)     ; i can't believe this works...
+        (stream-op
+            (partial-accum stream-op input-stream)     ; i can't believe this works... oh it's accessing old results via MEMOIZATION
             (stream-cdr input-stream)
         )
     )
@@ -33,30 +34,34 @@
     (define (test-products n)
         (test n partial-products))
     
-    (define (test n proc)
+    (define (test-n n proc)
         (let ((result (proc integers)))
             (newline) (display (stream-ref result n))
         )
     )
     
+    (define (test proc name)
+        (newline)
+        (newline)
+        (display name)
+        (test-n 0 proc)
+        (test-n 1 proc)
+        (test-n 2 proc)
+        (test-n 3 proc)
+        (test-n 4 proc)
+        (test-n 5 proc)
+        (test-n 6 proc)
+        (test-n 7 proc)
+        (test-n 8 proc)
+    )
     
-    (display "\nPartial sums of the integers:")
-    (test-sums 0)    ; 1
-    (test-sums 1)    ; 3
-    (test-sums 2)    ; 6
-    (test-sums 3)    ; 10
-    (test-sums 4)    ; 15
-    (test-sums 5)    ; 21
+    (test partial-sums "Partial sums of the integers")          ; 1 3 6 10 15 21 28 36 45
+    (test partial-products "Factorials via partial products")   ; 1 2 6 24 120 720 5040 40320 362880
+        
     
-    ;(display "\n\nFactorials:")
-    ;(test-products 0)
-    ;(test-products 1)    
-    ;(test-products 2)    
-    ;(test-products 3)    
-    ;(test-products 4)    
-    ;(test-products 5)    
+  
     
     
 )
 
-(test-3.55)
+; (test-3.55)
