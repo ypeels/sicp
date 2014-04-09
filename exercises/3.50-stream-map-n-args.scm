@@ -23,8 +23,7 @@
           the-empty-stream
           (cons-stream
            low
-           (stream-enumerate-interval (+ low 1) high))))
-           
+           (stream-enumerate-interval (+ low 1) high))))           
     (define (display-stream s)
       (stream-for-each display-line s))
     (define (display-line x)
