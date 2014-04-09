@@ -30,7 +30,7 @@
 ; is extremely confusing... writing programs that depend on such subtleties is odious programming style."
     ; hmm, seemed kinda straightforward to me... maybe the example is oversimplified?
     ; or maybe a true Schemer's mind really is that twisted...
-intermixing delayed evaluation with printing -- and, even worse, with assignment -- is extremely confusing
+    ; ohhh the REAL confusion sets in when you have to consider un-memoized streams...
 (define seq (stream-map accum (stream-enumerate-interval 1 20)))    
 (probe)         ; 1
                 ; seq: (1 . #promise)
@@ -86,3 +86,12 @@ intermixing delayed evaluation with printing -- and, even worse, with assignment
 ; 171
 ; 190
 ; 210
+
+; uh, what would happen without memoization?
+; from the text, if you ever have to force the result again, then accum will be called again...
+; from the definition of (cons-stream), the very first term would be set in stone, but all other terms would be re-evaluated!
+
+; (define y): sum = 6 still, i think...
+; (define z): sum STARTS at 6, and seq goes to (1 . 8 . 11 . 20) and stops, so sum will be 20?
+; etc. i really don't want to work through this stupidity... the answer is YES, most of these responses will differ.
+    ; the reason is that accum will be re-evaluated, and now with sum taking on "incorrect" starting values.
