@@ -41,22 +41,64 @@
 
 (define iterations 2000)
 (display "\nalyssa: ")(display (stream-ref alyssa iterations)) ; blazing fast, right? practically instantaneous
-;(display "\nlouis: ") (display (stream-ref louis iterations))  ; noticeably slower - takes several seconds
+(display "\nlouis: ") (display (stream-ref louis iterations))  ; noticeably slower - takes several seconds
 
+; FEELS like louis is reevaluating the entire substream with every successive stream-cdr??
+    ; if so, then his should scale quadratically
+    ; that means alyssa at 4M should be just as slow - but who knows... "Out of memory!"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; frame analysis for alyssa / textbook (substitution model doesn't suffice? because memoized streams use STATE anyway!?
 
 ; Global frame G ----------------------------
 ; (sqrt-stream 2)
-; evaluate in child frame A, child of G (where sqrt-stream lives)
+; evaluate in new frame A, child of G (where sqrt-stream lives)
 
 ; Frame A, child of G -----------------------
 ; x: 2 (argument)
-; guesses: (1.0 . #promise (stream-map (lambda (guess (sqrt-improve guess x))) guesses))
-; returns guesses. by 
+; guesses: (1.0 . #promise (stream-map (lambda (guess) (sqrt-improve guess x)) guesses))
+; returns guesses, by POINTER, because it is a pair.
+    ; thus, any (stream-ref) applications to (sqrt-stream) will evaluate on the SAME DATA STRUCTURE, guesses
+    ; results will be memoized by stream-cdr / force.
 
-; FEELS like louis is reevaluating the entire substream with every successive stream-cdr??
-    ; if so, then his should scale quadratically
-    ; that means alyssa at 4M should be just as slow - but who knows... "Out of memory!"
+    
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; frame analysis for louis?
+; (define louis (sqrt-stream-3.63 2))
+; evaluate in new frame L, child of G (where sqrt-stream-3.63 lives)
+
+; Frame L, child of G ----------------------------
+; x: 2 (argument)
+; return ( 1.0 . #promise (stream-map (lambda (guess) (sqrt-improve guess x)) (sqrt-stream-3.63 x)))
+
+
+; ok, so....
+; (stream-ref louis 0)
+    ; (stream-car (1.0 . #promise ... ))
+    ; just returns 1.0, nice and easy.
+; (stream-ref louis 1)
+    ; (stream-car (stream-map (lambda (guess) (sqrt-improve guess x)) (sqrt-stream-3.63 x)))
+        ; re-evaluates (sqrt-stream-3.63 x)
+        ; applies the lambda to its first term
+        ; returns that improved guess
+        ; not really any extra cost, but notice that sqrt-stream DID get called again, instead of simple memoized lookup.
+; (stream-ref louis 2)
+    ; fresh call to (sqrt-stream-3.63), which lives in G, because it's a FRESHLY CONSTRUCTED STREAM (call to (cons-stream) in new frame)
+    ; re-evaluates (stream-ref louis 1) - streams in (recalculates) the first term because it's a fresh new stream
+    ; but need to return the SECOND term of (stream-map (lambda (guess) (sqrt-improve guess x)) (sqrt-stream-3.63 x))
+        ; that will trigger ANOTHER calculation of (stream-ref louis 1), and use that as the input to the lambda
+    ; in general, a triangular number of evaluations of the lambda, instead of just linear.
+        ; i think?
+        
+; without memoization, it looks like the textbook's method would do the same thing (keep refulfilling promise to reevaluate)
+    ; but with more overhead!
+    
+    
+    
+
+        
+    
+    
+
 
