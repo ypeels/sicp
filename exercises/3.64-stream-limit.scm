@@ -4,7 +4,7 @@
     (let ((current (stream-car str)) (next (stream-ref str 1)))
         (if (< (abs (- current next)) tol)
             next
-            (stream-limit (stream-cdr str) tol)
+            (stream-limit (stream-cdr str) tol)                
         )
     )
 )
