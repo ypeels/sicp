@@ -36,12 +36,15 @@
                            (sqrt-stream-3.63 x))))
 ; and i THINK this'll be cleared up by working out the environment diagram (frames!!!)
 
-(define louis (sqrt-stream-3.63 2.))
-(define alyssa (sqrt-stream 2.))
+(define (test-3.63)
+    (define louis (sqrt-stream-3.63 2.))
+    (define alyssa (sqrt-stream 2.))
 
-(define iterations 2000)
-(display "\nalyssa: ")(display (stream-ref alyssa iterations)) ; blazing fast, right? practically instantaneous
-(display "\nlouis: ") (display (stream-ref louis iterations))  ; noticeably slower - takes several seconds
+    (define iterations 2000)
+    (display "\nalyssa: ")(display (stream-ref alyssa iterations)) ; blazing fast, right? practically instantaneous
+    (display "\nlouis: ") (display (stream-ref louis iterations))  ; noticeably slower - takes several seconds
+)
+;(test-3.63)
 
 ; FEELS like louis is reevaluating the entire substream with every successive stream-cdr??
     ; if so, then his should scale quadratically
