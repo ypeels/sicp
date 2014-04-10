@@ -1,10 +1,9 @@
-; from text. haven't worked with FINITE streams in a while...
-(define (display-stream s)
-  (stream-for-each display-line s))
-
-(define (display-line x)
-  (newline)
-  (display x))
+; from ch3support.scm
+(define (print-n s n)
+  (if (> n 0)
+      (begin (newline)
+	     (display (stream-car s))
+             (print-n (stream-cdr s) (- n 1)))))
 
 ; from problem statement
 (define (make-zero-crossings input-stream last-value)
@@ -51,10 +50,21 @@
     )
     (define input-stream (list-to-stream input-list))
     
-    (display-stream (make-zero-crossings input-stream 0))   ; for some reason, you can assume 0 initially, which is "positive"
+    ; they assume 0 initially, even though it is "positive"
+    (print-n (make-zero-crossings input-stream 0) (- (length input-list) 1))   
     ; 0 0 0 0 0 -1 0 0 0 0 1 0 0
     
+    
+    (define zero-crossings
+      (stream-map sign-change-detector input-stream (stream-cdr input-stream)));sense-data <expression>))
+                                                        ; <expression> = (stream-cdr input-stream)
+    
+    (display "\n\nExercise 3.74 - Eva Lu Ator's one-liner\n")
+    (print-n zero-crossings (- (length input-list) 1))   
+    ; 0 0 0 0 1 0 0 0 0 -1 0 0
+    ; "approximately equivalent" because it skips the first element 
+    
 )
-(test-3.74)
+; (test-3.74)
     
     
