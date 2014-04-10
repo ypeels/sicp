@@ -94,7 +94,26 @@
 ; without memoization, it looks like the textbook's method would do the same thing (keep refulfilling promise to reevaluate)
     ; but with more overhead!
     
+
     
+; louis, take 2 - substitution model
+; "(define (improve stream) (stream-map (lambda (guess) (sqrt-improve guess x)) stream))"
+; (stream-ref louis 0)
+    ; (1) - #promises not shown
+; (stream-ref louis 1)
+    ; (1 (improve 1))
+; (stream-ref louis 2)
+    ; (1 (improve 1 (improve 1)))
+    ; (1 (improve 1 i1)) - using shorthand ik == (improve) applied to 1, k-times
+    ; (1 i1 i2) - it's improving the entire sublist again and again
+    ; returns i2
+; (stream-ref louis 3)
+    ; (1 (improve 1 (improve 1 (improve 1))))
+    ; (1 (improve 1 (improve 1 i1)))
+    ; (1 (improve 1 i1 i2))
+    ; (1 i1 i2 i3)
+    ; returns i3
+    ; so there's your triangular number of evaluations
     
 
         
