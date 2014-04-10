@@ -15,6 +15,7 @@ Introduced in main text but not indicated as built-in*
 3.5.1: cons-stream, stream-car, -cdr, -ref, -map, -null?, -for-each, -filter, -accumulate; delay, force
 	surprising: stream-accumulate, since accumulate is not built-in!
 	of all these, only cons-stream and force are special forms
+3.5.3 p. 340: stream-append (needs to read entire first argument first)
 
 *MAYBE their manuscript predates my current MIT Scheme version (9.1) by too much?
 
