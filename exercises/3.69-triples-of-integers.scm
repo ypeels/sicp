@@ -32,29 +32,47 @@
 
 (define (test-3.69)
 
-    (let (  (int-triples (triples integers integers integers))
-            (num-pairs 20)
-            )
+    (let (  (num-pairs 20)    )
             
-        (define (iter i)
-            (let ((current-triple (stream-ref int-triples i)))            
+        (define (iter i triple-stream)
+            (let ((current-triple (stream-ref triple-stream i)))            
                 (newline)
                 ;(display i) (display "\t")
                 (display current-triple)
             )
             
             (if (< i num-pairs)
-                (iter (+ i 1)))
+                (iter (+ i 1) triple-stream))
         )
-        (iter 0)
+        
+        
+        
+        (define (pythagorean? a b c)
+            (= (square c) (+ (square a) (square b))))
+        
+        (define pythagorean-triples
+            (stream-filter
+                (lambda (L) (apply pythagorean? L))
+                (triples integers integers integers)
+            )
+        )
+                
+    
+        
+        ;(iter 0  (triples integers integers integers))
+        (iter 0 pythagorean-triples)
+        ; 3 4 5
+        ; 6 8 10
+        ; 5 12 13
+        ; 9 12 15
+        ; 8 15 17
+        ; Aborting!: out of memory
+        ; but my TRIPLES algorithm seems to work...
+        
+        
     )
 )
             
-(test-3.69)            
+;(test-3.69)            
 
 
-
-
-; incorrect argument against embedding (pair)
-   ; not unless you want to generate an intermediate pair stream with embedded indices... doesn't sound very Schemerly
-    
