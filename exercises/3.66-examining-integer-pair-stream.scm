@@ -1,4 +1,4 @@
-(load "3.66-67-streams-of-pairs.scm")
+(load "3.66-68-streams-of-pairs.scm")
 
 ; from ch3.scm
 (define (pairs s t)
