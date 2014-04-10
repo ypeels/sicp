@@ -1,4 +1,4 @@
-(load "3.66-68-streams-of-pairs.scm")
+(load "3.66-72-streams-of-pairs.scm")
 
 (define (pairs-3.68 s t)
   (newline) (display (stream-car s)) (display "\t") (display (stream-car t))

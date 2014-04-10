@@ -1,4 +1,4 @@
-(load "3.66-68-streams-of-pairs.scm")
+(load "3.66-72-streams-of-pairs.scm")
 
 ; instead of ordered pairs with i <= j.
 

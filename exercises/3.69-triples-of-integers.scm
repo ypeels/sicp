@@ -1,4 +1,4 @@
-;(load "3.66-68-streams-of-pairs.scm")
+;(load "3.66-72-streams-of-pairs.scm")
 (load "3.66-examining-integer-pair-stream.scm")
 ; can we just generalize the table decomposition on p. 339 to 3-d?
     ; corner
