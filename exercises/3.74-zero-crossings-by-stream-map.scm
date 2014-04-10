@@ -55,14 +55,15 @@
     ; 0 0 0 0 0 -1 0 0 0 0 1 0 0
     
     
+    ; oops i had a sign / off-by-one error before looking at the sols
     (define zero-crossings
-      (stream-map sign-change-detector input-stream (stream-cdr input-stream)));sense-data <expression>))
-                                                        ; <expression> = (stream-cdr input-stream)
+      (stream-map sign-change-detector input-stream (cons-stream 0 input-stream)));sense-data <expression>))
+                                                        ; <expression> = (cons-stream 0 input-stream)
     
     (display "\n\nExercise 3.74 - Eva Lu Ator's one-liner\n")
     (print-n zero-crossings (- (length input-list) 1))   
-    ; 0 0 0 0 1 0 0 0 0 -1 0 0
-    ; "approximately equivalent" because it skips the first element 
+    ; 0 0 0 0 0 -1 0 0 0 0 1 0
+    ; why is this only "approximately" equivalent??
     
 )
 ; (test-3.74)
