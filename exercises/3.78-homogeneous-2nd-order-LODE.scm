@@ -1,3 +1,4 @@
+(load "3.53-62-stream-operations.scm") ; for add-stream, scale-stream
 (load "3.78-80-integral.scm")
 
 ; analogously to p. 348
