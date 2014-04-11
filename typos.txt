@@ -14,6 +14,8 @@ I GUESS it's intentional...
 Section 3.1 p. 218: a run on sentence? "each of which has" - shouldn't this be "each of which having"
 
 Section 3.1.3 p. 232: -15 not italicized, and "expresssion" [sic]. both fixed in web version...
+
+Section 3.5.5 p. 356: "the implementation a banking system [sic]". fixed on website.
 -------------------
 
 Exercise 2.52a p. 141 - finally, a spacing error (2 spaces between "exercise" and "2.49")
