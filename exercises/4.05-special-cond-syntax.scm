@@ -20,7 +20,7 @@
         
             ; the new special case
             (let ((operator (cadr actions)))
-                (cons operator predicate))      ; sols: (list operator predicate). they're PROBABLY right...
+                (list operator predicate))      ; sols: (list operator predicate) - i had cons...
              
             ; the original case
             (sequence->exp actions)

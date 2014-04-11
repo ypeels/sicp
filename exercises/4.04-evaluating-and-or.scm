@@ -94,6 +94,8 @@
 ; it's pretty instructive to work through this both ways
 ; but this chapter is getting to the point where WRITING this code isn't really that fulfilling (can't run it!) should i (gasp) start skipping exercises??
 
+; and gee, having the target and source language as the same? that's not confusing when you're writing (meta-)code...
+
 (define (eval expr env)
     (cond
         ; ... 
@@ -107,28 +109,21 @@
 (define (and->if exps) ; no env! (eval) will take care of that.
     (define (expand conds)  ; cf. (expand-clauses)
         (if (null? conds)
-            #t   ; sols: 'true                  ; default value == surviving value! couldn't find a #f, so must be #t!
+            'true ; sols: 'true (I had #t)      ; default value == surviving value! couldn't find a #f, so must be #t!
             (make-if                            ; return an if statement in the TARGET LANGUAGE
                 (first-condition conds)
                 (expand (rest-conditions conds))
-                #f;(first-condition conds)      ; sols: 'false         
+                'false;(first-condition conds)  ; sols: 'false. I had #f...         
             )
         )
     )
-    
-    ;(let ((conds (and-or-conditions exps)))
-    ;    (if (no-conditions? conds)
-    ;        #t
-    ;        (iter conds)
-    ;    )
-    ;)
     (expand (and-or-conditions exps))
 )
 
 (define (or->if exps)
     (define (expand conds)
         (if (null? conds)
-            #f   ; sols: 'false                 ; default value == surviving value! couldn't find a #t, so must be #f!
+            'false   ; sols: 'false (i had #f)  ; default value == surviving value! couldn't find a #t, so must be #f!
             (make-if
                 (first-condition conds)
                 (first-condition conds)         ; again, a combined and/or would require (abort-value current-value)
