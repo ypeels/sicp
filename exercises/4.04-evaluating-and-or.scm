@@ -1,3 +1,17 @@
+; shared helpers / data representations
+(define (true? x) (not (false? x))) ; (true?) is mentioned in the book, but (false?) is what's built-in...
+
+(define (and? expr) (tagged-list? expr 'and))
+(define (or? expr) (tagged-list? expr 'or))
+(define (and-or-conditions exps) (cdr exps))
+(define (no-conditions? conds) (null? conds))
+(define (last-condition? conds) (and (pair? conds) (null? (cdr conds))))
+(define (first-condition conds) (car conds))
+(define (rest-conditions conds) (cdr conds))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 ; first as a special form (ignoring exercise 3.3)
 (define (eval expr env)
     (cond
@@ -9,41 +23,16 @@
     )
 )
 
-(define (true? x) (not (false? x))) ; (true?) is mentioned in the book, but (false?) is what's built-in...
 
-(define (and-or-conditions exps) (cdr exps))
-(define (no-conditions? conds) (null? conds))
-(define (last-condition? conds) (and (pair? conds) (null? (cdr conds))))
-(define (first-condition conds) (car conds))
-(define (rest-conditions conds) (cdr conds))
 
 ; sigh, there's a lot of common logic, but enough details are different that i'm not sure they can be combined...
 ; implement separately, and see if anything can be refactored
 (define (eval-and exps env)
-    ;(eval-and-or (and-or-conditions exps) false? and-abort-value env))
     
     (define (iter conds)
         (let ((current-value (eval (first-condition conds) env)))
-    
-    
-            ;(cond
-            ;    
-            ;    ; If all the expressions evaluate to true values, the value of the last expression is returned
-            ;    ((last-condition? conds)
-            ;        (if (eq? #f current-value)
-            ;            #f
-            ;            current-value
-            ;        )
-            ;    )
-            ;    
-            ;    (else
-            ;        (if (eq? #f current-value)
-            ;            #f
-            ;            (iter (rest-conditions conds))
-            ;        )
-            ;    )
-            ;)
             
+            ; it ain't cheating! eval-sequences uses cond, and so shall i. 
             (cond                
                 ((false? current-value)
                     #f)
@@ -54,7 +43,6 @@
             )
         )
     )
-                
     
     (let ((conds (and-or-conditions exps)))
         (if (no-conditions? conds)
@@ -99,34 +87,55 @@
     )
 )
             
-    
+       
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+       
+; but it is really more in the spirit of this section (minimalism) to implement as a derived expression
+; it's pretty instructive to work through this both ways
+; but this chapter is getting to the point where WRITING this code isn't really that fulfilling (can't run it!) should i (gasp) start skipping exercises??
 
-;(define (eval-and-or conds abort? abort-value env)
-;
-;    (if (no-conditions? conds)
-;    
-;        ; and: If there are no expressions then true is returned.
-;        ; or: If all expressions evaluate to false, or if there are no expressions, then false is returned
-;        (abort-value '())
-;        
-;        (let ((current-value (eval (first-condition conds) env)))
-;        
-;            ; it ain't cheating! eval-sequences uses cond, and so shall i. 
-;            (cond 
-;                
-;                ((last-condition? conds)
-;                    (if current-value
-;                        current-value
-;        
-;        )
-;        
-;    )
-;        
-;
-;
-;        ((
-;            
-;        ((last-condition? conds)
-;        
-;            (let ((last-value 
-;            
+(define (eval expr env)
+    (cond
+        ; ... 
+        
+        ((and? expr) (eval (and->if expr) env))
+        ((or? expr) (eval (or->if expr) env))
+        ; ...
+    )
+)
+
+(define (and->if exps) ; no env! (eval) will take care of that.
+    (define (expand conds)  ; cf. (expand-clauses)
+        (if (null? conds)
+            #t                                  ; default value == surviving value! couldn't find a #f, so must be #t!
+            (make-if                            ; return an if statement in the TARGET LANGUAGE
+                (first-condition conds)
+                (expand (cdr conds))
+                #f;(first-condition conds)            
+            )
+        )
+    )
+    
+    ;(let ((conds (and-or-conditions exps)))
+    ;    (if (no-conditions? conds)
+    ;        #t
+    ;        (iter conds)
+    ;    )
+    ;)
+    (expand (and-or-conditions exps))
+)
+
+(define (or->if exps)
+    (define (expand conds)
+        (if (null? conds)
+            #f                                  ; default value == surviving value! couldn't find a #t, so must be #f!
+            (make-if
+                (first-condition conds)
+                (first-condition conds)         ; again, a combined and/or would require (abort-value current-value)
+                (expand (cdr conds))            ; also, it'd have to take the swapped order here into account. meh.
+            )
+        )    
+    )
+    (expand (and-or-conditions exps))
+)
+    
