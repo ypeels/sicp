@@ -38,7 +38,7 @@
 
 (define (test-3.05)
 
-    (define (in-circle xc yc r)
+    (define (in-circle? xc yc r)
         (lambda (x y)
             (<= (+ (square (- x xc)) (square (- y yc)))
                 (square r))))
@@ -50,7 +50,7 @@
                 )
             
             ; integral should converge to pi * r**2            
-            (display (/ (estimate-integral (in-circle xc yc r) x1 x2 y1 y2 num-trials) r r))
+            (display (/ (estimate-integral (in-circle? xc yc r) x1 x2 y1 y2 num-trials) r r))
         )
     )
 
@@ -64,7 +64,7 @@
     (test 5 7 1. 10000)     ; 3.1136
     (test 5 7 1. 100000)    ; 3.13968
 )
-(test-3.05)
+;(test-3.05)
 
 
 
