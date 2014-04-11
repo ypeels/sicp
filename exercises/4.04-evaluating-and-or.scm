@@ -107,11 +107,11 @@
 (define (and->if exps) ; no env! (eval) will take care of that.
     (define (expand conds)  ; cf. (expand-clauses)
         (if (null? conds)
-            #t                                  ; default value == surviving value! couldn't find a #f, so must be #t!
+            #t   ; sols: 'true                  ; default value == surviving value! couldn't find a #f, so must be #t!
             (make-if                            ; return an if statement in the TARGET LANGUAGE
                 (first-condition conds)
-                (expand (cdr conds))
-                #f;(first-condition conds)            
+                (expand (rest-conditions conds))
+                #f;(first-condition conds)      ; sols: 'false         
             )
         )
     )
@@ -128,14 +128,16 @@
 (define (or->if exps)
     (define (expand conds)
         (if (null? conds)
-            #f                                  ; default value == surviving value! couldn't find a #t, so must be #f!
+            #f   ; sols: 'false                 ; default value == surviving value! couldn't find a #t, so must be #f!
             (make-if
                 (first-condition conds)
                 (first-condition conds)         ; again, a combined and/or would require (abort-value current-value)
-                (expand (cdr conds))            ; also, it'd have to take the swapped order here into account. meh.
+                (expand (rest-conditions conds)); also, it'd have to take the swapped order here into account. meh.
             )
         )    
     )
     (expand (and-or-conditions exps))
 )
+
+; sols BOTH miss the fact that if and/or evaluates to true, you return the EXPRESSION, not #t
     
