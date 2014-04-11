@@ -1,6 +1,7 @@
 *~
 *.gz
 allcode/
+sicp-solutions/
 
 # wtf?
 .fuse_hidden*
