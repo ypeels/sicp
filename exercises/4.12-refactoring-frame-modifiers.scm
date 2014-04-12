@@ -8,7 +8,7 @@
 (define (lookup-or-set!-variable-value var env op)
   (define (env-loop env)
     (if (eq? env the-empty-environment)
-        (error "Unbound variable -- SET!" var)
+        (error "Unbound variable -- LOOKUP-OR-SET!" var)
         (let ((frame (first-frame env)))
           (scan (frame-variables frame)
                 (frame-values frame)
@@ -36,3 +36,4 @@
          (found-action vals))                       ; needed to vary this between lookup and set!
         (else (scan (cdr vars) (cdr vals)))))
                   
+; sols rename everything, and i don't feel like reading them
