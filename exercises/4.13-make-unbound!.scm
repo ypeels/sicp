@@ -7,8 +7,28 @@
     ; how do you remove an item from a list easily? delete! but only for intermediate entries!?
         ; the annoying part is having to also delete the corresponding entry from vals.
     
+; sols: oh they want you to implement all the way back in eval. just do it like define/set!
+    
+(define (unbind? expr)
+    (tagged-list? 'make-unbound! expr)) ; sols are wrong though about this though - they want make-unbound! to be a SPECIAL FORM
+    
+(define (unbinding-variable expr)
+    (cadr expr))    ; no error checking - just like (assignment-variable).
+    
+(define (eval-unbinding expr env)
+    (unbind-variable! (unbinding-variable expr) env))
+    
+(define (eval expr env)
+  (cond
+    ; ...
+    ((unbind? expr)
+        (eval-unbinding expr env))
+    ; ...
+  )
+)
+    
 
-(define (lookup-variable-value var env)
+(define (unbind-variable! var env)
 
   ; if the NEXT list item is var, then SKIP it (screw garbage collection)
   ; the very first elem of all should have been checked in the main loop
@@ -27,10 +47,6 @@
   )
 
   (define (env-loop env)
-    
-
-
-            
             
     (if (eq? env the-empty-environment)
         'done ;(error "Unbound variable" var)
@@ -53,3 +69,5 @@
           (env-loop (enclosing-environment env)))))
                 
   (env-loop env))
+  
+; sols are pretty messed up, but i'm happy with my solution.
