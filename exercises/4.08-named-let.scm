@@ -26,10 +26,11 @@
 
 (define (let-body expr) 
     (cond
+        ; TODO: maybe these should be cddr and cdddr, in case it's a SEQUENCE and not a single statement
         ((= (length expr 3))
             (caddr expr))
         ((= (length expr 4))
-            (cadddr expr))
+            (cadddr expr))  
         (else
             (error "Invalid expression -- LET-BODY" expr))
     )
@@ -111,7 +112,7 @@
                             
                             (append (list procedure-name) value-list)
                         )
-                    ) ; trigger evaluation of the parameter-less lambda
+                    ) ; execute code by triggering application of the enclosing parameter-less lambda
                 )
             )
             

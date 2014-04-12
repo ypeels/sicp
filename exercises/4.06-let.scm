@@ -16,7 +16,7 @@
 
 (define (let? expr) (tagged-list? expr 'let))
 (define (let-bindings expr) (cadr expr))
-(define (let-body expr) (caddr expr))
+(define (let-body expr) (caddr expr)) ; TODO: maybe this should be cddr, in case it's a SEQUENCE and not a single statement
 
 (define (eval expr env)
   (cond 
