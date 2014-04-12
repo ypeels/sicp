@@ -102,7 +102,7 @@
                     (list
                         (make-lambda '()
                             
-                            ; i don't THINK i need a "begin" here, do i?
+                            ; i don't THINK i need a "begin" here, do i? maybe sequence->exp, based on sols?
                             (list 
                                 'define 
                                 procedure-name
@@ -122,3 +122,5 @@
         )
     )
 )
+
+; sols use map and sequence->exp to keep their implementation short.
