@@ -1,0 +1,9 @@
+one stupid but surgical example
+
+if you modify tagged-list?
+(define (tagged-list? exp tag)
+  (if (and (pair? exp) (pair? (cdr exp)))
+      (eq? (cadr exp) tag)
+      false))
+
+this changes the target language from prefix notation to infix (well, operator should be the second item)
