@@ -33,3 +33,4 @@ Exercise 3.12: append!, last-pair (they gave some short simple implementations)
 Exercise 3.22: delete! (stumbled on this by myself)
 Exercise 4.5: additional syntax for cond clauses, (<test> => <recipient>)
 Exercise 4.6: values (stumbled on this by myself; what could it possibly do??)
+Exercise 4.7: let* - omfg why didn't they introduce this EARLIER!?!? it's like they don't want it to be easy to code...
