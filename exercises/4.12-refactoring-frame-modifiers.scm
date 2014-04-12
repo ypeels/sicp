@@ -3,30 +3,36 @@
   
 (define (set-variable-value! var val env)
     (lookup-or-set!-variable-value var env (lambda (vals) (set-car! vals val))))
-  
+    
 ; lookup and set only differ in ONE LINE
 (define (lookup-or-set!-variable-value var env op)
   (define (env-loop env)
-    (define (scan vars vals)
-      (cond ((null? vars)
-             (env-loop (enclosing-environment env)))
-            ((eq? var (car vars))
-             (op vals))
-            (else (scan (cdr vars) (cdr vals)))))
     (if (eq? env the-empty-environment)
         (error "Unbound variable -- SET!" var)
         (let ((frame (first-frame env)))
           (scan (frame-variables frame)
-                (frame-values frame)))))
+                (frame-values frame)
+                (lambda () (env-loop (enclosing-environment env)))
+                (lambda (vals) (op vals))))))
   (env-loop env))
   
+  
+  
+  ; define-variable is a SINGLE ITERATION of env-loop.
+    ; COULD cheaply modify (lookup-or-set!) with a flag
+    ; but it's probably CLEANER and far more comprehensible to pull scan out completely
 (define (define-variable! var val env)
-  (let ((frame (first-frame env)))
-    (define (scan vars vals)
-      (cond ((null? vars)
-             (add-binding-to-frame! var val frame))
-            ((eq? var (car vars))
-             (set-car! vals val))
-            (else (scan (cdr vars) (cdr vals)))))
+  (let ((frame (first-frame env)))  
     (scan (frame-variables frame)
-          (frame-values frame))))
+          (frame-values frame)
+          (lambda () (add-binding-to-frame! var val frame))
+          (lambda (vals) (set-car! vals val)))))
+        
+; refactored out. pretty abstract looking, but hopefully clear enough...        
+(define (scan vars vals null-action found-action)
+  (cond ((null? vars)
+         (null-action))                             ; need to vary this starting with define!
+        ((eq? var (car vars))
+         (found-action vals))                       ; needed to vary this between lookup and set!
+        (else (scan (cdr vars) (cdr vals)))))
+                  
