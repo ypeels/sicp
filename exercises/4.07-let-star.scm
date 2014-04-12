@@ -59,5 +59,47 @@
 
 ; so it looks emininently doable by just generating a nested list with 'let, and having that feed back into eval.
     
+(define (eval expr env)
+  (cond 
+    ; ...
+    ((let*? expr)
+        (eval (let*->nested-lets expr) env))
+    ; ...
+  )
+)
 
+; use (let-parameters), (let-values), (let-body) from exercise 4.6; 
+    ; not repeated here to keep things DRY
+    ; not LOADed here to avoid overwriting my fake eval code
+(define (let*->nested-lets expr)
+
+    (define (iter parameters value-list body)
+        (if (null? parameters)  ; TODO: error-check that value-list and parameters have the same length
+            body
+            
+            ; construct the nested if expression
+            (list 
+                'let
+                (list (list (car parameters) (car value-list)))
+                (iter (cdr parameters) (cdr value-list) body)
+            )
+        )
+    )
+            
+
+    (let (  (parameters (let-parameters expr))
+            (value-list (let-values expr))
+            (body (let-body expr))
+            )
+            
+            
+        (iter parameters value-list body)
+    )
+)
+
+; sols are quite different, but i don't really see how mine could be wrong, if my (let->combination) was ok
+    ; but apparently we both agree that we NEED NOT explicitly expand let* in terms of non-derived expressions.
+    ; in fact, this seems LESS AWKWARD than trying to figure out how to chain lambdas correctly.
+    ; the price is decreased performance? the meta-interpreter still needs to parse the nested let...
+    
 

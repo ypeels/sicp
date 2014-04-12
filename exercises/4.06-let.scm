@@ -30,11 +30,9 @@
 ; doing this as a derived expression, so proceed as with cond.
 ; (make-lambda) will probably be useful.
 
-
-(define (let->combination expr)
-
-    
-    (define (get-parameters binding-list)
+; pulled out for reuse by (let*->nested-lets) in Exercise 4.7
+(define (let-parameters expr)
+    (let ((binding-list (let-bindings expr)))
         (if (null? binding-list)
             '()
             (cons 
@@ -43,8 +41,10 @@
             )
         )
     )
-    
-    (define (get-values binding-list)
+)
+
+(define (let-values expr)
+    (let ((binding-list (let-bindings expr)))
         (if (null? binding-list)
             '()
             (cons
@@ -53,9 +53,13 @@
             )
         )
     )
+)
+
+
+(define (let->combination expr)
     
-    (let (  (parameters (get-parameters (let-bindings expr)))
-            (value-list (get-values (let-bindings expr)))
+    (let (  (parameters (let-parameters expr))
+            (value-list (let-values expr))
             (body (let-body expr))                
             )
 
