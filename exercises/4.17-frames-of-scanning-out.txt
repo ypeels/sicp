@@ -1,0 +1,69 @@
+Suppose the overall lambda is evaluated in some frame L.
+
+(lambda <vars>
+  (define u <e1>)
+  (define v <e2>)
+  <e3>)
+
+Frame L
+<vars>: <args>
+u: <e1>
+v: <e2>
+evaluate <e3>.
+
+----------------------------------
+
+(lambda <vars>
+  (let ((u '*unassigned*)
+        (v '*unassigned*))
+    (set! u <e1>)
+    (set! v <e2>)
+    <e3>))
+
+Desugared
+(lambda <vars>
+
+    (
+        (lambda (u v)
+            (set! u <e1>)
+            (set! v <e2>)
+            <e3>
+        )
+        
+        '*unassigned*
+        '*unassigned*
+    )
+)
+
+Frame L
+<vars>: <args>
+
+apply (lambda (u v)) in new frame L', child of L
+
+Frame L'
+u: '*unassigned*
+v: '*unassigned*
+
+Evaluate body in L'
+(set! u <e1>)
+(set! v <e2>)
+<e3>
+            
+
+The extra frame L' is where the (let) is evaluated.
+Any variable not found in L' will just be found in L, so the behavior of <e3> is unchanged.
+
+
+
+I suppose you could in principle do
+
+(lambda <vars>
+  (define u '*unassigned*)
+  (define v '*unassigned*)
+  (set! u <e1>)
+  (set! v <e2>)
+  <e3>)
+  
+This would be using internal defines but guaranteeing the defines are non-circular.
+On the other hand, the method itself seems circular.
+On a THIRD hand, isn't that the way Schemers like it??
