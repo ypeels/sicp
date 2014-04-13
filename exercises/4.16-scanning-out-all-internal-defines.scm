@@ -50,11 +50,14 @@
 ;(test-4.16) ; 1
 
 
+
+    ; currently not working for internal PROCEDURE definitions
+    ; is THAT why sols use (definition?) ? but can (let) HANDLE functions? meh
 (define (scan-out-defines body)
 
     ; cf. (definition-value)
     (define (internal-definition? expr)
-        (and (tagged-list? 'define) (symbol? (cadr expr)))) ; sols use (definition?) directly, which seems wrong (would capture functions)
+        (and (tagged-list? 'define) (symbol? (cadr expr)))) ; sols use (definition?) directly. hmmmm...
         
     (define (all-internal-definitions expr-list)
         (cond
