@@ -306,6 +306,11 @@
         (list 'cons cons)
         (list 'null? null?)
 ;;      more primitives
+        (list 'display display) ; for Hello World
+        (list '+ +) ; hey, this works too
+        ;(list 'square square) ; for testing map
+        ;(list 'map map) ; for Exercise 4.14
+        
         ))
 
 (define (primitive-procedure-names)
@@ -349,9 +354,8 @@
                      '<procedure-env>))
       (display object)))
 
-;;;Following are commented out so as not to be evaluated when
-;;; the file is loaded.
-;;(define the-global-environment (setup-environment))
-;;(driver-loop)
+; just modify and run this file directly
+(define the-global-environment (setup-environment))
+(driver-loop)
 
 'METACIRCULAR-EVALUATOR-LOADED
