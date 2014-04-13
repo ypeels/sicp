@@ -72,3 +72,15 @@
 
 ; oh is that it? when you break it down into digestible subroutines, it's really not that bad
 ; sol uses map, which is cleaner, but goes against Footnote 5.
+
+
+
+; for Exercise 4.16
+(define (make-let binding-list body)
+    (list 
+        'let
+        binding-list
+        body
+    )
+)
+       

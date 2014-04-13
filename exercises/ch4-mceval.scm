@@ -316,7 +316,7 @@
         ))
 
 (define (primitive-procedure-names)
-  (map car
+  (map car                                                  ; hey, they gave up on Footnote 5 and used map themselves...
        primitive-procedures))
 
 (define (primitive-procedure-objects)
