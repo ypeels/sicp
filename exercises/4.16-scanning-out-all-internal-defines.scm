@@ -54,6 +54,7 @@
     ; currently not working for internal PROCEDURE definitions
     ; is THAT why sols use (definition?) ? but can (let) HANDLE functions? 
     ; but Footnote 24 + the text only talk about local VARIABLES...?
+    ; oh local functions ARE variables - init to '*unassigned*, then set! to lambda
 (define (scan-out-defines body)
 
     ; cf. (definition-value)
