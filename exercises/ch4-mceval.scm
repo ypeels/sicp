@@ -306,10 +306,12 @@
         (list 'cons cons)
         (list 'null? null?)
 ;;      more primitives
+        ;(list 'list list) ;this one seems natural - if car/cdr/cons work too
         (list 'display display) ; for Hello World
         (list '+ +) ; hey, this works too
         ;(list 'square square) ; for testing map
         ;(list 'map map) ; for Exercise 4.14
+        ;(list 'append append) ; hey, this works?? or does it fail for appending lambdas? i can't really tell...
         
         ))
 
