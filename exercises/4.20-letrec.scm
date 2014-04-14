@@ -37,7 +37,7 @@
                 
                 
                 
-; and then some frame analysis, just for louis
+; and then some frame analysis, just for louis, to show "what is loose about his reasoning"
     
 (define (f x)
   (let     ((even2?                      ; renamed from even? and odd?, which are built-in
