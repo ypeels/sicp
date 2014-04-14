@@ -31,39 +31,33 @@
 ; (make-lambda) will probably be useful.
 
 ; pulled out for reuse by (let*->nested-lets) in Exercise 4.7
-(define (let-parameters expr)
-    (let ((binding-list (let-bindings expr)))
-        (if (null? binding-list)
-            '()
-            (cons 
-                (caar binding-list) 
-                (get-parameters (cdr binding-list))
-            )
+(define (let-parameters binding-list)
+    (if (null? binding-list)
+        '()
+        (cons 
+            (caar binding-list) 
+            (let-parameters (cdr binding-list))
         )
     )
 )
 
-(define (let-values expr)
-    (let ((binding-list (let-bindings expr)))
-        (if (null? binding-list)
-            '()
-            (cons
-                (cadar binding-list)
-                (get-parameters (cdr binding-list))
-            )
+(define (let-values binding-list)
+    (if (null? binding-list)
+        '()
+        (cons
+            (cadar binding-list)
+            (let-values (cdr binding-list))
         )
     )
 )
-
 
 (define (let->combination expr)
-    
-    (let (  (parameters (let-parameters expr))
-            (value-list (let-values expr))
+    (let (  (parameters (let-parameters (let-bindings expr)))
+            (value-list (let-values (let-bindings expr)))
             (body (let-body expr))                
             )
-
-        (list
+        
+        (cons ; NOT list, for stupid low-level syntax reasons
             (make-lambda parameters body)
             value-list
         )
