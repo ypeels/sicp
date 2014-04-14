@@ -80,6 +80,17 @@
     
     
 ; wrote this stuff out, but just got confused. no wonder they gave a concrete example to work with...
+;   "Unlike [Method 1]... [Method 2] enforces the restriction that the defined variables' values can be 
+;   evaluated without **using** any of the variables' values." [emphasis added]
+;   
+;   ok, in Method 2, <e1> and <e2> may depend on u and v SYMBOLICALLY, since they live in the enclosing scope???
+;   
+;   In Method 1, however, if <e1> or <e2> depends on the value of u or v, you'll be using '*unassigned* in set! - right??
+    ; empirically, it's the opposite???
+    
+    ; one clarification: they stated the restriction MORE CLEARLY a couple paragraphs back, but didn't explicitly call it a restriction:
+        ; "evaluation of the value expressions for the defined variables
+            ; doesn't actually use any of the defined variables"
 
 ;   Method 1
 ;   --------
@@ -137,13 +148,7 @@
 ;   )
 ;       
 ;   
-;   "Unlike [Method 1]... [Method 2] enforces the restriction that the defined variables' values can be 
-;   evaluated without **using** any of the variables' values." [emphasis added]
-;   
-;   ok, in Method 2, <e1> and <e2> may depend on u and v SYMBOLICALLY, since they live in the enclosing scope???
-;   
-;   In Method 1, however, if <e1> or <e2> depends on the value of u or v, you'll be using '*unassigned* in set! - right??
-    ; empirically, it's the opposite???
+
 
 
 
