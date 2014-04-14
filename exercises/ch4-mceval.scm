@@ -30,6 +30,11 @@
         ((begin? exp) 
          (eval-sequence (begin-actions exp) env))
         ((cond? exp) (eval (cond->if exp) env))
+            
+        ; from Exercise 4.6, for testing Exercise 4.19
+        ((let? exp)
+            (eval (let->combination exp) env))
+        
         ((application? exp)
          (apply (eval (operator exp) env)
                 (list-of-values (operands exp) env)))
@@ -355,6 +360,48 @@
                      (procedure-body object)
                      '<procedure-env>))
       (display object)))
+      
+      
+      
+; from Exercise 4.6, for testing Exercise 4.19
+; pulled out for reuse by (let*->nested-lets) in Exercise 4.7
+(define (let? expr) (tagged-list? expr 'let))
+(define (let-bindings expr) (cadr expr))
+(define (let-body expr) (cddr expr)) ; TODO: maybe this should be cddr, in case it's a SEQUENCE and not a single statement
+(define (let-parameters binding-list)
+    (if (null? binding-list)
+        '()
+        (cons 
+            (caar binding-list) 
+            (let-parameters (cdr binding-list))
+        )
+    )
+)
+
+(define (let-values binding-list)
+    (if (null? binding-list)
+        '()
+        (cons
+            (cadar binding-list)
+            (let-values (cdr binding-list))
+        )
+    )
+)
+
+(define (let->combination expr)
+    (let (  (parameters (let-parameters (let-bindings expr)))
+            (value-list (let-values (let-bindings expr)))
+            (body (let-body expr))                
+            )
+        
+        (cons ; NOT list, for stupid low-level syntax reasons
+            (make-lambda parameters body)
+            value-list
+        )
+    )
+)
+      
+      
 
 ; just modify and run this file directly
 (define the-global-environment (setup-environment))
