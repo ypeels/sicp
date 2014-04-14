@@ -1,3 +1,5 @@
+; " Amazingly, Louis's intuition in exercise 4.20 is correct." talk about louis-bashing...
+
 ; the basic stupid trick is to pass a lambda TO ITSELF as an argument.
     ; that way, it has a name with which to refer to itself.
     
