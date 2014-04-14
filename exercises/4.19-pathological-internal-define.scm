@@ -42,10 +42,10 @@
     ; simultaneous scoping is a RULE for internal defines that accomodates mutual recursion "intentionally".
     ; as a RULE, it should apply to all internal defines, not just procedures
     
-; i am more in favor of the OUTCOME of Alyssa's implementation
+; i am more in favor of the OUTCOME of Alyssa's implementation than Eva's
     ; basically, you have ambiguous code, which should raise an error instead of possibly evaluating in an unexpected way
     
-; i GUESS i'd support eva over alyssa, since alyssa's view is restricted to a particular IMPLEMENTATION of simul scoping
+; but logically, i GUESS i'd support eva over alyssa, since alyssa's view is restricted to a particular IMPLEMENTATION of simul scoping
     ; in particular, if you (perversely?) executed the (set!) statements in REVERSE order, eva's 20 results.    
 
 ; the book seems to give away the answer [that the authors prefer] in the footnote...    
@@ -60,3 +60,5 @@
     ; you would have to scan through to see if any values could be bound immediately
     ; then scan again, to see what new bindings this enabled, etc.
     ; Footnote 26: "it seems difficult to implement a general, efficient mechanism that does what Eva requires."
+    
+    ; sols: "Lazy evaluation." - is that REALLY all it would take??

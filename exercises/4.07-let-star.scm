@@ -87,8 +87,8 @@
     )
             
 
-    (let (  (parameters (let-parameters expr))
-            (value-list (let-values expr))
+    (let (  (parameters (let-parameters (let-bindings expr)))
+            (value-list (let-values (let-bindings expr)))
             (body (let-body expr))
             )
             
