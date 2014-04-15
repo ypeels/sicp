@@ -27,7 +27,16 @@
 ; count
 ; 
 ; ;;; L-Eval value:             (c)
-; <response> = 2 (non-lazy: 2). what about non-memoized?
+; <response> = 2 (non-lazy: 2). same even if non-memoized! BUT subsequent evals of w will increment count!
+
+; my additions
+; ;;; L-Eval inputs: [shorthand]
+; w
+; count
+; 
+; ;;; L-Eval outputs
+; 10
+; 2 (non-memoized: 3!)          (c')
 
 
 ; (a)
@@ -58,6 +67,7 @@
     ; )
     ; 
 
+    ; if this is right	, then (define w (id (id (id (id (id ... 10)))))) should still set count to 1.
     
 
 
@@ -65,3 +75,11 @@
 
 ; (b) 
 ; this is trivial - the return value of (id x) is just x.
+
+; (c)
+; w was previously set to a THUNK for (id 10)
+; the user query forces the lazy evaluator off its ass to evaluate (id 10) once and for all.
+; this results in the second call to (id).
+
+; (c')
+; without memoization, (id 10) has to be evaluated again!
