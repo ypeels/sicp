@@ -2,6 +2,7 @@
 *.gz
 allcode/
 sicp-solutions/
+exercises/ch4-mceval.scm
 
 # wtf?
 .fuse_hidden*

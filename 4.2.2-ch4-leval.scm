@@ -86,18 +86,18 @@
                                   env))))
 
 (define (eval-if exp env)
-  (if (true? (actual-value (if-predicate exp) env))
+  (if (true? (actual-value (if-predicate exp) env))                 ; the ONLY other place you must use (actual-value)! previously (eval).
       (eval (if-consequent exp) env)
       (eval (if-alternative exp) env)))
 
-(define input-prompt ";;; L-Eval input:")
+(define input-prompt ";;; L-Eval input:")                           ; L is for Lazy
 (define output-prompt ";;; L-Eval value:")
 
 (define (driver-loop)
   (prompt-for-input input-prompt)
   (let ((input (read)))
     (let ((output
-           (actual-value input the-global-environment)))
+           (actual-value input the-global-environment)))            ; one more (actual-value) so user need not decipher a thunk. previously (eval).
       (announce-output output-prompt)
       (user-print output)))
   (driver-loop))
