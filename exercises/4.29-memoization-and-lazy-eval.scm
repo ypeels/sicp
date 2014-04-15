@@ -27,6 +27,9 @@
             ; if it were just code retrieval, EACH iteration should be equally slower...
         ; but i'm getting in way over my head here, as 4.28 illustrates...
         ; besides, this website's example isn't even tail-recursive... not that that should matter...?
+        
+        ; seems like a more serious problem is that it's re-evaluating the (- n 1)?
+            ; you can see this by (define (dec x) (display "\ndecrement ") (display x) (- x 1)) and using (countdown (dec n))
 
 ;(define (loop n) (define (iter i) (if (< i n) (iter (+ i 1)) n)) (iter 0))
 ;;(define (foo x) (newline) (display x))
