@@ -46,7 +46,7 @@
          (eval-sequence (begin-actions exp) env))
         ((cond? exp) (eval (cond->if exp) env))
         ((application? exp)             ; clause from book
-         (apply (actual-value (operator exp) env)                   ; previously (eval (operator exp) env). n.b. this is the ONLY place where (apply) is invoked!
+         (apply (actual-value (operator exp) env)                   ; previously (eval (operator exp) env). see Exercise 4.28... n.b. this is the ONLY place where (apply) is invoked!
                 (operands exp)                                      ; previously (list-of-values (operands exp) env) - which would eval the operands
                 env))                                               ; now need env to construct thunks
         (else
