@@ -46,27 +46,27 @@
          (eval-sequence (begin-actions exp) env))
         ((cond? exp) (eval (cond->if exp) env))
         ((application? exp)             ; clause from book
-         (apply (actual-value (operator exp) env)
-                (operands exp)
-                env))
+         (apply (actual-value (operator exp) env)                   ; previously (eval (operator exp) env). n.b. this is the ONLY place where (apply) is invoked!
+                (operands exp)                                      ; previously (list-of-values (operands exp) env) - which would eval the operands
+                env))                                               ; now need env to construct thunks
         (else
          (error "Unknown expression type -- EVAL" exp))))
 
 (define (actual-value exp env)
   (force-it (eval exp env)))
 
-(define (apply procedure arguments env)
+(define (apply procedure arguments env)                             ; arguments from eval are now unevaluated
   (cond ((primitive-procedure? procedure)
          (apply-primitive-procedure
           procedure
-          (list-of-arg-values arguments env))) ; changed
+          (list-of-arg-values arguments env))) ; changed            ; forces argument evaluation (primitives are still strict - lazy evaluation procrastinates, but it still does its work at SOME point
         ((compound-procedure? procedure)
          (eval-sequence
           (procedure-body procedure)
           (extend-environment
            (procedure-parameters procedure)
-           (list-of-delayed-args arguments env) ; changed
-           (procedure-environment procedure))))
+           (list-of-delayed-args arguments env) ; changed           ; delays arguments instead of evaluating them - originally just arguments 
+           (procedure-environment procedure))))                         ; (pre-evaluated via list-of-values in eval)
         (else
          (error
           "Unknown procedure type -- APPLY" procedure))))
@@ -74,14 +74,14 @@
 (define (list-of-arg-values exps env)
   (if (no-operands? exps)
       '()
-      (cons (actual-value (first-operand exps) env)
+      (cons (actual-value (first-operand exps) env)                 ; uses (actual-value) instead of (eval). "force"
             (list-of-arg-values (rest-operands exps)
                                 env))))
 
 (define (list-of-delayed-args exps env)
   (if (no-operands? exps)
       '()
-      (cons (delay-it (first-operand exps) env)
+      (cons (delay-it (first-operand exps) env)                     ; uses (delay-it) instead of (eval). "delay"
             (list-of-delayed-args (rest-operands exps)
                                   env))))
 
