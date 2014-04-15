@@ -38,6 +38,11 @@
         ((lambda? exp) (analyze-lambda exp))
         ((begin? exp) (analyze-sequence (begin-actions exp)))
         ((cond? exp) (analyze (cond->if exp)))
+        
+        ; Exercise 4.22 - will use Exercise 4.6 code in ch4-mceval.scm.
+        ; this is IT! behold the power of derived expressions
+        ((let? exp) (analyze (let->combination exp)))
+        
         ((application? exp) (analyze-application exp))
         (else
          (error "Unknown expression type -- ANALYZE" exp))))
