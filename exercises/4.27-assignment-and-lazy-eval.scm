@@ -50,7 +50,7 @@
     ; (apply id '((id 10)) env)
     ; (eval-sequence
     ;     (procedure-body id)   <================== here's your side effect! the outer (id) gets evaluated by (define w)!
-    ;     (extend-environment
+    ;     (extend-environment                             ; strangely enough, it's the INNER (id) that's delayed
     ;         (procedure-parameters id)
     ;         (list-of-delayed-args '((id 10)) env)
     ;         (procedure-environment id)
