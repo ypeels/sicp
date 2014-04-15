@@ -12,11 +12,21 @@
 (display "\nI had a whole pathological example planned out, but turns out that COUNTDOWN slows down by ~300 without memoization!? ")
 (display "\n (define (countdown n) (if (> n 0) (countdown (- n 1)) 0)) ")
 ;(display "\n (define (id x) x)                                         ")
-;(display "\n (define y (id (countdown 10000)))                        ")
+;(display "\n (define y (id (countdown 300)))                        ")
 ;(display "\n ; now repeated calls to y will retrigger the countdown if not memoized. How about making a million-long list of y's?")
 
     ; what??? well, if you add (display n) to countdown, you can watch the function slow down LATER into the recursion...
-
+        ; does this have to do with implementing tail-recursion????
+        ; or memoization of the body of countdown? but why would it slow down as n ticks down??
+            ; or is env getting unmanageably large during recursion? 
+                ; no, commenting out "garbage collection" in memoized (force-it) changes nothing
+                
+        ; http://eli.thegreenplace.net/2007/12/25/sicp-section-422/ 
+        ; "Each time fact is called recursively, memoization saves the operation of obtaining the code from the call"
+        ; i'm not sure this is the whole story, esp since to explain the dynamics (slower as recursion progresses?)
+            ; if it were just code retrieval, EACH iteration should be equally slower...
+        ; but i'm getting in way over my head here, as 4.28 illustrates...
+        ; besides, this website's example isn't even tail-recursive... not that that should matter...?
 
 ;(define (loop n) (define (iter i) (if (< i n) (iter (+ i 1)) n)) (iter 0))
 ;;(define (foo x) (newline) (display x))
@@ -30,10 +40,11 @@
 ; from ch4-leval.scm
 ;; non-memoizing version of force-it
 
-;(define (force-it obj)
-;  (if (thunk? obj)
-;      (actual-value (thunk-exp obj) (thunk-env obj))                ; (actual-value) instead of (eval): force any nested thunks
-;      obj))
+(define (force-it obj)
+    ;(display "\nforce "); (user-print obj)
+  (if (thunk? obj)
+      (actual-value (thunk-exp obj) (thunk-env obj))                ; (actual-value) instead of (eval): force any nested thunks
+      obj))
       
       
 (display "\nfrom Exercise 4.27          ")
