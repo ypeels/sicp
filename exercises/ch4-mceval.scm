@@ -403,8 +403,7 @@
       
       
 
-; just modify and run this file directly
 (define the-global-environment (setup-environment))
-(driver-loop)
+(define run driver-loop) ;(driver-loop)
 
 'METACIRCULAR-EVALUATOR-LOADED
