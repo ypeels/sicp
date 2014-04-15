@@ -318,6 +318,11 @@
         ;(list 'map map) ; for Exercise 4.14
         ;(list 'append append) ; hey, this works?? or does it fail for appending lambdas? i can't really tell...
         
+        ; for Exercise 4.24
+        (list '> >)
+        (list '<= <=)
+        (list '- -)
+        
         ))
 
 (define (primitive-procedure-names)
