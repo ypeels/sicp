@@ -3,6 +3,7 @@
 allcode/
 sicp-solutions/
 exercises/ch4-mceval.scm
+exercises/4.27-31-ch4-leval.scm
 
 # wtf?
 .fuse_hidden*

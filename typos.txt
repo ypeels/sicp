@@ -20,3 +20,5 @@ Section 3.5.5 p. 356: "the implementation a banking system [sic]". fixed on webs
 
 Exercise 2.52a p. 141 - finally, a spacing error (2 spaces between "exercise" and "2.49")
 - also present in the web full text
+
+Exercise 4.27 p. 406 - the (define w ...) line should go above "Give the missing values"
