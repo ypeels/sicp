@@ -164,5 +164,8 @@
         (list 'display display)
 ;;      more primitives
         ))
+        
+(define the-global-environment (setup-environment)) ; apprently doesn't hurt to overwrite...
+
 
 'LAZY-EVALUATOR-LOADED
