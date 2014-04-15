@@ -30,10 +30,10 @@
 ; from ch4-leval.scm
 ;; non-memoizing version of force-it
 
-(define (force-it obj)
-  (if (thunk? obj)
-      (actual-value (thunk-exp obj) (thunk-env obj))                ; (actual-value) instead of (eval): force any nested thunks
-      obj))
+;(define (force-it obj)
+;  (if (thunk? obj)
+;      (actual-value (thunk-exp obj) (thunk-env obj))                ; (actual-value) instead of (eval): force any nested thunks
+;      obj))
       
       
 (display "\nfrom Exercise 4.27          ")
