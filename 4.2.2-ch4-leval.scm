@@ -109,13 +109,13 @@
 
 (define (force-it obj)
   (if (thunk? obj)
-      (actual-value (thunk-exp obj) (thunk-env obj))
+      (actual-value (thunk-exp obj) (thunk-env obj))                ; (actual-value) instead of (eval): force any nested thunks
       obj))
 
 ;; thunks
 
-(define (delay-it exp env)
-  (list 'thunk exp env))
+(define (delay-it exp env)                                          ; save env state to evaluate thunk later
+  (list 'thunk exp env))                                            ; "One easy way to package"
 
 (define (thunk? obj)
   (tagged-list? obj 'thunk))
@@ -130,18 +130,18 @@
 (define (thunk-value evaluated-thunk) (cadr evaluated-thunk))
 
 
-;; memoizing version of force-it
+;; memoizing version of force-it                                    ; "Notice that the same delay-it procedure works both with and without memoization."
 
 (define (force-it obj)
-  (cond ((thunk? obj)
+  (cond ((thunk? obj)                                               ; first call: must evaluate thunk.
          (let ((result (actual-value
                         (thunk-exp obj)
                         (thunk-env obj))))
-           (set-car! obj 'evaluated-thunk)
+           (set-car! obj 'evaluated-thunk)                          ; META-TYPE is changed to indicate first call has occurred.
            (set-car! (cdr obj) result)  ; replace exp with its value
-           (set-cdr! (cdr obj) '())     ; forget unneeded env
+           (set-cdr! (cdr obj) '())     ; forget unneeded env       ; useful for garbage collection (section 5.3?)
            result))
-        ((evaluated-thunk? obj)
+        ((evaluated-thunk? obj)                                     ; not first call: return memoized value 
          (thunk-value obj))
         (else obj)))
 
