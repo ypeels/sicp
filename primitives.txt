@@ -17,6 +17,7 @@ Introduced in main text but not indicated as built-in*
 	of all these, only cons-stream and force are special forms
 3.5.3 p. 340: stream-append (needs to read entire first argument first)
 4.1.1 pp. 365-6: eval and apply (I've used apply in exercises before)
+4.3.2 p. 418 FOOTNOTE: member ("like memq except that it uses equal? instead of eq?")
 
 *MAYBE their manuscript predates my current MIT Scheme version (9.1) by too much?
 
