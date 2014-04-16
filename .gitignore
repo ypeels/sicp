@@ -2,6 +2,7 @@
 *.gz
 allcode/
 sicp-solutions/
+exercises/ch4-ambeval.scm
 exercises/ch4-mceval.scm
 exercises/4.27-31-ch4-leval.scm
 
