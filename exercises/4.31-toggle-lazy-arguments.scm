@@ -25,28 +25,6 @@
 (load "4.27-31-ch4-leval.scm")
  
 
-; utility function for running a command in "batch mode" - because i'm sick and tired of typing interactively
-; based on (driver-loop)
-(define (leval . input-expr-list )
-    (define (leval-single-input input)
-        (let ((output (actual-value input the-global-environment)))
-            (announce-output output-prompt)
-            (user-print output)
-        )
-    )
-
-    (for-each leval-single-input input-expr-list)
-)
-
-
-; from ch4-leval.scm - start without memoization for simplicity
-;; non-memoizing version of force-it
-
-(define (force-it obj)
-  (if (thunk? obj)
-      (actual-value (thunk-exp obj) (thunk-env obj)) 
-      obj))
-
 
  
 ; modified from ch4-leval.scm
@@ -75,14 +53,19 @@
         (lambda (param arg)
             (let ((type (parameter-type param)))
             
+                ;(newline) (display "EVAL-ARG: ")(display (parameter-name param)) (display type);(display proc-env)
+            
                 (cond 
                     ((eq? type 'normal)
                         (actual-value arg proc-env))
-                    ((eq? type 'lazy)
+                    ((eq? type 'lazy-memo)
                         ;(actual-value arg proc-env))
                         (delay-it arg proc-env))
                         
-                        ; TODO: different delay-it for memoized
+                    ; make modifications to leval as MINIMAL as possible
+                    ((eq? type 'lazy)
+                        (delay-it-without-memoization arg proc-env))
+                        
                     (else
                         (error "unimplemented type -- PROCESS-ARG" type))
                 )        
@@ -90,57 +73,110 @@
         )
     )
             
-    
-    
 
-
+  ; original logic
   (cond ((primitive-procedure? procedure)
          (apply-primitive-procedure
           procedure
-          (list-of-arg-values arguments env)))                      ; leave this alone, i think
+          (list-of-arg-values arguments env)))                      ; leave this alone, i think; buck stops here
         ((compound-procedure? procedure)
-        
-            ;(newline) (display (procedure-parameters procedure))
-            ;(let* ( (parameters (procedure-parameters procedure))
-            ;        (names (map parameter-name parameters))
-            ;        (types (map parameter-type parameters))
-            ;        )
-            ;    (newline) (display names)
-            ;    (newline) (display types)
-            ;)         
 
+            ;(display (map parameter-name (procedure-parameters procedure)))
         
          (eval-sequence
           (procedure-body procedure)
           (extend-environment
            
-           ;(procedure-parameters procedure)
-           (map parameter-name (procedure-parameters procedure))
+           ;(procedure-parameters procedure)                        ; changed
+           (map parameter-name (procedure-parameters procedure))    
            
-           ;(list-of-delayed-args arguments env) ; changed           ; delays arguments instead of evaluating them - originally just arguments 
+           ;(list-of-delayed-args arguments env)                    ; changed
            (map 
-                (eval-arg (procedure-environment procedure))
+                (eval-arg env) ;(procedure-environment procedure)) ; oops
                 (procedure-parameters procedure) 
                 arguments
            )
            
-           (procedure-environment procedure))))                         ; (pre-evaluated via list-of-values in eval)
+           (procedure-environment procedure))))                        
         (else
          (error
           "Unknown procedure type -- APPLY" procedure))))
 
 
+; SLIGHTLY modified from ch4-leval.scm (2-line modification)
+(define (force-it obj)
+  (cond ((thunk? obj)                                               
+         (let ((result (actual-value
+                        (thunk-exp obj)
+                        (thunk-env obj))))
+           (set-car! obj 'evaluated-thunk)                          
+           (set-car! (cdr obj) result) 
+           (set-cdr! (cdr obj) '())    
+           result))
+        ((evaluated-thunk? obj)                                     
+         (thunk-value obj))
+        ((unmemoized-thunk? obj)                                    ; new case
+            (actual-value (thunk-exp obj) (thunk-env obj)))
+        (else obj)))          
+
+
+
+; just (delay-it) with a different tag.
+(define (delay-it-without-memoization expr env)
+    (list 'thunk-no-memo expr env))
+(define (unmemoized-thunk? obj)
+    (tagged-list? obj 'thunk-no-memo))
+    
+
+          
+
+
 (append! primitive-procedures (list (list '> >)))
 (define the-global-environment (setup-environment))
-     
+
+
+
+
+; utility function for running a command in "batch mode" - because i'm sick and tired of typing interactively
+; based on (driver-loop)
+(define (leval . input-expr-list )
+    (define (leval-single-input input)
+        (let ((output (actual-value input the-global-environment)))
+        
+            (announce-output input-prompt)
+            (user-print input)
+            (newline)
+            
+            (announce-output output-prompt)
+            (user-print output)
+            (newline)
+            
+        )
+    )
+
+    (for-each leval-single-input input-expr-list)
+)     
 
 (leval 
     '"hello world"
     
     '(define (f a (b lazy)) (if (> a 0) a b))
     '(f 1 2)
-    '(f 2 (/ 1 0)) ; turn off lazy evaluation in (eval-arg) above and watch this crash and burn!
+    '(f 2 (/ 1 0)) ; turn off lazy evaluation in (eval-arg) above and watch this crash and burn! OR make b non-lazy in definition.
     ;'(f (/ 1 0) 3) ; first argument ain't lazy, so this won't work
+    
+    
+    '(define (countdown-fast (n lazy-memo)) (display n) (display " ") (if (> n 0) (countdown-fast (- n 1)) 0))
+    '"Starting fast countdown - see Exercise 4.29..."
+    '(countdown-fast 300)
+    
+    '(define (countdown-slow (n lazy)) (display n) (display " ") (if (> n 0) (countdown-slow (- n 1)) 0))
+    '"Starting SLOW countdown to 300 - see Exercise 4.29..."
+    '(countdown-slow 300)
+    
 
 )     
 (driver-loop)
+
+
+

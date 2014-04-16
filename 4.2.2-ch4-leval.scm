@@ -31,12 +31,12 @@
 
 ;;; Modifying the evaluator
 
-(define (eval exp env)
-  (cond ((self-evaluating? exp) exp)
-        ((variable? exp) (lookup-variable-value exp env))
-        ((quoted? exp) (text-of-quotation exp))
-        ((assignment? exp) (eval-assignment exp env))
-        ((definition? exp) (eval-definition exp env))
+(define (eval exp env)                                              ; REMEMBER, KIDS: "In this section we will implement 
+  (cond ((self-evaluating? exp) exp)                                ; a normal-order language that is the same as Scheme 
+        ((variable? exp) (lookup-variable-value exp env))           ; except that  compound procedures are non-strict 
+        ((quoted? exp) (text-of-quotation exp))                     ; ***in each argument***." [emphasis added]    
+        ((assignment? exp) (eval-assignment exp env))                   ; it's easy to lose sight of the forest for the trees here...
+        ((definition? exp) (eval-definition exp env))                   ; it's ARGUMENTS that are evaluated lazily!!!
         ((if? exp) (eval-if exp env))
         ((lambda? exp)
          (make-procedure (lambda-parameters exp)
