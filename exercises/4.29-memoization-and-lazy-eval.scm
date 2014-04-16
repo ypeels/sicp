@@ -32,6 +32,10 @@
             ; you can see this by (define (dec x) (display "\ndecrement ") (display x) (- x 1)) and using (countdown (dec n))
             ; yeah, i bet it's re-evaluating (- (- 100 1) 1), (- (- (- 100 1) 1) 1), which would explain the INCREASING slowness
                 ; can check this by memoizing ONLY subtraction. yes!
+                
+            ; so although they understated/omitted this fact in the section, and especially the problem statement,
+                ; practically ANY scheme program (if it has such a loop) would run MUCH slower without memoization
+                ; not sure why this was so low-key... especially compared to all the hoopla surrounding OTHER memoizers
 
 ;(define (loop n) (define (iter i) (if (< i n) (iter (+ i 1)) n)) (iter 0))
 ;;(define (foo x) (newline) (display x))
