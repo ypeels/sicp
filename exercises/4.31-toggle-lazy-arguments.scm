@@ -39,12 +39,59 @@
 )
 
 
+; from ch4-leval.scm - start without memoization for simplicity
+;; non-memoizing version of force-it
+
+(define (force-it obj)
+  (if (thunk? obj)
+      (actual-value (thunk-exp obj) (thunk-env obj)) 
+      obj))
+
 
  
 ; modified from ch4-leval.scm
 (define (apply procedure arguments env)
 
-    ; new helper function - returns pair (argument names . argument types)?
+    ; new helper functions
+    (define (parameter-type param)
+        (cond
+            ((symbol? param) 'normal)
+            ((and (list? param) (eq? (cadr param) 'lazy)) 'lazy)
+            ((and (list? param) (eq? (cadr param) 'lazy-memo)) 'lazy-memo)            
+            (else (error "Unknown type -- PARAMETER-TYPE" param))
+        )
+    )
+    
+    (define (parameter-name param)
+        (cond
+            ((symbol? param) param)
+            ((list? param) (car param))
+            (else (error "Unknown name -- PARAMETER-NAME" param))
+        )
+    )
+    
+    
+    (define (eval-arg proc-env)
+        (lambda (param arg)
+            (let ((type (parameter-type param)))
+            
+                (cond 
+                    ((eq? type 'normal)
+                        (actual-value arg proc-env))
+                    ((eq? type 'lazy)
+                        ;(actual-value arg proc-env))
+                        (delay-it arg proc-env))
+                        
+                        ; TODO: different delay-it for memoized
+                    (else
+                        (error "unimplemented type -- PROCESS-ARG" type))
+                )        
+            )
+        )
+    )
+            
+    
+    
 
 
   (cond ((primitive-procedure? procedure)
@@ -53,24 +100,47 @@
           (list-of-arg-values arguments env)))                      ; leave this alone, i think
         ((compound-procedure? procedure)
         
-         (newline) (display (procedure-parameters procedure))
+            ;(newline) (display (procedure-parameters procedure))
+            ;(let* ( (parameters (procedure-parameters procedure))
+            ;        (names (map parameter-name parameters))
+            ;        (types (map parameter-type parameters))
+            ;        )
+            ;    (newline) (display names)
+            ;    (newline) (display types)
+            ;)         
+
         
          (eval-sequence
           (procedure-body procedure)
           (extend-environment
-           (procedure-parameters procedure)
-           (list-of-delayed-args arguments env) ; changed           ; delays arguments instead of evaluating them - originally just arguments 
+           
+           ;(procedure-parameters procedure)
+           (map parameter-name (procedure-parameters procedure))
+           
+           ;(list-of-delayed-args arguments env) ; changed           ; delays arguments instead of evaluating them - originally just arguments 
+           (map 
+                (eval-arg (procedure-environment procedure))
+                (procedure-parameters procedure) 
+                arguments
+           )
+           
            (procedure-environment procedure))))                         ; (pre-evaluated via list-of-values in eval)
         (else
          (error
           "Unknown procedure type -- APPLY" procedure))))
+
+
+(append! primitive-procedures (list (list '> >)))
+(define the-global-environment (setup-environment))
      
 
 (leval 
     '"hello world"
     
-    '(define (f a (b lazy)) (+ 1 1))
+    '(define (f a (b lazy)) (if (> a 0) a b))
     '(f 1 2)
+    '(f 2 (/ 1 0)) ; turn off lazy evaluation in (eval-arg) above and watch this crash and burn!
+    ;'(f (/ 1 0) 3) ; first argument ain't lazy, so this won't work
 
 )     
 (driver-loop)
