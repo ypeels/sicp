@@ -25,14 +25,15 @@
 (define (user-print obj)
 
     ; new helper function
-    (define (printable-output raw-output)
-        (display "process output here: ")
-        (display raw-output)
-        raw-output
+    (define (printable-pair raw-output)
+        ;(display "process output here: ")
+        ;(display raw-output)
+        ;raw-output
+        "(...)"
     ) 
 
     (if (tagged-list? obj 'cons)
-        (display (printable-output obj))
+        (display (printable-pair obj))
         (user-print-mceval obj)
     )
 )
@@ -57,8 +58,10 @@
 (install-lazy-cons)
 
 (leval
-    '(car (cons 1 (cons 2 (cons 3 '()))))
-    ;'(car (cons 'a (cons 'b (cons 'c '()))))
-    ;'(car '(1 2 3))
-    ;'(car '(a b c)) ; without eval-4.33: Unknown procedure type -- APPLY (a b c)
+    '(cons 1 (cons 2 (cons 3 '()))) ; CURRENTLY INCOMPLETE.
 )
+
+; MEH, currently displays as (lambda (m)...)
+; would have to alter the low-level representation as (cons 'pair (lambda (m)...)) or something
+    ; hence the hint in the problem
+    ; hence the acrobatics in the solution

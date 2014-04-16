@@ -170,12 +170,13 @@
 
 ; utility function for running a command in "batch mode" - because i'm sick and tired of typing interactively
 ; based on (driver-loop)
+(define user-print-leval user-print)
 (define (leval . input-expr-list )
     (define (leval-single-input input)
         (let ((output (actual-value input the-global-environment)))
         
             (announce-output (string-append ";;; From 'batch file' " input-prompt))
-            (user-print input)
+            (user-print-leval input) ; don't use the override in exercise 4.34
             (newline)
             
             (announce-output output-prompt)
