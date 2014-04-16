@@ -314,6 +314,9 @@
         (list 'sqrt sqrt)
         (list 'eq? eq?)
 ;;      more primitives
+
+        ; for Exercise 4.36
+        (list 'display display)
         ))
 
 (define the-global-environment (setup-environment))
