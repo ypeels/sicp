@@ -1,0 +1,5 @@
+In this section (4.2.3), even the (car) of a list isn't evaluated.
+
+As per Footnote 41, this means you could construct a tree with ALL elements unevaluated.
+
+Not really sure what you could do with THAT though...
