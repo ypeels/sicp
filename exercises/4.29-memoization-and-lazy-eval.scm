@@ -30,6 +30,8 @@
         
         ; seems like a more serious problem is that it's re-evaluating the (- n 1)?
             ; you can see this by (define (dec x) (display "\ndecrement ") (display x) (- x 1)) and using (countdown (dec n))
+            ; yeah, i bet it's re-evaluating (- (- 100 1) 1), (- (- (- 100 1) 1) 1), which would explain the INCREASING slowness
+                ; can check this by memoizing ONLY subtraction. yes!
 
 ;(define (loop n) (define (iter i) (if (< i n) (iter (+ i 1)) n)) (iter 0))
 ;;(define (foo x) (newline) (display x))
@@ -44,10 +46,30 @@
 ;; non-memoizing version of force-it
 
 (define (force-it obj)
-    ;(display "\nforce "); (user-print obj)
   (if (thunk? obj)
       (actual-value (thunk-exp obj) (thunk-env obj))                ; (actual-value) instead of (eval): force any nested thunks
       obj))
+      
+      
+; ; memoizing version of force-it - CUSTOMIZED                                   
+; 
+; (define (force-it obj)
+;   (cond ((thunk? obj)                                               
+;          (let ((result (actual-value
+;                         (thunk-exp obj)
+;                         (thunk-env obj))))
+;                 
+;                     
+;            (if (tagged-list? (thunk-exp obj) '-)                    ; yes sir, if you ONLY memoize subtraction, countdown is plenty fast
+;             (begin
+;                (set-car! obj 'evaluated-thunk)                          
+;                (set-car! (cdr obj) result)  ; replace exp with its value
+;                (set-cdr! (cdr obj) '())     ; forget unneeded env  
+;             ))
+;            result))
+;         ((evaluated-thunk? obj)                                     
+;          (thunk-value obj))
+;         (else obj)))
       
       
 (display "\nfrom Exercise 4.27          ")
