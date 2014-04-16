@@ -16,6 +16,9 @@ Section 3.1 p. 218: a run on sentence? "each of which has" - shouldn't this be "
 Section 3.1.3 p. 232: -15 not italicized, and "expresssion" [sic]. both fixed in web version...
 
 Section 3.5.5 p. 356: "the implementation a banking system [sic]". fixed on website.
+
+Section 4.3 p. 412: "This is expressed by following procedure [sic]". NOT fixed on website!
+
 -------------------
 
 Exercise 2.52a p. 141 - finally, a spacing error (2 spaces between "exercise" and "2.49")
