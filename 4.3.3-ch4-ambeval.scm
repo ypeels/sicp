@@ -316,5 +316,6 @@
 ;;      more primitives
         ))
 
-
+(define the-global-environment (setup-environment))
+        
 'AMB-EVALUATOR-LOADED
