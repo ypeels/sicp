@@ -240,6 +240,31 @@
      (display ";;; There is no current problem")
      (driver-loop))))
 
+; convenience function - based on (driver-loop)
+(define (ambeval-batch . input-list)
+
+    (define (ambeval-single-input input)
+        (display "\n;;; Input from batch file\n")
+        (display input)
+        (newline)
+        (ambeval 
+            input 
+            the-global-environment
+            (lambda (val next)
+                (announce-output output-prompt)
+                (user-print val)
+                (newline))   ; do not loop.
+            (lambda ()
+                (announce-output "Failure executing -- AMBEVAL-BATCH")
+                (newline))
+        )
+    )
+    
+    (for-each ambeval-single-input input-list)
+)
+            
+        
+     
 
 
 ;;; Support for Let (as noted in footnote 56, p.428)
