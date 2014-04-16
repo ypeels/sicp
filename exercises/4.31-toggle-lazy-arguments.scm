@@ -38,31 +38,39 @@
     (for-each leval-single-input input-expr-list)
 )
 
-(leval 
-    '(begin (display "hello world") ''ok)
-    '(+ 1 1)
-    
-    '(begin
-        (display "\nmulti-line")
-        (display "\nwheee")
-        ''ok
-     )
-)
-(driver-loop)
+
+
  
+; modified from ch4-leval.scm
+(define (apply procedure arguments env)
+
+    ; new helper function - returns pair (argument names . argument types)?
+
+
+  (cond ((primitive-procedure? procedure)
+         (apply-primitive-procedure
+          procedure
+          (list-of-arg-values arguments env)))                      ; leave this alone, i think
+        ((compound-procedure? procedure)
         
-;(define (apply procedure arguments env)                             ; arguments from eval are now unevaluated
-;  (cond ((primitive-procedure? procedure)
-;         (apply-primitive-procedure
-;          procedure
-;          (list-of-arg-values arguments env))) ; changed            ; forces argument evaluation (primitives are still strict - lazy evaluation procrastinates, but it still does its work at SOME point
-;        ((compound-procedure? procedure)
-;         (eval-sequence
-;          (procedure-body procedure)
-;          (extend-environment
-;           (procedure-parameters procedure)
-;           (list-of-delayed-args arguments env) ; changed           ; delays arguments instead of evaluating them - originally just arguments 
-;           (procedure-environment procedure))))                         ; (pre-evaluated via list-of-values in eval)
-;        (else
-;         (error
-;          "Unknown procedure type -- APPLY" procedure))))
+         (newline) (display (procedure-parameters procedure))
+        
+         (eval-sequence
+          (procedure-body procedure)
+          (extend-environment
+           (procedure-parameters procedure)
+           (list-of-delayed-args arguments env) ; changed           ; delays arguments instead of evaluating them - originally just arguments 
+           (procedure-environment procedure))))                         ; (pre-evaluated via list-of-values in eval)
+        (else
+         (error
+          "Unknown procedure type -- APPLY" procedure))))
+     
+
+(leval 
+    '"hello world"
+    
+    '(define (f a (b lazy)) (+ 1 1))
+    '(f 1 2)
+
+)     
+(driver-loop)
