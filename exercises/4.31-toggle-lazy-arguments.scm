@@ -119,28 +119,7 @@
 (append! primitive-procedures (list (list '> >)))
 (define the-global-environment (setup-environment))
 
-
-
-
-; utility function for running a command in "batch mode" - because i'm sick and tired of typing interactively
-; based on (driver-loop)
-(define (leval . input-expr-list )
-    (define (leval-single-input input)
-        (let ((output (actual-value input the-global-environment)))
-        
-            (announce-output (string-append ";;; From 'batch file' " input-prompt))
-            (user-print input)
-            (newline)
-            
-            (announce-output output-prompt)
-            (user-print output)
-            (newline)
-            
-        )
-    )
-
-    (for-each leval-single-input input-expr-list)
-)     
+    
 
 (leval 
     '"hello world"
