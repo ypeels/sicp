@@ -49,12 +49,9 @@
     )
     
     
-    (define (eval-arg proc-env)
+    (define (eval-arg proc-env)                                     ; bind the environment in for map    
         (lambda (param arg)
             (let ((type (parameter-type param)))
-            
-                ;(newline) (display "EVAL-ARG: ")(display (parameter-name param)) (display type);(display proc-env)
-            
                 (cond 
                     ((eq? type 'normal)
                         (actual-value arg proc-env))
@@ -62,7 +59,7 @@
                         ;(actual-value arg proc-env))
                         (delay-it arg proc-env))
                         
-                    ; make modifications to leval as MINIMAL as possible
+                    ; make modifications to leval as MINIMAL as possible - reserve "delay-it" for leval's default behavior.
                     ((eq? type 'lazy)
                         (delay-it-without-memoization arg proc-env))
                         
@@ -74,15 +71,12 @@
     )
             
 
-  ; original logic
+  ; original logic. the change isn't as clean as for (force-it)
   (cond ((primitive-procedure? procedure)
          (apply-primitive-procedure
           procedure
           (list-of-arg-values arguments env)))                      ; leave this alone, i think; buck stops here
         ((compound-procedure? procedure)
-
-            ;(display (map parameter-name (procedure-parameters procedure)))
-        
          (eval-sequence
           (procedure-body procedure)
           (extend-environment
@@ -104,22 +98,13 @@
 
 
 ; SLIGHTLY modified from ch4-leval.scm (2-line modification)
+(define force-it-leval force-it)
 (define (force-it obj)
-  (cond ((thunk? obj)                                               
-         (let ((result (actual-value
-                        (thunk-exp obj)
-                        (thunk-env obj))))
-           (set-car! obj 'evaluated-thunk)                          
-           (set-car! (cdr obj) result) 
-           (set-cdr! (cdr obj) '())    
-           result))
-        ((evaluated-thunk? obj)                                     
-         (thunk-value obj))
-        ((unmemoized-thunk? obj)                                    ; new case
-            (actual-value (thunk-exp obj) (thunk-env obj)))
-        (else obj)))          
-
-
+    (if (unmemoized-thunk? obj)                                     ; just add a new case and we're good!
+        (actual-value (thunk-exp obj) (thunk-env obj))
+        (force-it-leval obj)
+    )
+)
 
 ; just (delay-it) with a different tag.
 (define (delay-it-without-memoization expr env)
@@ -143,7 +128,7 @@
     (define (leval-single-input input)
         (let ((output (actual-value input the-global-environment)))
         
-            (announce-output input-prompt)
+            (announce-output (string-append ";;; From 'batch file' " input-prompt))
             (user-print input)
             (newline)
             
