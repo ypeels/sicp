@@ -50,7 +50,7 @@
     
     (driver-loop)
 )
-(test-4.39)
+;(test-4.39)
 
 ; wait, ordering the (require)s only saves you the slight extra overhead of computing extra (require)s.
 ; if you reorder statements so that the most restrictive requirements come first, 
@@ -59,3 +59,7 @@
 ; i BET the method is NEARLY just as slow, even with the "super-requirement" (3, 2, 4, 5, 1)
 
 ; reordering would only really come into play if there were only a few cases but thousands of requires.
+
+; http://community.schemewiki.org/?sicp-ex-4.39
+; sols beg to differ - saying that (distinct?) is slow (quadratic) and should be saved for last.
+; meh not gonna bother testing this...
