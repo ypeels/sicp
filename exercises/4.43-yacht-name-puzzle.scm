@@ -28,7 +28,7 @@
                                 (require (not (eq? gabrielle lorna)))
                                 
                                 
-                                ; "Gabrielle's father owns the yacht that is named after Dr. Parker's daughter."
+                                ; final "non-trivial" test from brute-force version
                                 (require
                                     (cond
                                         ((eq? gabrielle 'downing) (eq? melissa 'parker)) ; this one contradicts Melissa Hood above
@@ -36,11 +36,12 @@
                                         ((eq? gabrielle 'hood) (eq? gabrielle 'parker)) ; we already knew Hood owns Gabrielle
                                         ((eq? gabrielle 'moore) (eq? lorna 'parker))
                                         ;((eq? gabrielle 'parker) false) ; patently false (not sure what it maps to...since we don't know parker's yacht's name
+                                        (else false) ; inspired by sols to add a bit of defensive code
                                     )
                                 )
                                 
                                 (list 
-                                    (list 'gabrielle gabrielle )
+                                    (list 'gabrielle gabrielle)
                                     (list 'lorna lorna)
                                     (list 'mary mary)
                                     (list 'melissa melissa)
@@ -86,12 +87,13 @@
                     ; (hall, parker, moore, hood, downing)
                     
                 ; oh, i need to parse the last sentence a BIT more carefully...?
-                ; gabrielle's father: we know that's downing or hall.
+                ; gabrielle's father: we know that's downing or hall 
                     ; but we KNOW what boats they have - melissa and rosalind, respectively.
                     ; then again, if we want to be "brute", we shouldn't code that in...
                 ; "through association"?
                 
                 ; "Gabrielle's father owns the yacht that is named after Dr. Parker's daughter."
+                    ; sols had the reverse data structure, but didn't have a better way to do this test either
                 (require
                     (cond
                         ((eq? gabrielle 'downing) (eq? melissa 'parker)) ; this one contradicts Melissa Hood above
@@ -99,6 +101,7 @@
                         ((eq? gabrielle 'hood) (eq? gabrielle 'parker)) ; we already knew Hood owns Gabrielle
                         ((eq? gabrielle 'moore) (eq? lorna 'parker))
                         ;((eq? gabrielle 'parker) false) ; patently false (not sure what it maps to...since we don't know parker's yacht's name
+                        (else false) ; inspired by sols to add a bit of defensive code
                     )
                 )
                         
@@ -106,7 +109,7 @@
                 
                 
                 (list 
-                    (list 'gabrielle gabrielle )
+                    (list 'gabrielle gabrielle)
                     (list 'lorna lorna)
                     (list 'mary mary)
                     (list 'melissa melissa)
@@ -137,7 +140,7 @@
     
     (driver-loop)
 )
-(test-4.43)
+;(test-4.43)
 
 
 ; Gabrielle Hall, Lorna Downing, Mary Ann Moore, Melissa Hood, Rosalind Parker.
