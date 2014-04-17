@@ -47,12 +47,63 @@
 (define (install-adjectives-adverbs)
     (ambeval-batch
     
-        '(define adjectives '(quick brown lazy))
-        '(define adverbs '(tardily brilliantly industriously))
+        '(define adjectives '(adjective quick brown lazy))
+        '(define adverbs '(adverb tardily brilliantly industriously))
         
-        ; for simplicity, let's have adverbs precede verbs and 
+        ; for simplicity, let's have adverbs FOLLOW verbs and adjectives precede nouns.
+            ; the latter is actually a BIT harder, because it has to come between articles and nouns.
+                ; COULD redefine articles as either article or article+adj, but that seems like a cop-out...?
+                    ; ugh, the alternative disrupts nouns too much, esp considering there is already "noun-phrase" with prepositional phrases...
+            ; TODO: 
+                ; adverbs modifying adjectives
+                ; adverbs placed rather arbitrarily in the sentence
+                
+        '(define (parse-verb-phrase)
+          (define (maybe-extend verb-phrase)
+            (amb verb-phrase
+            
+                 ; just add a new possibility, methinks 
+                 (maybe-extend 
+                    (list 
+                        'verb-phrase
+                        verb-phrase
+                        (parse-word adverbs)
+                    )
+                 )                        
+            
+                 (maybe-extend (list 'verb-phrase
+                                     verb-phrase
+                                     (parse-prepositional-phrase)))))        
+           (maybe-extend (parse-word verbs)))                                     
+                
+                 
+                 ; adjectives need TWO modifications!
+        '(define (parse-adjective-list)
+            (define (maybe-extend adjective)
+                (amb
+                    adjective
+                    (maybe-extend
+                        (list 
+                            'adjective-list
+                            adjective
+                            (parse-word adjectives)
+                        )
+                    )
+                )
+            )
+            (maybe-extend (parse-word articles)) ; adj list currently MUST start with an article (meh)
+        )
+        
+        '(define (parse-simple-noun-phrase)
+          (list 'simple-noun-phrase
+                (parse-adjective-list);(parse-word articles)
+                (parse-word nouns)))
+                        
+          
+         
     
     )
+
 )
 
 
@@ -74,8 +125,13 @@
     ; this works, surprisingly...
     (ambeval-batch '(parse '(the cat eats and the professor sleeps but the student studies)))
     
+    
+    (install-adjectives-adverbs)
+    (ambeval-batch '(parse '(the student eats brilliantly and the lazy professor sleeps)))
+    
+    (ambeval-batch '(parse '(the quick brown student eats brilliantly and the lazy professor sleeps tardily industriously)))
 
     
     (driver-loop)
 )
-(test-4.48)
+;(test-4.48)
