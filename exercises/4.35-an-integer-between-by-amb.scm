@@ -1,4 +1,4 @@
-(load "4.35-37-require.scm")
+
 
 
 (define (install-integer-between)
@@ -15,6 +15,9 @@
 )
 
 (define (test-4.35)
+
+    (load "ch4-ambeval.scm")
+    (load "4.35-37-require.scm")
 
     (install-require)
     (install-integer-between)

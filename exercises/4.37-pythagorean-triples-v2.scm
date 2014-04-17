@@ -1,22 +1,34 @@
-(load "4.35-an-integer-between-by-amb.scm")
+(define (install-pythagorean-triple-between)
+    (ambeval-batch
+        '(define (a-pythagorean-triple-between low high)
+          (let ((i (an-integer-between low high))
+                (hsq (* high high)))
+            (let ((j (an-integer-between i high)))          ; low <= i <= j <= high
+              (let ((ksq (+ (* i i) (* j j))))              ; NO search in k!
+                (require (>= hsq ksq))
+                (let ((k (sqrt ksq)))
+                  (require (integer? k))
+                  (list i j k))))))
+                  
+        '(define (t) (a-pythagorean-triple-between 1 100))
+    ) 
+)
 
-(install-require)
-(install-integer-between)
+(define (test-4.37)
+    (load "ch4-ambeval.scm")
+    
+    (load "4.35-37-require.scm")
+    (install-require)
 
-(ambeval-batch
-    '(define (a-pythagorean-triple-between low high)
-      (let ((i (an-integer-between low high))
-            (hsq (* high high)))
-        (let ((j (an-integer-between i high)))          ; low <= i <= j <= high
-          (let ((ksq (+ (* i i) (* j j))))              ; NO search in k!
-            (require (>= hsq ksq))
-            (let ((k (sqrt ksq)))
-              (require (integer? k))
-              (list i j k))))))
-              
-    '(define (t) (a-pythagorean-triple-between 1 100))
-)   
-(driver-loop)
+    (load "4.35-an-integer-between-by-amb.scm")
+    (install-integer-between)
+    
+    (install-pythagorean-triple-between)
+    
+    (driver-loop)
+)
+;(test-4.37)
+
               
 ; this is a doubly-nested search instead of triply-nested!
 ; as long as sqrt isn't as slow as an entire loop in k, then this should be faster!!

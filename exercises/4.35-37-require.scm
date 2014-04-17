@@ -1,4 +1,4 @@
-(load "ch4-ambeval.scm")
+;(load "ch4-ambeval.scm") ; DO NOT OVERWRITE apply-in-underlying-scheme!!
 
 (define (install-require)
     (ambeval-batch

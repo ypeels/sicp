@@ -1,5 +1,3 @@
-(load "ch4-ambeval.scm")
-
 (define (install-distinct)
     (ambeval-batch
     
