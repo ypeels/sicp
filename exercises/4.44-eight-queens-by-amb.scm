@@ -9,6 +9,9 @@
             (car q))
         '(define (col-queen q) 
             (cdr q))
+            
+        '(define (adjoin-position row col board)
+            (append board (list (make-queen row col))))
         
         '(define (display-board board)
             (define (display-space n)
@@ -17,7 +20,7 @@
                         (display " ")
                         (display-space (- n 1)))
                     (else
-                        "unused return value")))
+                        'display-board-space-done)))
 
             (define (iter i)
                 (cond 
@@ -33,7 +36,7 @@
                     )   
                     
                     (else
-                        "unused return value -- DISPLAY-BOARD")
+                        'display-board-iter-done)
                 )
             )
             
@@ -61,17 +64,41 @@
                  
 
                 (cond
-                    ((= r1 r2) #t)  ; horizontal and vertical checks are easy
-                    ((= c1 c2) #t)  
+                    ((= r1 r2) true);#t)  ; horizontal and vertical checks are easy
+                    ((= c1 c2) true);#t)  
                     
                     ; diagonal check: |rise| = |run|
-                    ((= (abs (- r1 r2)) (abs (- c1 c2))) #t)
+                    ((= (abs (- r1 r2)) (abs (- c1 c2))) true);#t)
 
-                    
-                    (else #f)
+                    (else false);#f)
                 )
             )
         )
+        
+        ; this function returns true iff the kth queen in board is not in check by any other queen
+        '(define (safe? k board)
+            (define (iter j)
+                (cond 
+                
+                    ; final termination: didn't get checked by any of the other queens
+                    ((>= j k)
+                        true);#t)
+
+                    ; early termination: check!!
+                    ((check-queens? (queen-board j board) (queen-board k board))
+                        false);#f)
+                        
+                    ; next iteration
+                    (else
+                        (iter (+ j 1)))
+                )
+            )    
+            
+            ;(display-board board)
+            ;(display (iter 1)) (newline)
+            (iter 1)
+        )
+
         
         
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; end copy/pasting (with adaptations as needed)
@@ -83,24 +110,36 @@
         
         ; the non-deterministic spirit is to "be cool" and generate all possibilities, pruning afterwards?
         
+        ; add a queen to col k (row specified by integer between)
+        ; require that it's not in check
+            ; i.e., read through the api from exercise 2.42
+            ; use this instead of (distinct?), since it needs to check for diagonal checks anyway
+        ; recurse to col k+1
         
-        (define (queens board-size)
-          (define (queen-cols k)  
-            (if (= k 0)                                                         ; k = new # columns
-                (list empty-board)                                              ; start with empty board
-                (filter
-                 (lambda (positions) (safe? k positions))                       ; weed out any positions in check    
-                 (flatmap                                                       ; create list of new boards with a queen added somewhere SAFE in column k
-                  (lambda (rest-of-queens)                                      
-                    (map (lambda (new-row)
-                           (adjoin-position new-row k rest-of-queens))          ; adds new position (new-row, k): queen in column k...
-                         (enumerate-interval 1 board-size)))                        ; ...for all rows.
-                  (queen-cols (- k 1))))))                                      ; recursion/next iteration
-          (queen-cols board-size))                                              ; start first iteration
+        '(define (queens board-size)
+            (define (iter i board)
+                (if (> i board-size)
+                    board
+                    (begin
+                    
+                        ; ok, the advantage of amb is that you don't have to worry about map/filter logic
+                        (let ((new-board (adjoin-position (an-integer-between 1 board-size) i board)))
+                            (require (safe? i new-board))
+                            (iter (+ i 1) new-board)
+                        )
+                    
+                    )
+                )
+            )
+            (iter 1 empty-board)
+        )
         
-        
-        (define (queens board-size)
-            (define (
+        ; could this have been made shorter without using all the old support functions?
+                    
+                    
+                    
+                    
+                
                 
          
 
@@ -108,7 +147,8 @@
         ;'(display (display-board (list (cons 1 2) (cons 2 1))))
         
         '(define (q) (display-board (queens 4))) ; and `try-again` to see more solutions
-    
+        '(define (f) (display-board (queens 5)))
+        '(define (eight-queens) (display-board (queens 8))) ; this is really slow, though... not sure if it's my algorithm's fault or ambeval's...
     )
 )
 
@@ -116,10 +156,11 @@
 (define (test-4.44)
     (load "ch4-ambeval.scm")
     
+    (load "4.35-an-integer-between-by-amb.scm")
+    (install-integer-between)
     
-    ;(load "4.35-37-require.scm") (install-require)
-    
-    ;(load "4.38-44-distinct.scm") (install-distinct)
+    (load "4.35-37-require.scm") 
+    (install-require)
     
     (install-eight-queens)
     (driver-loop)
