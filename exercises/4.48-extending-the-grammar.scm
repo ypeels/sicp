@@ -94,6 +94,7 @@
             (maybe-extend (parse-word articles)) ; adj list currently MUST start with an article (meh)
         )
         
+        ; sols just made this amb(article+noun, article+adj+noun) - not allowing for multiple adjectives. http://community.schemewiki.org/?sicp-ex-4.48
         '(define (parse-simple-noun-phrase)
           (list 'simple-noun-phrase
                 (parse-adjective-list);(parse-word articles)
