@@ -69,6 +69,6 @@
     
     (driver-loop)
 )
-(test-4.42)
+;(test-4.42)
 
 ; (betty, ethel, joan, kitty, mary) = (3, 5, 2, 1, 4), unique solution.
