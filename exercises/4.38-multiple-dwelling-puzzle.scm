@@ -1,4 +1,4 @@
-(define (install-multiple-dwelling)
+(define (install-multiple-dwelling-4.38)
     (ambeval-batch
 
         ; from 4.3.2
@@ -16,7 +16,7 @@
             (require (not (= fletcher 5)))
             (require (not (= fletcher 1)))
             (require (> miller cooper))
-            (require (not (= (abs (- smith fletcher)) 1)))
+            (require (not (= (abs (- smith fletcher)) 1)))         ; disabled for Exercise 4.38
             (require (not (= (abs (- fletcher cooper)) 1)))
             (list (list 'baker baker)
                   (list 'cooper cooper)
@@ -24,8 +24,7 @@
                   (list 'miller miller)
                   (list 'smith smith))))
                   
-        '(define m multiple-dwelling)
-        ; hmm, sample program fails with "Unknown procedure type -- APPLY"
+        '(define m multiple-dwelling-4.38)
     )
 )
 
@@ -46,3 +45,12 @@
     (driver-loop)
 )
 ;(test-4.38)
+
+; ordered tuples (baker, cooper, fletcher, miller, smith)
+; original answer (3, 2, 4, 5, 1)
+; answers unrestricted by smith/fletcher
+; (1,2,4,3,5)
+; (1,2,4,5,3)
+; (1,4,2,5,3)
+; (3,2,4,5,1) 
+; (3,4,2,5,1)
