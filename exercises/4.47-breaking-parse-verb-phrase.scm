@@ -52,7 +52,7 @@
     
     (install-broken-verb-phrase-parser)
     (install-broken-verb-phrase-parser-interchanged)
-    (install-original-verb-phrase-parser)
+    ;(install-original-verb-phrase-parser)
     
     
     (ambeval-batch '(parse '(the cat eats)))
@@ -66,7 +66,7 @@
     
     (driver-loop)
 )
-(test-4.47)
+;(test-4.47)
 
 
 ; "Does this work?"

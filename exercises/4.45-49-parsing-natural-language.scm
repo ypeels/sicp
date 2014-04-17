@@ -21,10 +21,10 @@
         ;; output of parse
         ;'(sentence (noun-phrase (article the) (noun cat)) (verb eats))
 
-        '(define (parse-sentence)
-          (list 'sentence
-                 (parse-noun-phrase)
-                 (parse-word verbs)))
+        ;'(define (parse-sentence)
+        ;  (list 'sentence
+        ;         (parse-noun-phrase)
+        ;         (parse-word verbs)))
 
         ;'(define (parse-noun-phrase)
         ;  (list 'noun-phrase
