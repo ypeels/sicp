@@ -317,6 +317,13 @@
 
         ; for Exercise 4.36
         (list 'display display)
+        
+        ; for Exercise 4.44
+        (list '<= <=)
+        (list 'length length)
+        (list 'list-ref list-ref)
+        (list 'newline newline)
+        (list 'append append)
         ))
 
 (define the-global-environment (setup-environment))
