@@ -1,0 +1,17 @@
+"The evaluators in sections 4.1 and 4.2 do not determine what order operands are evaluated in.
+We will see that the amb evaluator evaluates them from left to right. Explain why our 
+parsing program wouldn't work if the operands were evaluated in some other order."
+
+First of all, the evaluator of 4.2 (leval) is IRRELEVANT to ambeval and thus the parser.
+
+Also, we explored order of evaluation briefly in Exercise 4.1.
+
+Finally, to answer the question...
+
+Are they worried about how the (amb) alternatives are explored??
+
+How about the fact that the SENTENCE is parsed from left to right?
+It consumes *unparsed* from LEFT TO RIGHT
+If (parse-word verbs) were called before (parse-noun-phrase), the whole thing would fail...
+
+Sols?
