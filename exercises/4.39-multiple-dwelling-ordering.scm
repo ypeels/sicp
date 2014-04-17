@@ -10,14 +10,10 @@
                 
             ; "super" requirements - the most restrictive possible!
             ; i BET this doesn't really speed up the program anyway.
-            (require (= baker 3))
-            (require (= cooper 2))
-            (require (= fletcher 4))
-            (require (= miller 5))
-            (require (= smith 1))
+            ;(require (= baker 3)) (require (= cooper 2)) (require (= fletcher 4)) (require (= miller 5)) (require (= smith 1))
+            
+            ;(require (distinct? (list baker cooper fletcher miller smith)))
                 
-            (require
-             (distinct? (list baker cooper fletcher miller smith)))
             (require (not (= baker 5)))
             (require (not (= cooper 1)))
             (require (not (= fletcher 5)))
@@ -25,6 +21,11 @@
             (require (> miller cooper))
             (require (not (= (abs (- smith fletcher)) 1)))  
             (require (not (= (abs (- fletcher cooper)) 1)))
+
+            ; sols: moving this to the end speeds things up? i don't see it... but then, i didn't quantify it either            
+            (require (distinct? (list baker cooper fletcher miller smith)))
+            
+            
             (list (list 'baker baker)
                   (list 'cooper cooper)
                   (list 'fletcher fletcher)
@@ -62,4 +63,4 @@
 
 ; http://community.schemewiki.org/?sicp-ex-4.39
 ; sols beg to differ - saying that (distinct?) is slow (quadratic) and should be saved for last.
-; meh not gonna bother testing this...
+    ; hmm doesn't seem much faster to me...
