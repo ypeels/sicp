@@ -27,8 +27,17 @@
                                 (require (not (eq? gabrielle rosalind)))
                                 (require (not (eq? gabrielle lorna)))
                                 
-                                ; still need to add the complicated condition...
-                                ; i PROBABLY have my data structure wrong (too much pencil-paper work here)
+                                
+                                ; "Gabrielle's father owns the yacht that is named after Dr. Parker's daughter."
+                                (require
+                                    (cond
+                                        ((eq? gabrielle 'downing) (eq? melissa 'parker)) ; this one contradicts Melissa Hood above
+                                        ((eq? gabrielle 'hall) (eq? rosalind 'parker))
+                                        ((eq? gabrielle 'hood) (eq? gabrielle 'parker)) ; we already knew Hood owns Gabrielle
+                                        ((eq? gabrielle 'moore) (eq? lorna 'parker))
+                                        ;((eq? gabrielle 'parker) false) ; patently false (not sure what it maps to...since we don't know parker's yacht's name
+                                    )
+                                )
                                 
                                 (list 
                                     (list 'gabrielle gabrielle )
@@ -107,7 +116,7 @@
         )
          
 
-        '(define e yacht-puzzle-efficient)
+        '(define e yacht-puzzle-efficient)  ; runs noticeably faster.
         '(define b yacht-puzzle-brute)
     
     )
