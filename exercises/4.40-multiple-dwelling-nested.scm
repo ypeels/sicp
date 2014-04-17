@@ -38,8 +38,55 @@
                 )
             )
         )
+        
+        
+        ; sols go further and hard-code some pruning - but that can't make THAT much of a difference...?
+        '(define (multiple-dwelling-hard-coded)
+            (let ((fletcher (amb 2 3 4)))                           ; hard-coded!
+                (let ((cooper (amb 2 3 4 5)))
+                    (require (not (= (abs (- fletcher cooper)) 1)))
+                    (let ((miller (amb 1 2 3 4 5)))
+                        (require (> miller cooper))
+                        (let ((smith (amb 1 2 3 4 5)))
+                            (require (not (= (abs (- smith fletcher)) 1)))
+                            (let ((baker (amb 1 2 3 4)))
+                                (require (distinct? (list baker cooper fletcher miller smith)))
+            
+                                (list (list 'baker baker)
+                                      (list 'cooper cooper)
+                                      (list 'fletcher fletcher)
+                                      (list 'miller miller)
+                                      (list 'smith smith))
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        
+        
+        ; this DOES seem fastest... ordering matters, but mainly for nested lets?
+        '(define (multiple-dwelling-sols) 
+           (let ((cooper (amb 2 3 4 5)) 
+                 (miller (amb 3 4 5)))  
+             (require (> miller cooper)) 
+             (let ((fletcher (amb 2 3 4))) 
+               (require (not (= (abs (- fletcher cooper)) 1))) 
+               (let ((smith (amb 1 2 3 4 5))) 
+                 (require (not (= (abs (- smith fletcher)) 1))) 
+                 (let ((baker (amb 1 2 3 4))) 
+                   (require (distinct? (list baker cooper fletcher miller smith))) 
+                   (list (list 'baker baker) 
+                         (list 'cooper cooper) 
+                         (list 'fletcher fletcher) 
+                         (list 'miller miller) 
+                         (list 'smith smith))))))) 
+        
+        
                   
         '(define m multiple-dwelling)
+        '(define m2 multiple-dwelling-hard-coded)
+        '(define m3 multiple-dwelling-sols)
     )
 )
 
@@ -55,7 +102,6 @@
     (install-distinct)
 
     (install-multiple-dwelling-4.40)
-    (ambeval-batch '(define m multiple-dwelling))
     
     (driver-loop)
 )
