@@ -14,4 +14,7 @@ How about the fact that the SENTENCE is parsed from left to right?
 It consumes *unparsed* from LEFT TO RIGHT
 If (parse-word verbs) were called before (parse-noun-phrase), the whole thing would fail...
 
-Sols?
+Sols? 
+http://community.schemewiki.org/?sicp-ex-4.46
+"That's because function parse-word handles *unparsed* from left to right. 
+If evaluation has other order, it will conflict with parse-word."
