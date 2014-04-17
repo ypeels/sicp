@@ -12,7 +12,7 @@
                         (list 
                             'compound-sentence
                             sentence
-                            (parse-conjunction)
+                            (parse-word conjunctions) ;(parse-conjunction)
                             (parse-sentence)
                         )
                     )
@@ -21,9 +21,9 @@
             (maybe-extend (parse-sentence))
         )
         
-        ; THIS one is easy
-        '(define (parse-conjunction)
-            (list 'conjunction (parse-word conjunctions)))
+        ; THIS one is easy? actually, unnecessary for single-word entities, like articles!
+        ;'(define (parse-conjunction)
+        ;    (list 'conjunction (parse-word conjunctions)))
             
         '(define (parse input)
             (set! *unparsed* input)
@@ -50,9 +50,9 @@
     
     (ambeval-batch '(parse '(the cat eats))) ; this better still work
     
-    ;(ambeval-batch '(parse '(the cat eats and the professor sleeps)))
+    (ambeval-batch '(parse '(the cat eats and the professor sleeps)))
     
-    ;(ambeval-batch '(parse '(the cat eats and the professor sleeps but the student studies)))
+    (ambeval-batch '(parse '(the cat eats and the professor sleeps but the student studies)))
     
 
     
