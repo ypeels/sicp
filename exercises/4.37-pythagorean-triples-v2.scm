@@ -1,5 +1,8 @@
 (load "4.35-an-integer-between-by-amb.scm")
 
+(install-require)
+(install-integer-between)
+
 (ambeval-batch
     '(define (a-pythagorean-triple-between low high)
       (let ((i (an-integer-between low high))
@@ -11,7 +14,7 @@
               (require (integer? k))
               (list i j k))))))
               
-    '(define (t) (a-pythagorean-triple-between 11 100))
+    '(define (t) (a-pythagorean-triple-between 1 100))
 )   
 (driver-loop)
               

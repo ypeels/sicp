@@ -6,7 +6,8 @@
 ;(load "4.35-37-require.scm")
 (load "4.35-an-integer-between-by-amb.scm")
 
-
+(install-require)
+(install-integer-between)
 
 (ambeval-batch 
     

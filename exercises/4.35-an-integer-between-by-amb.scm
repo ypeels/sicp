@@ -1,17 +1,23 @@
 (load "4.35-37-require.scm")
 
-(ambeval-batch 
-            
-    ; based on (an-integer-starting-from n)
-    '(define (an-integer-between low high)
-        (if (>= low high)
-            high
-            (amb low (an-integer-between (+ low 1) high))
+
+(define (install-integer-between)
+    (ambeval-batch 
+                
+        ; based on (an-integer-starting-from n)
+        '(define (an-integer-between low high)
+            (if (>= low high)
+                high
+                (amb low (an-integer-between (+ low 1) high))
+            )
         )
     )
 )
 
 (define (test-4.35)
+
+    (install-require)
+    (install-integer-between)
 
     (ambeval-batch
 
