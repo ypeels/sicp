@@ -100,6 +100,11 @@
     (ambeval-batch '(parse '(the cat eats)))
     ; (sentence (noun-phrase (article the) (noun cat)) (verb eats))
     
+    (ambeval-batch '(define (s2) (parse '(the student with the cat sleeps in the class))))
+    
+    (ambeval-batch '(define (s3) (parse '(the professor lectures to the student with the cat))))
+    ; should have TWO possible answers.
+    
     (driver-loop)
 )
 ;(test-4.45-49)
