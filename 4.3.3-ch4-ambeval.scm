@@ -35,7 +35,7 @@
 (define (amb? exp) (tagged-list? exp 'amb))
 (define (amb-choices exp) (cdr exp))
 
-;; analyze from 4.1.6, with clause from 4.3.3 added
+;; analyze from 4.1.6, with clause from 4.3.3 added                                 ; "modifying the analyzing evaluator of section 4.1.7"
 ;; and also support for Let
 (define (analyze exp)
   (cond ((self-evaluating? exp) 
@@ -48,14 +48,14 @@
         ((lambda? exp) (analyze-lambda exp))
         ((begin? exp) (analyze-sequence (begin-actions exp)))
         ((cond? exp) (analyze (cond->if exp)))
-        ((let? exp) (analyze (let->combination exp))) ;**
-        ((amb? exp) (analyze-amb exp))                ;**
+        ((let? exp) (analyze (let->combination exp))) ;**                           ; Footnote 56: text added (let) derived expression from Exercise 4.22
+        ((amb? exp) (analyze-amb exp))                ;**                           ; <======= the new special form
         ((application? exp) (analyze-application exp))
         (else
          (error "Unknown expression type -- ANALYZE" exp))))
 
 (define (ambeval exp env succeed fail)
-  ((analyze exp) env succeed fail))
+  ((analyze exp) env succeed fail))                                                 ; skips (eval) altogether (no need to override)
 
 ;;;Simple expressions
 
