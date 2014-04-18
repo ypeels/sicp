@@ -66,4 +66,5 @@
 ; for 4.49, you SHOULD NOT change all the "amb" statements in the parser to "ramb"
     ; you only need to change alyssa's modified (parse-word)
     ; the way i have it set up, it'd be easier to use (list-ref (shuffle-list word-list) )
+    ; the problem is that i don't know how to (apply) ramb to a list... oh well
     
