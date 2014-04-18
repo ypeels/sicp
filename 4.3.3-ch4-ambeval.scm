@@ -330,6 +330,9 @@
         
         ; for Exercise 4.52
         (list 'even? even?)
+        
+        ; for Exercise 4.53
+        (list 'square square)
         ))
 
 (define the-global-environment (setup-environment))
