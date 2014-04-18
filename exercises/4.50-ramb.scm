@@ -67,4 +67,5 @@
     ; you only need to change alyssa's modified (parse-word)
     ; the way i have it set up, it'd be easier to use (list-ref (shuffle-list word-list) )
     ; the problem is that i don't know how to (apply) ramb to a list... oh well
+    ; maybe use ramb in (an-element-of items)?
     
