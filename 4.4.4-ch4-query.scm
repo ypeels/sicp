@@ -640,7 +640,7 @@
            (address ?person-2 (?town . ?rest-2))
            (not (same ?person-1 ?person-2))))
 
-(rule (same ?x ?x))
+(rule (same ?x ?x))                                                 ; Footnote 66: "allow rules without bodies...to mean that the rule conclusion is satisfied by any values of the variables."
 
 (rule (wheel ?person)
       (and (supervisor ?middle-manager ?person)
