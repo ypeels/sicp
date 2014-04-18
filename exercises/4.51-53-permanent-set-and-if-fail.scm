@@ -58,20 +58,16 @@
         
         
         (lambda (env succeed fail)
-            (goodproc
-                env
+            (goodproc                       ; required? i think you can't (succeed) this unconditionally...
+                env                
                 
-                
-                ;(lambda (goodval fail2) goodval); this didn't return ANY value?
+                ;(lambda (goodval fail2) goodval); this didn't return ANY value!
                 (lambda (goodval fail2) (succeed goodval fail2))
                 
                 ; and if goodproc should FAIL...
-                (lambda () (badproc env succeed fail))
+                (lambda () (badproc env succeed fail))  ; are these the right arguments?? meh tests pass...
             )
-        ) ; this doesn't look right...
-
-            
-        
+        )
     )
 )
                 
