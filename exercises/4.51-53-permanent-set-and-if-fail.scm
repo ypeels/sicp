@@ -1,14 +1,5 @@
 (load "ch4-ambeval.scm")
 
-(define (install-element-of)
-    (ambeval-batch
-        ; wow, really haven't needed before!?
-        '(define (an-element-of items)
-          (require (not (null? items)))
-          (amb (car items) (an-element-of (cdr items))))
-    )   
-)
-
 (define analyze-ambeval analyze)
 (define (analyze-4.51 expr)
     (if (permanent-assignment? expr)
@@ -75,3 +66,11 @@
                     
         
     
+(define (install-element-of)
+    (ambeval-batch
+        ; wow, really haven't needed before!?
+        '(define (an-element-of items)
+          (require (not (null? items)))
+          (amb (car items) (an-element-of (cdr items))))
+    )   
+)
