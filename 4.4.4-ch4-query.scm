@@ -651,3 +651,11 @@
           (and (supervisor ?staff-person ?middle-manager)
                (outranked-by ?middle-manager ?boss))))
 ))
+
+
+
+; new convenience function. TODO: "batch queries" like with (ambeval-batch) and (leval)
+(define (run) 
+    (initialize-data-base microshaft-data-base)
+    (query-driver-loop)
+)
