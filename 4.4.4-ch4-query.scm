@@ -654,8 +654,47 @@
 
 
 
+
+
+
 ; new convenience function. TODO: "batch queries" like with (ambeval-batch) and (leval)
 (define (run) 
     (initialize-data-base microshaft-data-base)
     (query-driver-loop)
 )
+
+
+
+; new convenience functions - for running batch scripts. based on (query-driver-loop)
+(define (init-query)
+    (initialize-data-base microshaft-data-base))    
+(define (query input)
+
+    (define (done) (display "\nOkie dokie, boss\n\n"))
+    
+  ;(prompt-for-input 
+  (display "\n;;; Input from batch file\n")
+  (display input)
+  (newline)
+
+  (let ((q (query-syntax-process input)))
+    (cond ((assertion-to-be-added? q)
+           (add-rule-or-assertion! (add-assertion-body q))
+           (newline)
+           (display "Assertion added to data base.")
+           (done)) ;(query-driver-loop))
+          (else
+           (newline)
+           (display output-prompt)
+           ;; [extra newline at end] (announce-output output-prompt)
+           (display-stream
+            (stream-map
+             (lambda (frame)
+               (instantiate q
+                            frame
+                            (lambda (v f)
+                              (contract-question-mark v))))
+             (qeval q (singleton-stream '()))))
+           (done))))) ;(query-driver-loop)))))
+
+           
