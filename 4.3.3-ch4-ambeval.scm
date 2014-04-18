@@ -327,6 +327,9 @@
         (list 'list-ref list-ref)
         (list 'newline newline)
         (list 'append append)
+        
+        ; for Exercise 4.52
+        (list 'even? even?)
         ))
 
 (define the-global-environment (setup-environment))

@@ -5,14 +5,10 @@
 
     (load "4.35-37-require.scm")
     (install-require) ; needed for (an-element-of)
+    
+    (install-element-of)
 
     (ambeval-batch
-    
-        ; wow, really haven't needed before!?
-        '(define (an-element-of items)
-          (require (not (null? items)))
-          (amb (car items) (an-element-of (cdr items))))
-
         
         ; from problem statement (wrapped the "let" in a function for easy calling)
         '(define count 0)
