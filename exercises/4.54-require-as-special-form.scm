@@ -18,7 +18,7 @@
 (define (require-predicate expr) (cadr expr))
 
 
-; skeleton from problem statement
+; skeleton from problem statement. this whole set of exercises was uncharacteristically easy... the calm before the storm of section 4.4?
 (define (analyze-require expr)
     ;(display "\ncustom require!\n")                ; only gets displayed during the initial analysis, NOT backtracking!
   (let ((pproc (analyze (require-predicate expr))))
