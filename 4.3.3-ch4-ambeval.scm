@@ -91,7 +91,7 @@
              ;; success continuation for evaluating the predicate
              ;; to obtain pred-value
              (lambda (pred-value fail2)                                                 ; p. 429: succeed continuation is (lambda (value fail)...)
-               (if (true? pred-value)                                                   ; 4.1.7: the (if) is evaluated directly.
+               (if (true? pred-value)                                                   ; previously: the (if) is evaluated directly.
                    (cproc env succeed fail2)
                    (aproc env succeed fail2)))
              ;; failure continuation for evaluating the predicate
@@ -162,7 +162,7 @@
              fail))))
 
 (define (get-args aprocs env succeed fail)                                              ; new procedure! previously (map (lambda (aproc) (aproc env)) aprocs)
-  (if (null? aprocs)
+  (if (null? aprocs)                                                                        ; the reason is that you need to TRY each argument.
       (succeed '() fail)
       ((car aprocs) env                                                                 ; TRY current argument
                     ;; success continuation for this aproc
@@ -193,30 +193,31 @@
           "Unknown procedure type -- EXECUTE-APPLICATION"
           proc))))
 
-;;;amb expressions
+;;;amb expressions                                                                  ; <-- THE KEY ELEMENT IN THE NONDETERMINISTIC LANGUAGE
 
 (define (analyze-amb expr)
   (let ((cprocs (map analyze (amb-choices expr))))
-    (lambda (env succeed fail)
-      (define (try-next choices)
-        (if (null? choices)
+    (lambda (env succeed fail)                                                          ; returns an execution procedure, like any other analyzer
+      (define (try-next choices)                                                        ; "cycles through execution procedures for all the possible values [choices]"
+        (if (null? choices)                                                             ; fails "[when] there are no more alternatives to try"
             (fail)
             ((car choices) env
                            succeed
-                           (lambda ()
+                           (lambda ()                                                   ; <--- "failure continuation that will try the next one"
                              (try-next (cdr choices))))))
       (try-next cprocs))))
 
 ;;;Driver loop
 
-(define input-prompt ";;; Amb-Eval input:")
+(define input-prompt ";;; Amb-Eval input (. or try-again):")
 (define output-prompt ";;; Amb-Eval value:")
 
-(define (driver-loop)
-  (define (internal-loop try-again)
+(define (driver-loop)                                                               ; <-- "complex, due to the [user try-again] mechanism". previously 7 lines...
+  (define (internal-loop try-again)                                                     ; "try-again should go on to the next untried alternative"
     (prompt-for-input input-prompt)
     (let ((input (read)))
-      (if (eq? input 'try-again)
+      (if;(eq? input 'try-again)                                                        ; (but only if requested by user)
+          (or (eq? input 'try-again) (eq? input '.))                                    ; tweaked because i'm tired of typing "try-again". also, '. can't be a variable name!    
           (try-again)
           (begin
             (newline)
@@ -224,24 +225,26 @@
             (ambeval input
                      the-global-environment
                      ;; ambeval success
-                     (lambda (val next-alternative)
-                       (announce-output output-prompt)
+                     (lambda (val next-alternative)                                     ; ambeval success continuation!
+                       (announce-output output-prompt)                                  ; print the obtained value
                        (user-print val)
-                       (internal-loop next-alternative))
-                     ;; ambeval failure
-                     (lambda ()
+                       (internal-loop next-alternative))                                ; invoke internal loop again with proc that can TRY THE NEXT ALTERNATIVE
+                     ;; ambeval failure                                                     ; next-alternative is the "failure" continuation from (analyze-amb)
+                     (lambda ()                                                             ; or it'll be THIS lambda, by default
                        (announce-output
                         ";;; There are no more values of")
                        (user-print input)
-                       (driver-loop)))))))
+                       (driver-loop)))))))                                              ; ambeval failed / is out of alternatives. reboot!        
   (internal-loop
-   (lambda ()
+   (lambda ()                                                                           ; default for (try-again)
      (newline)
      (display ";;; There is no current problem")
      (driver-loop))))
 
-; convenience function - based on (driver-loop)
-(define (ambeval-batch . input-list)
+
+     
+     
+(define (ambeval-batch . input-list)                                                ; my new convenience function - based on (driver-loop)
 
     (define (ambeval-single-input input)
         (display "\n;;; Input from batch file\n")
