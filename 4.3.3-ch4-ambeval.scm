@@ -145,48 +145,48 @@
                             (fail2)))))                                                     ; and don't forget to continue popping the failure stack
              fail))))                                                                   
                                                                                         
-;;;Procedure applications
+;;;Procedure applications                                                           ; <-- "no new ideas except... managing the continuations"
 
 (define (analyze-application expr)
-  (let ((fproc (analyze (operator expr)))
-        (aprocs (map analyze (operands expr))))
-    (lambda (env succeed fail)
-      (fproc env
+  (let ((fproc (analyze (operator expr)))                                               ; function procedure (unchanged)
+        (aprocs (map analyze (operands expr))))                                         ; argument procedures (unchanged)
+    (lambda (env succeed fail)                                                          ; previously (lambda (env) (execute-application (fproc env) (map (lambda (aproc) (aproc env)) aprocs))
+      (fproc env                                                                        ; TRY operator
              (lambda (proc fail2)
-               (get-args aprocs
+               (get-args aprocs                                                         ; TRY operands in new procedure
                          env
-                         (lambda (args fail3)
+                         (lambda (args fail3)                                           ; operator and operands all succeeded!
                            (execute-application
-                            proc args succeed fail3))
+                            proc args succeed fail3))                                   ; proc from success of (fproc), args from success of (get-args)
                          fail2))
              fail))))
 
-(define (get-args aprocs env succeed fail)
+(define (get-args aprocs env succeed fail)                                              ; new procedure! previously (map (lambda (aproc) (aproc env)) aprocs)
   (if (null? aprocs)
       (succeed '() fail)
-      ((car aprocs) env
+      ((car aprocs) env                                                                 ; TRY current argument
                     ;; success continuation for this aproc
-                    (lambda (arg fail2)
-                      (get-args (cdr aprocs)
+                    (lambda (arg fail2)                                                 ; arg = successful value for first arg
+                      (get-args (cdr aprocs)                                            ; recurse for the rest of the args
                                 env
                                 ;; success continuation for recursive
                                 ;; call to get-args
-                                (lambda (args fail3)
-                                  (succeed (cons arg args)
+                                (lambda (args fail3)                                    ; args = successful list for REST of args: "the cons of the newly obtained argument onto the **LIST OF ACCUMULATED ARGUMENTS**" (emphasis added)
+                                  (succeed (cons arg args)                              ; (cons) back up if RECURSION succeeded
                                            fail3))
                                 fail2))
                     fail)))
 
-(define (execute-application proc args succeed fail)
+(define (execute-application proc args succeed fail)                                    ; unchanged except for succeed/fail antics
   (cond ((primitive-procedure? proc)
-         (succeed (apply-primitive-procedure proc args)
+         (succeed (apply-primitive-procedure proc args)                                 ; previously (apply-primitive-procedure proc args)
                   fail))
         ((compound-procedure? proc)
          ((procedure-body proc)
           (extend-environment (procedure-parameters proc)
                               args
                               (procedure-environment proc))
-          succeed
+          succeed                                                                       ; 2 new arguments - from (ambeval expr)'s convention
           fail))
         (else
          (error
