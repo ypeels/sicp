@@ -58,7 +58,7 @@
   ((analyze expr) env succeed fail))                                                ; succeed, fail = new continuation args (p. 429)
 
 ;;;Simple expressions                                                               ; <-- "essentially the same": simply succeed with value, passing along the failure continuation from input argument
-
+                                                                                        ; these ALWAYS succeed.
 (define (analyze-self-evaluating expr)                                                  ; each lambda is the resulting EXECUTION PROCEDURE - applied in (ambeval).
   (lambda (env succeed fail)                                                            ; previously (lambda (env) expr)
     (succeed expr fail)))

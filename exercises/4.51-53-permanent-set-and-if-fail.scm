@@ -24,3 +24,39 @@
              
 ;(define analyze analyze-4.51) ; hmmmmmmm...
 
+
+; i GUESS make it cumulative... keeping this in the same file as 4.51 ensures correct "load order"
+(define (analyze-4.52 expr)
+    (if (if-fail? expr)
+        (analyze-if-fail expr)
+        (analyze-4.51 expr)
+    )
+)
+
+(define (if-fail? expr) (tagged-list? expr 'if-fail))
+(define (if-fail-good expr) (cadr expr)) ; naming these if-fail-success and if-fail-failure is too confusing
+(define (if-fail-bad expr) (caddr expr))
+
+
+; If-fail takes two expressions. 
+; It evaluates the first expression as usual and returns as usual if the evaluation succeeds. 
+; If the evaluation fails, however, the value of the second expression is returned
+(define (analyze-if-fail expr)
+    (let (  (goodproc (analyze (if-fail-good expr)))
+            (badproc (analyze (if-fail-bad expr)))
+        (lambda (env succeed fail)
+            (goodproc
+                env
+                (lambda (goodval fail2) goodval)
+                
+                ; and if goodproc should FAIL...
+                (lambda () (badproc env succeed fail))
+            )
+        ) ; this doesn't look right...
+    )
+)
+                
+                
+                    
+        
+    
