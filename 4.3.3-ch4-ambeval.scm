@@ -32,60 +32,60 @@
 
 ;;;Code from SECTION 4.3.3, modified as needed to run it
 
-(define (amb? exp) (tagged-list? exp 'amb))
-(define (amb-choices exp) (cdr exp))
+(define (amb? expr) (tagged-list? expr 'amb))
+(define (amb-choices expr) (cdr expr))
 
 ;; analyze from 4.1.6, with clause from 4.3.3 added                                 ; "modifying the analyzing evaluator of section 4.1.7"
 ;; and also support for Let
-(define (analyze exp)
-  (cond ((self-evaluating? exp) 
-         (analyze-self-evaluating exp))
-        ((quoted? exp) (analyze-quoted exp))
-        ((variable? exp) (analyze-variable exp))
-        ((assignment? exp) (analyze-assignment exp))
-        ((definition? exp) (analyze-definition exp))
-        ((if? exp) (analyze-if exp))
-        ((lambda? exp) (analyze-lambda exp))
-        ((begin? exp) (analyze-sequence (begin-actions exp)))
-        ((cond? exp) (analyze (cond->if exp)))
-        ((let? exp) (analyze (let->combination exp))) ;**                           ; Footnote 56: text added (let) derived expression from Exercise 4.22
-        ((amb? exp) (analyze-amb exp))                ;**                           ; <======= the new special form
-        ((application? exp) (analyze-application exp))
+(define (analyze expr)
+  (cond ((self-evaluating? expr) 
+         (analyze-self-evaluating expr))
+        ((quoted? expr) (analyze-quoted expr))
+        ((variable? expr) (analyze-variable expr))
+        ((assignment? expr) (analyze-assignment expr))
+        ((definition? expr) (analyze-definition expr))
+        ((if? expr) (analyze-if expr))
+        ((lambda? expr) (analyze-lambda expr))
+        ((begin? expr) (analyze-sequence (begin-actions expr)))
+        ((cond? expr) (analyze (cond->if expr)))
+        ((let? expr) (analyze (let->combination expr))) ;**                           ; Footnote 56: text added (let) derived expression from Exercise 4.22
+        ((amb? expr) (analyze-amb expr))                ;**                           ; <======= the new special form
+        ((application? expr) (analyze-application expr))
         (else
-         (error "Unknown expression type -- ANALYZE" exp))))
+         (error "Unknown expression type -- ANALYZE" expr))))
 
-(define (ambeval exp env succeed fail)
-  ((analyze exp) env succeed fail))                                                 ; skips (eval) altogether (no need to override)
+(define (ambeval expr env succeed fail)
+  ((analyze expr) env succeed fail))                                                 ; skips (eval) altogether (no need to override)
 
 ;;;Simple expressions
 
-(define (analyze-self-evaluating exp)
+(define (analyze-self-evaluating expr)
   (lambda (env succeed fail)
-    (succeed exp fail)))
+    (succeed expr fail)))
 
-(define (analyze-quoted exp)
-  (let ((qval (text-of-quotation exp)))
+(define (analyze-quoted expr)
+  (let ((qval (text-of-quotation expr)))
     (lambda (env succeed fail)
       (succeed qval fail))))
 
-(define (analyze-variable exp)
+(define (analyze-variable expr)
   (lambda (env succeed fail)
-    (succeed (lookup-variable-value exp env)
+    (succeed (lookup-variable-value expr env)
              fail)))
 
-(define (analyze-lambda exp)
-  (let ((vars (lambda-parameters exp))
-        (bproc (analyze-sequence (lambda-body exp))))
+(define (analyze-lambda expr)
+  (let ((vars (lambda-parameters expr))
+        (bproc (analyze-sequence (lambda-body expr))))
     (lambda (env succeed fail)
       (succeed (make-procedure vars bproc env)
                fail))))
 
 ;;;Conditionals and sequences
 
-(define (analyze-if exp)
-  (let ((pproc (analyze (if-predicate exp)))
-        (cproc (analyze (if-consequent exp)))
-        (aproc (analyze (if-alternative exp))))
+(define (analyze-if expr)
+  (let ((pproc (analyze (if-predicate expr)))
+        (cproc (analyze (if-consequent expr)))
+        (aproc (analyze (if-alternative expr))))
     (lambda (env succeed fail)
       (pproc env
              ;; success continuation for evaluating the predicate
@@ -118,9 +118,9 @@
 
 ;;;Definitions and assignments
 
-(define (analyze-definition exp)
-  (let ((var (definition-variable exp))
-        (vproc (analyze (definition-value exp))))
+(define (analyze-definition expr)
+  (let ((var (definition-variable expr))
+        (vproc (analyze (definition-value expr))))
     (lambda (env succeed fail)
       (vproc env                        
              (lambda (val fail2)
@@ -128,9 +128,9 @@
                (succeed 'ok fail2))
              fail))))
 
-(define (analyze-assignment exp)
-  (let ((var (assignment-variable exp))
-        (vproc (analyze (assignment-value exp))))
+(define (analyze-assignment expr)
+  (let ((var (assignment-variable expr))
+        (vproc (analyze (assignment-value expr))))
     (lambda (env succeed fail)
       (vproc env
              (lambda (val fail2)        ; *1*
@@ -147,9 +147,9 @@
 
 ;;;Procedure applications
 
-(define (analyze-application exp)
-  (let ((fproc (analyze (operator exp)))
-        (aprocs (map analyze (operands exp))))
+(define (analyze-application expr)
+  (let ((fproc (analyze (operator expr)))
+        (aprocs (map analyze (operands expr))))
     (lambda (env succeed fail)
       (fproc env
              (lambda (proc fail2)
@@ -195,8 +195,8 @@
 
 ;;;amb expressions
 
-(define (analyze-amb exp)
-  (let ((cprocs (map analyze (amb-choices exp))))
+(define (analyze-amb expr)
+  (let ((cprocs (map analyze (amb-choices expr))))
     (lambda (env succeed fail)
       (define (try-next choices)
         (if (null? choices)
@@ -269,20 +269,20 @@
 
 ;;; Support for Let (as noted in footnote 56, p.428)
 
-(define (let? exp) (tagged-list? exp 'let))
-(define (let-bindings exp) (cadr exp))
-(define (let-body exp) (cddr exp))
+(define (let? expr) (tagged-list? expr 'let))
+(define (let-bindings expr) (cadr expr))
+(define (let-body expr) (cddr expr))
 
 (define (let-var binding) (car binding))
 (define (let-val binding) (cadr binding))
 
 (define (make-combination operator operands) (cons operator operands))
 
-(define (let->combination exp)
+(define (let->combination expr)
   ;;make-combination defined in earlier exercise
-  (let ((bindings (let-bindings exp)))
+  (let ((bindings (let-bindings expr)))
     (make-combination (make-lambda (map let-var bindings)
-                                   (let-body exp))
+                                   (let-body expr))
                       (map let-val bindings))))
                      
 
