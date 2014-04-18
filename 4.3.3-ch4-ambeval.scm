@@ -48,103 +48,103 @@
         ((lambda? expr) (analyze-lambda expr))
         ((begin? expr) (analyze-sequence (begin-actions expr)))
         ((cond? expr) (analyze (cond->if expr)))
-        ((let? expr) (analyze (let->combination expr))) ;**                           ; Footnote 56: text added (let) derived expression from Exercise 4.22
-        ((amb? expr) (analyze-amb expr))                ;**                           ; <======= the new special form
+        ((let? expr) (analyze (let->combination expr))) ;**                         ; Footnote 56: text added (let) derived expression from Exercise 4.22
+        ((amb? expr) (analyze-amb expr))                ;**                         ; <======= the new special form
         ((application? expr) (analyze-application expr))
         (else
          (error "Unknown expression type -- ANALYZE" expr))))
 
-(define (ambeval expr env succeed fail)
-  ((analyze expr) env succeed fail))                                                 ; skips (eval) altogether (no need to override)
+(define (ambeval expr env succeed fail)                                             ; new replacement for (eval) in (driver-loop) - no need to override (eval)
+  ((analyze expr) env succeed fail))                                                ; succeed, fail = new continuation args (p. 429)
 
-;;;Simple expressions
+;;;Simple expressions                                                               ; <-- "essentially the same": simply succeed with value, passing along the failure continuation from input argument
 
-(define (analyze-self-evaluating expr)
-  (lambda (env succeed fail)
+(define (analyze-self-evaluating expr)                                                  ; each lambda is the resulting EXECUTION PROCEDURE - applied in (ambeval).
+  (lambda (env succeed fail)                                                            ; previously (lambda (env) expr)
     (succeed expr fail)))
 
 (define (analyze-quoted expr)
   (let ((qval (text-of-quotation expr)))
-    (lambda (env succeed fail)
+    (lambda (env succeed fail)                                                          ; previously (lambda (env) qval)
       (succeed qval fail))))
 
 (define (analyze-variable expr)
-  (lambda (env succeed fail)
-    (succeed (lookup-variable-value expr env)
+  (lambda (env succeed fail)                                                            ; previously (lambda (env) (lookup-variable-value expr env))
+    (succeed (lookup-variable-value expr env)                                           ; (lookup) will correctly abort with (error) if var is unbound - this is a bug, not an amb choice
              fail)))
 
 (define (analyze-lambda expr)
   (let ((vars (lambda-parameters expr))
         (bproc (analyze-sequence (lambda-body expr))))
-    (lambda (env succeed fail)
+    (lambda (env succeed fail)                                                          ; previously (lambda (env) (make-procedure vars bproc env))
       (succeed (make-procedure vars bproc env)
                fail))))
 
-;;;Conditionals and sequences
+;;;Conditionals and sequences                                                       ; <-- "handled in a similar way": 
 
 (define (analyze-if expr)
   (let ((pproc (analyze (if-predicate expr)))
         (cproc (analyze (if-consequent expr)))
         (aproc (analyze (if-alternative expr))))
-    (lambda (env succeed fail)
-      (pproc env
+    (lambda (env succeed fail)                                                          
+      (pproc env                                                                        ; first TRY the predicate - it might fail!
              ;; success continuation for evaluating the predicate
              ;; to obtain pred-value
-             (lambda (pred-value fail2)
-               (if (true? pred-value)
+             (lambda (pred-value fail2)                                                 ; p. 429: succeed continuation is (lambda (value fail)...)
+               (if (true? pred-value)                                                   ; 4.1.7: the (if) is evaluated directly.
                    (cproc env succeed fail2)
                    (aproc env succeed fail2)))
              ;; failure continuation for evaluating the predicate
              fail))))
 
 (define (analyze-sequence exps)
-  (define (sequentially a b)
-    (lambda (env succeed fail)
+  (define (sequentially a b)                                                            
+    (lambda (env succeed fail)                                                          ; previously (lambda (env) (proc1 env) (proc2 env))
       (a env
-         ;; success continuation for calling a
+         ;; success continuation for calling a                                          ; new "machinations...required for passing the continuations"    
          (lambda (a-value fail2)
-           (b env succeed fail2))
+           (b env succeed fail2))                                                       ; only call b when a succeeds.
          ;; failure continuation for calling a
          fail)))
-  (define (loop first-proc rest-procs)
+  (define (loop first-proc rest-procs)                                                  ; unchanged!
     (if (null? rest-procs)
         first-proc
         (loop (sequentially first-proc (car rest-procs))
               (cdr rest-procs))))
-  (let ((procs (map analyze exps)))
+  (let ((procs (map analyze exps)))                                                     ; unchanged!
     (if (null? procs)
         (error "Empty sequence -- ANALYZE"))
     (loop (car procs) (cdr procs))))
 
 ;;;Definitions and assignments
 
-(define (analyze-definition expr)
+(define (analyze-definition expr)                                                   ; <-- "some trouble to manage the continuations" (find value first)
   (let ((var (definition-variable expr))
         (vproc (analyze (definition-value expr))))
-    (lambda (env succeed fail)
-      (vproc env                        
-             (lambda (val fail2)
+    (lambda (env succeed fail)                                                          ; previously (lambda (env) (define-variable! var (vproc env) env) 'ok)
+      (vproc env                                                                        ; TRY to obtain definition's value
+             (lambda (val fail2)                                                        ; success continuation (def's value): define!
                (define-variable! var val env)
-               (succeed 'ok fail2))
-             fail))))
-
-(define (analyze-assignment expr)
+               (succeed 'ok fail2))                                                     ; Footnote 57: "We didn't worry about undoing definitions, since we can assume that internal definitions are scanned out (section 4.1.6)."
+             fail))))                                                                   ; i think this is because (amb) only branches WITHIN PROCEDURES?
+                                                                                        ; also, they probably didn't want to worry about completely erasing a (first) definition
+(define (analyze-assignment expr)                                                   ; <-- "the first place where we really use the continuations, rather than just passing them around."
   (let ((var (assignment-variable expr))
         (vproc (analyze (assignment-value expr))))
-    (lambda (env succeed fail)
-      (vproc env
-             (lambda (val fail2)        ; *1*
-               (let ((old-value
+    (lambda (env succeed fail)                                                          ; previously (lambda (env) (set-variable-value! var (vproc env) env) 'ok)
+      (vproc env                                                                        ; TRY to obtain assignment's value, like (analyze-definition)
+             (lambda (val fail2)        ; *1*                                           ; success continuation (set's value)
+               (let ((old-value                                                             ; save old value in case this branch later fails - and you need to backtrack
                       (lookup-variable-value var env))) 
                  (set-variable-value! var val env)
                  (succeed 'ok
-                          (lambda ()    ; *2*
+                          (lambda ()    ; *2*                                               ; successful assignment provides a failure continuation that will intercept a subsequent failure
                             (set-variable-value! var
                                                  old-value
                                                  env)
-                            (fail2)))))
-             fail))))
-
+                            (fail2)))))                                                     ; and don't forget to continue popping the failure stack
+             fail))))                                                                   
+                                                                                        
 ;;;Procedure applications
 
 (define (analyze-application expr)
