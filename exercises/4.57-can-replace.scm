@@ -1,6 +1,7 @@
 (define (install-can-replace)
 
     ; hmm, batch mode input isn't working for RULES?
+    ; apparently rules AREN'T entered interactively, but rather as part of the database!?!?
     (query
         '(rule 
             (can-replace ?person-1 ?person-2)

@@ -7,8 +7,12 @@
 (load "4.4.4-ch4-query.scm")
 ;(run)
 
+; apparently rules have to be installed as part of the DATABASE - NOT as interactive or batch queries...??
 
+(append! microshaft-data-base '((rule (different ?x ?y) (not (same ?x ?y)))))
 (init-query)
+
+
 (query '(supervisor ?slave (Bitdiddle Ben)))
 
 ; this works
@@ -17,8 +21,8 @@
               (not (same ?person1 ?person2))) )
               
               
-; but this doesn't!?
-(query '(rule (different ?x ?y) (not (same ?x ?y))))
+; but this doesn't!? ahhh rules are installed in the database, NOT from the (query) prompt!!
+;(query '(rule (different ?x ?y) (not (same ?x ?y))))
 (query '(and (address ?person1 (?town . ?rest1))
              (address ?person2 (?town . ?rest2))
              (different ?person1 ?person2)) )
