@@ -66,10 +66,7 @@
     ; Aull DeWitt $25,000 can replace Warbucks Oliver $150,000
     ; Fect Cy D $35000 can replace Hacker Alyssa P $40000
             
-            
-            
-
     
     (query-driver-loop)
 )
-(test-4.57)
+;(test-4.57)

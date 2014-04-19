@@ -699,5 +699,5 @@
 
 ; and a convenience function for installing rules
 ; no; use (assert!) from sols.
-(define (install-rule rule)
-    (append! microshaft-data-base (list rule)))
+;(define (install-rule rule)
+;    (append! microshaft-data-base (list rule)))
