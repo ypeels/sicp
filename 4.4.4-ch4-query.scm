@@ -697,4 +697,6 @@
              (qeval q (singleton-stream '()))))
            (done))))) ;(query-driver-loop)))))
 
-           
+; and a convenience function for installing rules
+(define (install-rule rule)
+    (append! microshaft-data-base (list rule)))
