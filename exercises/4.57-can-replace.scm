@@ -2,26 +2,30 @@
 
     ; apparently rules AREN'T entered interactively, but rather must install as part of the database!?!?
     ;(query
-    (install-rule
-        '(rule 
-            (can-replace ?person-1 ?person-2)
-            (and
-            
-                ; define variables - i think. otherwise, what is the context for ?job-1 and ?job-2?
-                ; could use the much less legible "context-free" versions below, and forego this "declaration", but...
-                (job ?person-1 ?job-1) (job ?person-2 ?job-2)
-                    
-                (or 
-                    ; person 1 does the same job as person 2
-                    ;(and (job ?person-2 ?job-2) (job (?person-1 ?job-2))) ; alternative "context-free"
-                    (same ?job-1 ?job-2) ; using it in spite of Footnote 65...
-                    
-                    ; someone who does person 1's job can also do person 2's job
-                    ;(and (job ?person-1 ?job-1) (job ?person-2 ?job-2) (can-do-job ?job-1 ?job-2))
-                    (can-do-job ?job-1 ?job-2)
-                )
+    ;(install-rule
+    (query 
+        '(assert! ; ohhhhhh (from sols). why do they give exercises before showing how to DO them??
+            (rule 
+                (can-replace ?person-1 ?person-2)
+                (and
                 
-                (not (same ?person-1 ?person-2))
+                    ; define variables - i think. otherwise, what is the context for ?job-1 and ?job-2?
+                    ; could use the much less legible "context-free" versions below, and forego this "declaration", but...
+                    ; sols do it this way too!
+                    (job ?person-1 ?job-1) (job ?person-2 ?job-2)
+                        
+                    (or 
+                        ; person 1 does the same job as person 2
+                        ;(and (job ?person-2 ?job-2) (job (?person-1 ?job-2))) ; alternative "context-free"
+                        (same ?job-1 ?job-2) ; using it in spite of Footnote 65...
+                        
+                        ; someone who does person 1's job can also do person 2's job
+                        ;(and (job ?person-1 ?job-1) (job ?person-2 ?job-2) (can-do-job ?job-1 ?job-2))
+                        (can-do-job ?job-1 ?job-2)
+                    )
+                    
+                    (not (same ?person-1 ?person-2))
+                )
             )
         )
     ) 
@@ -31,8 +35,9 @@
 (define (test-4.57)
  
     (load "ch4-query.scm")
-    (install-can-replace)
     (init-query)    
+    (install-can-replace)
+    
     
     
     ; remember, it's p1 CAN REPLACE p2, NOT the other way around
