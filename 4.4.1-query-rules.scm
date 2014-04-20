@@ -27,4 +27,11 @@
 (query '(assert! (rule (different ?x ?y) (not (same ?x ?y)))))
 (query '(and (address ?person1 (?town . ?rest1))
              (address ?person2 (?town . ?rest2))
-             (different ?person1 ?person2)) )
+             (different ?person1 ?person2)) )   ; this works now too.
+             
+             
+             
+; Subsection "Logic as programming" - ahh NOW we're moving past databases...
+(query '(assert! (rule (append-to-form () ?y ?y))))
+(query '(assert! (rule (append-to-form (?u . ?v) ?y (?u . ?z)) (append-to-form ?v ?y ?z))))
+(query '(append-to-form ?x ?y (a b c d))) ; this works without ever consulting the database beyond rules!!
