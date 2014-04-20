@@ -7,7 +7,7 @@
 
     ; recurse down the cdr of the list.
     (query '(assert! (rule (last-pair (?u . ?v) ?lp) (last-pair ?v ?lp)))) ; ?lp = "return value"
-    
+                                                                           ; sol has (?lp), but i don't think it matters
 
     ; order of these rules doesn't matter! i guess they're not overlapping?
 )
