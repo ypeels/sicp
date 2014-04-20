@@ -34,4 +34,10 @@
 ; Subsection "Logic as programming" - ahh NOW we're moving past databases...
 (query '(assert! (rule (append-to-form () ?y ?y))))
 (query '(assert! (rule (append-to-form (?u . ?v) ?y (?u . ?z)) (append-to-form ?v ?y ?z))))
-(query '(append-to-form ?x ?y (a b c d))) ; this works without ever consulting the database beyond rules!!
+(query '(append-to-form ?x ?y (a b c d))) 
+;;;; Query results:
+;(append-to-form () (a b c d) (a b c d))    ; this works without ever consulting the database beyond rules!!
+;(append-to-form (a) (b c d) (a b c d))     ; a b c d are not in the database at all. "dynamic assertion"?
+;(append-to-form (a b) (c d) (a b c d))
+;(append-to-form (a b c) (d) (a b c d))
+;(append-to-form (a b c d) () (a b c d))
