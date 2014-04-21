@@ -5,20 +5,25 @@
 (define (install-great-genealogy)
 
     ; Write rules that determine if a list ends in the word grandson.
-    (query '(assert! (rule (ends-with-grandson (?L)) (last-pair (?L) grandson))))
+    (query '(assert! (rule (ends-with-grandson (?car . ?cdr)) (last-pair (?car . ?cdr) (grandson)))))
         ; shouldn't ONE rule suffice? oh i guess last-pair is a rule in itself too...
         ; maybe allow for singleton too
         ;(query '(assert! (rule (ends-with-grandson grandson))))
     
         ; test it
-        ;(query '(assert! ((great grandson) Lupin1 Lupin4)))
-        (query '(assert! (rule (findgs ?p1 ?p2)
-            (and
-                (?relationship ?p1 ?p2)
-                (ends-with-grandson ?relationship)
-            )
-        )))
-        (query '(findgs ?p1 ?p2))
+        (query '(ends-with-grandson (great grandson)))
+        
+        ;(query '(assert! (rule (findgs ?p1 ?p2)
+        ;    (and
+        ;        (?relationship ?p1 ?p2) ; BAD - query with THREE unknowns...
+        ;        (ends-with-grandson ?relationship)
+        ;    )
+        ;)))
+        
+        ;(query '(findgs ?p1 ?p2))
+        
+        ;(query '(assert! ((great grandson) Lupin1 Lupin4)))        
+        ;(query '(and ((great grandson) ?p1 ?p2) (ends-with-grandson (great grandson))))
     
     ; works for a single great... but that's NOT what we want...
     ;(query '(assert! (rule ((great grandson) ?x ?y) (and (same ?rel (grandson)) (grandson ?x ?gs) (son ?gs ?y)))))
@@ -29,7 +34,7 @@
     (query '(assert! (rule ((great . ?rel) ?x ?y)
     
         (and
-            (ends-with-grandson (?rel))
+            (ends-with-grandson ?rel)
             (or
                 (and (grandson ?x ?gs) (son ?gs ?y))
                 
@@ -57,7 +62,7 @@
     (install-great-genealogy)
     
     ; test cases from problem statement
-    ;(query '((great grandson) ?g ?ggs))
+    (query '((great grandson) ?g ?ggs))
     
     (query-driver-loop)
 )
