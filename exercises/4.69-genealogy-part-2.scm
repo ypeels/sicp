@@ -13,20 +13,7 @@
         ; test it
         (query '(ends-with-grandson (great grandson)))
         
-        ;(query '(assert! (rule (findgs ?p1 ?p2)
-        ;    (and
-        ;        (?relationship ?p1 ?p2) ; BAD - query with THREE unknowns...
-        ;        (ends-with-grandson ?relationship)
-        ;    )
-        ;)))
-        
-        ;(query '(findgs ?p1 ?p2))
-        
-        ;(query '(assert! ((great grandson) Lupin1 Lupin4)))        
-        ;(query '(and ((great grandson) ?p1 ?p2) (ends-with-grandson (great grandson))))
-    
-    ; works for a single great... but that's NOT what we want...
-    ;(query '(assert! (rule ((great grandson) ?x ?y) (and (same ?rel (grandson)) (grandson ?x ?gs) (son ?gs ?y)))))
+
     
     
     ; Use this to express a rule that allows one to derive the relationship ((great . ?rel) ?x ?y), 
@@ -36,16 +23,40 @@
         (and
             (ends-with-grandson ?rel)
             (or
+                ; this gets great-grandson working
                 (and (same ?rel (grandson)) (grandson ?x ?gs) (son ?gs ?y))
                 
                 ; this is all it takes to get arbitrarily many "great"s to work!
                 (and (son ?x ?s) (?rel ?s ?y))
             )
+            
+            ; sol's version - with additional grandson rules to normalize the api
+            ;(son ?x ?s) (rel ?s ?y)
         )
     )))
     
+    ; additional normalizing rules from sols. ohhhh... that IS cleaner...
+    ;(query '(assert! (rule (ends-with-grandson (grandson)))))
+    ;(query '(assert! (rule ((grandson) ?x ?y) (grandson ?x ?y))))
+    
     
     ; don't forget the query (grandson ?G ?S)
+)
+
+
+; https://github.com/l0stman/sicp/blob/master/4.69.tex
+; by far the best solution i could find online
+(define (install-great-genealogy-l0stman)
+    (query '(assert! (rule (end-in-grandson (grandson)))))
+    (query '(assert! (rule (end-in-grandson (?x . ?rest))
+                           (end-in-grandson ?rest))))
+
+    (query '(assert! (rule ((grandson) ?x ?y)
+                            (grandson ?x ?y))))
+    (query '(assert! (rule ((great . ?rel) ?x ?y)
+          (and (end-in-grandson ?rel)
+               (son ?x ?z)
+               (?rel ?z ?y)))))
 )
 
 (define (test-4.69)
@@ -60,6 +71,7 @@
     (install-last-pair) ; for ends-in-grandson
     
     (install-great-genealogy)
+    ;(install-great-genealogy-l0stman)
     
     ; test cases from problem statement
     (query '((great grandson) Adam ?ggs))
@@ -82,8 +94,11 @@
     ; adam jubal
     ; adam jabal
     
-    ;(query '(?relationship Adam Irad))
-    ; currently infinite loop...
+    (query '(?relationship Adam Irad))
+    ; currently infinite loop... even for sols! 
+    ; http://community.schemewiki.org/?sicp-ex-4.69
+    ; https://github.com/l0stman/sicp/blob/master/4.69.tex
+    ; meh.
     
     (query-driver-loop)
 )
