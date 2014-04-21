@@ -36,7 +36,7 @@
         (and
             (ends-with-grandson ?rel)
             (or
-                (and (grandson ?x ?gs) (son ?gs ?y))
+                (and (same ?rel (grandson)) (grandson ?x ?gs) (son ?gs ?y))
                 
                 ; no WAY this is gonna work...?
                 ;(?rel (son ?x) ?y)
