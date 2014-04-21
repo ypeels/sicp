@@ -63,6 +63,7 @@
     
     ; test cases from problem statement
     (query '((great grandson) ?g ?ggs))
+    (query '((great great grandson) ?g ?ggs))
     
     (query-driver-loop)
 )
