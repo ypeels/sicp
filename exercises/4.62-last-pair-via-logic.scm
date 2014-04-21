@@ -29,8 +29,10 @@
     ; (last-pair (2 3) (3))
     
     ;(query '(last-pair ?x (3)))
-    ; hangs forever. "the general methods may break down in more complex casesas we will see in section 4.4.3" ?
+    ; hangs forever. "the general methods may break down in more complex cases as we will see in section 4.4.3" ?
         ; yeah, the very first subsection of 4.4.3 is "infinite loops"
+        ; here the problem is that there are infinite possible values for ?x
+            ; not sure what values the query system is generating, though... it'd be nice to view its progress...
     
     (query-driver-loop)
 )
