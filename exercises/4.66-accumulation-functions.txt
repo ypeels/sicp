@@ -1,0 +1,14 @@
+Ben has realized that some queries, like wheel, will return duplicate entries
+This will cause double (or multiple) accumulation of their values
+If only there were some way to guarantee the accumulation is over PEOPLE instead of queries...
+
+I DON'T think this problem is runnable without modifying the query system...?
+
+OR have the mapping function extract value + person, then filter out duplicates somehow??
+
+OR have a query type that doesn't return frames with identical values?
+
+Is it possible to devise a QUERY that does this?? 
+	probably not... frames are independent, right?
+	MAYBE using lisp-value to implement a history? (lisp-value seems dangerously powerful...)
+	yeah, this works - see 4.65
