@@ -55,79 +55,79 @@
 
 
 ;;;SECTION 4.4.4.2
-;;;The Evaluator
+;;;The Evaluator                                                        ; <==== "qeval ... is the basic evaluator of the query system."
 
-(define (qeval query frame-stream)
-  (let ((qproc (get (type query) 'qeval)))
+(define (qeval query frame-stream)                                          ; args: a query and a stream of frames; return-val: a stream of extended frames (although this latter doesn't seem to be obvious from this function itself)
+  (let ((qproc (get (type query) 'qeval)))                                  ; identifies special forms by data-directed dispatch (cf. 2.5)
     (if qproc
-        (qproc (contents query) frame-stream)
-        (simple-query query frame-stream))))
+        (qproc (contents query) frame-stream)                               ; 4.4.4.7: (type) and (contents) implement the abstract syntax of the special forms.
+        (simple-query query frame-stream))))                                ; Any query that is not identified as a special form is assumed to be a simple query
 
 ;;;Simple queries
 
-(define (simple-query query-pattern frame-stream)
-  (stream-flatmap
-   (lambda (frame)
-     (stream-append-delayed
-      (find-assertions query-pattern frame)
-      (delay (apply-rules query-pattern frame))))
+(define (simple-query query-pattern frame-stream)                       ; returns the stream formed by extending each frame by all data-base matches of the query.
+  (stream-flatmap                                                           ; 4.4.4.6 - one large stream of all ways to extend frames to match pattern
+   (lambda (frame)                                                          ; strategy from p. 461
+     (stream-append-delayed                                                 ; from 4.4.4.6; see also Exercise 4.71
+      (find-assertions query-pattern frame)                                 ; 4.4.4.3 - match the pattern against all assertions in the data base, producing a stream of extended frames
+      (delay (apply-rules query-pattern frame))))                           ; 4.4.4.4 - apply all possible rules, producing another stream of extended frames
    frame-stream))
 
 ;;;Compound queries
 
-(define (conjoin conjuncts frame-stream)
-  (if (empty-conjunction? conjuncts)
+(define (conjoin conjuncts frame-stream)                                ; (AND) queries - Figure 4.5 p. 456
+  (if (empty-conjunction? conjuncts)                                        ; 4.4.4.7: predicates and selectors
       frame-stream
-      (conjoin (rest-conjuncts conjuncts)
-               (qeval (first-conjunct conjuncts)
+      (conjoin (rest-conjuncts conjuncts)                                   ; process results in series
+               (qeval (first-conjunct conjuncts)                            ; all possible frame extensions that satisfy the first query in the conjunction
                       frame-stream))))
 
-;;(put 'and 'qeval conjoin)
+;;(put 'and 'qeval conjoin)                                                 ; from (initialize-data-base) - so (get 'and 'qeval) will dispatch here.
 
 
-(define (disjoin disjuncts frame-stream)
-  (if (empty-disjunction? disjuncts)
+(define (disjoin disjuncts frame-stream)                                ; (OR) queries - Figure 4.6 p. 457
+  (if (empty-disjunction? disjuncts)                                        ; 4.4.4.7: predicates and selectors
       the-empty-stream
-      (interleave-delayed
+      (interleave-delayed                                                   ; 4.4.4.6 and exercises 4.71, 4.72
        (qeval (first-disjunct disjuncts) frame-stream)
-       (delay (disjoin (rest-disjuncts disjuncts)
+       (delay (disjoin (rest-disjuncts disjuncts)                           ; interleave the results in parallel instead of processing in series
                        frame-stream)))))
 
-;;(put 'or 'qeval disjoin)
+;;(put 'or 'qeval disjoin)                                                  ; from (initialize-data-base) - so (get 'or 'qeval) will dispatch here.
 
 ;;;Filters
 
-(define (negate operands frame-stream)
+(define (negate operands frame-stream)                                  ; (NOT) filters - p. 457
   (stream-flatmap
    (lambda (frame)
-     (if (stream-null? (qeval (negated-query operands)
-                              (singleton-stream frame)))
-         (singleton-stream frame)
+     (if (stream-null? (qeval (negated-query operands)                      ; attempt to extend each frame in input stream to satisfy the query being negated
+                              (singleton-stream frame)))                    ; 4.4.4.7: selectors
+         (singleton-stream frame)                                           ; include a given frame in the output stream only if it cannot be extended 
          the-empty-stream))
    frame-stream))
 
-;;(put 'not 'qeval negate)
+;;(put 'not 'qeval negate)                                                  ; from (initialize-data-base) - so (get 'not 'qeval) will dispatch here.
 
-(define (lisp-value call frame-stream)
+(define (lisp-value call frame-stream)                                  ; Lisp filters - p. 458
   (stream-flatmap
    (lambda (frame)
      (if (execute
           (instantiate
            call
            frame
-           (lambda (v f)
-             (error "Unknown pat var -- LISP-VALUE" v))))
+           (lambda (v f)                                                    ; (unbound-var-handler var frame). remember?
+             (error "Unknown pat var -- LISP-VALUE" v))))                   ; error: unbound pattern variables
          (singleton-stream frame)
-         the-empty-stream))
+         the-empty-stream))                                                 ; frames for which the predicate returns false are filtered out
    frame-stream))
 
-;;(put 'lisp-value 'qeval lisp-value)
+;;(put 'lisp-value 'qeval lisp-value)                                       ; from (initialize-data-base) - so (get 'lisp-value 'qeval) will dispatch here.
 
-(define (execute expr)
-  (apply (eval (predicate expr) user-initial-environment)
-         (args expr)))
+(define (execute expr)                                                  ; applies Lisp predicate to query arguments using UNDERLYING apply/eval!
+  (apply (eval (predicate expr) user-initial-environment)                   ; (predicate) from 4.4.4.7; user-initial-environment is built-in.
+         (args expr)))                                                      ; (args) from 4.4.4.7: not (eval (args expr)), since args of expr come in pre-evaluated
 
-(define (always-true ignore frame-stream) frame-stream)
+(define (always-true ignore frame-stream) frame-stream)                 ; special form used by (rule-body) in 4.4.4.7 for bodyless rules (conclusions always satisfied)
 
 ;;(put 'always-true 'qeval always-true)
 
