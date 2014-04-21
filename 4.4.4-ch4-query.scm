@@ -21,7 +21,7 @@
 
 (define (query-driver-loop)
   (prompt-for-input input-prompt)
-  (let ((q (query-syntax-process (read))))                              ; 4.4.4.7: pre-process query syntax for efficient processing
+  (let ((q (query-syntax-process (read))))                              ; 4.4.4.7: pre-process query syntax for efficient processing; 4.4.4.3 p. 475: (read) NATIVELY supports dotted-tail notation.
     (cond ((assertion-to-be-added? q)                                   ; 4.4.4.7: (assertion-to-be-added?) and (add-assertion-body)
            (add-rule-or-assertion! (add-assertion-body q))              ; 4.4.4.5: (add-rule-or-assertion!)
            (newline)
@@ -134,37 +134,37 @@
 ;;;SECTION 4.4.4.3
 ;;;Finding Assertions by Pattern Matching
 
-(define (find-assertions pattern frame)
+(define (find-assertions pattern frame)                                 ; returns stream of frames extended by the database match
   (stream-flatmap (lambda (datum)
                     (check-an-assertion datum pattern frame))
-                  (fetch-assertions pattern frame)))
+                  (fetch-assertions pattern frame)))                        ; 4.4.4.5: stream of assertions to be checked (cheap pre-check - p. 455 Footnote 67?)
 
-(define (check-an-assertion assertion query-pat query-frame)
+(define (check-an-assertion assertion query-pat query-frame)            ; helper function ONLY used by (find-assertions)
   (let ((match-result
-         (pattern-match query-pat assertion query-frame)))
+         (pattern-match query-pat assertion query-frame)))                  ; match? (punt)
     (if (eq? match-result 'failed)
-        the-empty-stream
-        (singleton-stream match-result))))
+        the-empty-stream                                                    ; match failed
+        (singleton-stream match-result))))                                  ; match succeeded! return one-element stream w/ the extended frame
 
-(define (pattern-match pat dat frame)
-  (cond ((eq? frame 'failed) 'failed)
-        ((equal? pat dat) frame)
-        ((var? pat) (extend-if-consistent pat dat frame))
-        ((and (pair? pat) (pair? dat))
-         (pattern-match (cdr pat)
+(define (pattern-match pat dat frame)                                   ; helper function ONLY used in 4.4.4.3 - returns extended frame OR 'failed
+  (cond ((eq? frame 'failed) 'failed)                                       ; 'failed will cascade all the way home.
+        ((equal? pat dat) frame)                                            ; match succeeds (not a variable!) - do nothing.
+        ((var? pat) (extend-if-consistent pat dat frame))                   ; extend frame if consistent (punt)
+        ((and (pair? pat) (pair? dat))                                      ; check pattern vs data, element by element, accumulating bindings for the pattern variables.
+         (pattern-match (cdr pat)                                           ; recurse on 2nd+ elements
                         (cdr dat)
-                        (pattern-match (car pat)
+                        (pattern-match (car pat)                            ; frame extended by 1st element
                                        (car dat)
                                        frame)))
         (else 'failed)))
 
-(define (extend-if-consistent var dat frame)
-  (let ((binding (binding-in-frame var frame)))
+(define (extend-if-consistent var dat frame)                            ; helper function ONLY used by (pattern-match)
+  (let ((binding (binding-in-frame var frame)))                             ; from 4.4.4.8
     (if binding
-        (pattern-match (binding-value binding) dat frame)
-        (extend var dat frame))))
+        (pattern-match (binding-value binding) dat frame)                   ; pp 474-5: reality check, OR recursively check variables bound as values during unification
+        (extend var dat frame))))                                           ; from 4.4.4.8: bind previously unbound variable.
 
-;;;SECTION 4.4.4.4
+;;;SECTION 4.4.4.4                                                      ; ok, now to move beyond simple queries...
 ;;;Rules and Unification
 
 (define (apply-rules pattern frame)
@@ -242,7 +242,7 @@
 
 (define THE-ASSERTIONS the-empty-stream)
 
-(define (fetch-assertions pattern frame)
+(define (fetch-assertions pattern frame)                                    ; helper function ONLY used in (find-assertions)
   (if (use-index? pattern)
       (get-indexed-assertions pattern)
       (get-all-assertions)))
