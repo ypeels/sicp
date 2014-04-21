@@ -1,0 +1,19 @@
+"The general idea is that the system should maintain some sort of history of its current 
+chain of deductions and should not begin processing a query that it is already working on."
+
+Well you could maintain a global list of your current queries,
+and before starting a new query, scan the global list to make sure you're not stuck in a loop
+
+If you ARE stuck in a loop, should the system raise an error? Or just return no value? hmm
+
+To avoid the simple loop from Exercise 4.64, you just need to store the pattern
+	(outranked-by ?middle-manager ?boss)
+	hmm, but then the CORRECT version would fail?	
+
+Now, for the loop type in the section, you definitely  need to store the INSTANTIATED pattern
+	(married Mickey ?who)
+	does that require storing all the frames up to that point? 
+	you could just cache the instantiated pattern...?
+
+
+Sounds like this'd eat a lot of storage...
