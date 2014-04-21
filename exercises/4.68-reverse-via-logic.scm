@@ -18,7 +18,11 @@
     (query '(assert! (rule (reverse (?x) (?x)))))
     
     ; this works from left to right, but gives an infinite loop from right to left...
-    ;(query '(assert! (rule (reverse (?x . ?y) ?z) (and (reverse ?y ?yr) (append-to-form ?yr (?x) ?z)))))
+    (query '(assert! (rule (reverse (?x . ?y) ?z) (and (reverse ?y ?yr) (append-to-form ?yr (?x) ?z)))))
+    ; why?? e.g. (reverse ?r (1 2))
+         ; ?z = (1 2)
+         ; ?r = (?x . ?y)
+         ; (reverse ?y ?yr). aha, this is no longer a definition, but a louis-reasoner-style infinite loop.
     
     ; what if i add a symmetric rule in the other direction??
     ; CAREFUL! need to swap order of ?yr and ?y in nested (reverse)
@@ -27,6 +31,8 @@
     ; more importantly though, cannot coexist with the left-to-right
     
     ; probably need to symmetrize the arguments...?
+    
+    ; MEH, sols stop at a unidirectional implementation
     
     ;(query '(assert! (rule (reverse (?u . ?v) (?x . ?y)) ; hmmm car/cdr not helpful...?
     ;    (and
@@ -65,12 +71,15 @@
     ;(query '(reverse ?x (1 2)))
     
     ; from problem statement
-    ;(query '(reverse (1 2 3) ?x))
+    (query '(reverse (1 2 3) ?x))
     ; (3 2 1)
     
     ;(query '(reverse ?x (1 2 3)))
     ; infinite loop!
+    ; like Exercise 4.62, answer "no", my rules can't answer both directions.
+    ; this exercise could just as easily have come in the previous batch
+    ; is it just so we can appreciate the infinite loop a little more?
     
     (query-driver-loop)
 )
-(test-4.68)
+;(test-4.68)
