@@ -126,7 +126,7 @@
 (define (execute expr)                                                  ; applies Lisp predicate to query arguments using UNDERLYING apply/eval!
   (apply (eval (predicate expr) user-initial-environment)                   ; (predicate) from 4.4.4.7; user-initial-environment is built-in.
          (args expr)))                                                      ; (args) from 4.4.4.7: not (eval (args expr)), since args of expr come in pre-evaluated
-
+                                                                                ; ok, (eval) is what magically pulls the lisp function into the query system.
 (define (always-true ignore frame-stream) frame-stream)                 ; special form used by (rule-body) in 4.4.4.7 for bodyless rules (conclusions always satisfied)
 
 ;;(put 'always-true 'qeval always-true)
