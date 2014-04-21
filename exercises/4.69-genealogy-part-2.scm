@@ -6,10 +6,13 @@
 
     ; Write rules that determine if a list ends in the word grandson.
     (query '(assert! (rule (ends-with-grandson (?L)) (last-pair (?L) grandson))))
-        ; shouldn't ONE rule suffice?
+        ; shouldn't ONE rule suffice? 
+        ; maybe allow for singleton too
+        (query '(assert! (rule (ends-with-grandson grandson))))
     
     ; Use this to express a rule that allows one to derive the relationship ((great . ?rel) ?x ?y), 
     ; where ?rel is a list ending in grandson.)
+    (query '(assert! (rule ((great . ?rel)
     
     ; don't forget the query (grandson ?S ?G)
 )
