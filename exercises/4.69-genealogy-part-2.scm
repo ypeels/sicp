@@ -38,8 +38,8 @@
             (or
                 (and (same ?rel (grandson)) (grandson ?x ?gs) (son ?gs ?y))
                 
-                ; no WAY this is gonna work...?
-                ;(?rel (son ?x) ?y)
+                ; this is all it takes to get arbitrarily many "great"s to work!
+                (and (son ?x ?s) (?rel ?s ?y))
             )
         )
     )))
@@ -62,8 +62,28 @@
     (install-great-genealogy)
     
     ; test cases from problem statement
+    (query '((great grandson) Adam ?ggs))
     (query '((great grandson) ?g ?ggs))
-    (query '((great great grandson) ?g ?ggs))
+    ; mehujael jubal
+    ; irad lamech
+    ; mehujael jabal
+    ; enoch methushael
+    ; cain mehujael
+    ; adam irad    
+    
+    (query '((great great grandson) ?g ?gggs))
+    ; irad jubal
+    ; enoch lamech
+    ; irad jabal
+    ; cain methushael
+    ; adam mehujael
+    
+    (query '((great great great great great grandson) ?g ?ggggs))
+    ; adam jubal
+    ; adam jabal
+    
+    ;(query '(?relationship Adam Irad))
+    ; currently infinite loop...
     
     (query-driver-loop)
 )
