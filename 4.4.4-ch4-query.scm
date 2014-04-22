@@ -279,8 +279,8 @@
   (store-assertion-in-index assertion)                                      ; store in indexed database if possible (may fail silently)
   (let ((old-assertions THE-ASSERTIONS))
     (set! THE-ASSERTIONS                                                    ; store in main (unindexed) assertion database
-          (cons-stream assertion old-assertions))                           ; paranoid? can't you just (set! THE-ASSERTIONS (cons-stream assertion THE-ASSERTIONS))?
-    'ok))                                                                       ; oh, actually, this is Exercise 4.70...
+          (cons-stream assertion old-assertions))                           ; NOT paranoid! required basically because assignment + delayed streams DON'T MIX
+    'ok))                                                                       ; see Exercise 4.70 for details
 
 (define (add-rule! rule)                                                ; helper function ONLY used in (add-rule-or-assertion!)
   (store-rule-in-index rule)                                                ; store in indexed database if possible (may fail silently)
