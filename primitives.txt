@@ -39,3 +39,5 @@ Exercise 4.5: additional syntax for cond clauses, (<test> => <recipient>)
 Exercise 4.6: values (stumbled on this by myself; what could it possibly do??)
 Exercise 4.7: let* - let with sequential binding. omfg why didn't they introduce this EARLIER!?!? so coding is harder???
 Exercise 4.20: letrec - let with simultaneous binding (all bindings available to all values; allows recursion)
+
+ch4-query.scm in (initialize-data-base): list->stream

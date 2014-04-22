@@ -510,7 +510,7 @@
 
 ;;;;Table support from Chapter 3, Section 3.3.3 (local tables)
 
-(define (make-table)
+(define (make-table)                                                    ; 2-d table used by indexed database in 4.4.4.5, and (qeval) special forms
   (let ((local-table (list '*table*)))
     (define (lookup key-1 key-2)
       (let ((subtable (assoc key-1 (cdr local-table))))
@@ -542,37 +542,37 @@
 
 ;;;; From instructor's manual                                           ; this'd be LOW if they hadn't open-sourced everything
 
-(define get '())
+(define get '())                                                            ; initially uninitialized because no table has been constructed...
 
-(define put '())
+(define put '())                                                            ; global get/put, but table lives in (initialize-data-base). inconsistent, or encapsulated?
 
-(define (initialize-data-base rules-and-assertions)
-  (define (deal-out r-and-a rules assertions)
-    (cond ((null? r-and-a)
-           (set! THE-ASSERTIONS (list->stream assertions))
-           (set! THE-RULES (list->stream rules))
+(define (initialize-data-base rules-and-assertions)                     ; input: raw data as a list of assertions and rules
+  (define (deal-out r-and-a rules assertions)                           ; local function that builds up databases ITERATIVELY
+    (cond ((null? r-and-a)                                                  ; done parsing input
+           (set! THE-ASSERTIONS (list->stream assertions))              ; output 1: unindexed assertion database (global variable)
+           (set! THE-RULES (list->stream rules))                        ; output 2: unindexed rule database (global variable)
            'done)
           (else
            (let ((s (query-syntax-process (car r-and-a))))
              (cond ((rule? s)
-                    (store-rule-in-index s)
-                    (deal-out (cdr r-and-a)
+                    (store-rule-in-index s)                             ; output 3: indexed rules as (<name> 'rule-stream) in local table below
+                    (deal-out (cdr r-and-a)                                 ; "deal out" into rule/assertion piles
                               (cons s rules)
                               assertions))
                    (else
-                    (store-assertion-in-index s)
+                    (store-assertion-in-index s)                        ; output 4: indexed assertions as (<name 'assertion-stream) in local table below
                     (deal-out (cdr r-and-a)
                               rules
                               (cons s assertions))))))))
-  (let ((operation-table (make-table)))
-    (set! get (operation-table 'lookup-proc))                                   ; (get <name> <category>) and (put <name> <category> value)    
-    (set! put (operation-table 'insert-proc!)))                                 ; categories: 'qeval (4.4.4.2); 'assertion-stream and 'rule-stream (4.4.4.5)
+  (let ((operation-table (make-table)))                                 ; assign get and put as in ch2support.scm
+    (set! get (operation-table 'lookup-proc))                               ; (get <name> <category>) and (put <name> <category> value)    
+    (set! put (operation-table 'insert-proc!)))                             ; categories: 'qeval (4.4.4.2); 'assertion-stream and 'rule-stream (4.4.4.5)
   (put 'and 'qeval conjoin)
   (put 'or 'qeval disjoin)
   (put 'not 'qeval negate)
   (put 'lisp-value 'qeval lisp-value)
   (put 'always-true 'qeval always-true)
-  (deal-out rules-and-assertions '() '()))
+  (deal-out rules-and-assertions '() '()))                              ; start iterative dealing
 
 ;; Do following to reinit the data base from microshaft-data-base
 ;;  in Scheme (not in the query driver loop)
@@ -585,7 +585,7 @@
 (job (Bitdiddle Ben) (computer wizard))
 (salary (Bitdiddle Ben) 60000)
 
-(address (Hacker Alyssa P) (Cambridge (Mass Ave) 78))
+(address (Hacker Alyssa P) (Cambridge (Mass Ave) 78))               ; "A Lisp Hacker" - had to Google that one...
 (job (Hacker Alyssa P) (computer programmer))
 (salary (Hacker Alyssa P) 40000)
 (supervisor (Hacker Alyssa P) (Bitdiddle Ben))
@@ -600,14 +600,14 @@
 (salary (Tweakit Lem E) 25000)
 (supervisor (Tweakit Lem E) (Bitdiddle Ben))
 
-(address (Reasoner Louis) (Slumerville (Pine Tree Road) 80))
+(address (Reasoner Louis) (Slumerville (Pine Tree Road) 80))        ; Loose Reasoner
 (job (Reasoner Louis) (computer programmer trainee))
 (salary (Reasoner Louis) 30000)
 (supervisor (Reasoner Louis) (Hacker Alyssa P))
 
 (supervisor (Bitdiddle Ben) (Warbucks Oliver))
 
-(address (Warbucks Oliver) (Swellesley (Top Heap Road)))
+(address (Warbucks Oliver) (Swellesley (Top Heap Road)))            ; apparently this is Little Orphan Annie's adoptive father
 (job (Warbucks Oliver) (administration big wheel))
 (salary (Warbucks Oliver) 150000)
 
@@ -621,7 +621,7 @@
 (salary (Cratchet Robert) 18000)
 (supervisor (Cratchet Robert) (Scrooge Eben))
 
-(address (Aull DeWitt) (Slumerville (Onion Square) 5))
+(address (Aull DeWitt) (Slumerville (Onion Square) 5))              ; not sure about this one... unless always intended to be read Last, First?
 (job (Aull DeWitt) (administration secretary))
 (salary (Aull DeWitt) 25000)
 (supervisor (Aull DeWitt) (Warbucks Oliver))
@@ -632,7 +632,7 @@
 (can-do-job (computer programmer)
             (computer programmer trainee))
 
-(can-do-job (administration secretary)
+(can-do-job (administration secretary)                              ; p. 443: "as is well known"
             (administration big wheel))
 
 (rule (lives-near ?person-1 ?person-2)
@@ -657,7 +657,7 @@
 
 
 
-; new convenience function. TODO: "batch queries" like with (ambeval-batch) and (leval)
+; my new convenience function.
 (define (run) 
     (initialize-data-base microshaft-data-base)
     (query-driver-loop)
@@ -665,7 +665,7 @@
 
 
 
-; new convenience functions - for running batch scripts. based on (query-driver-loop)
+; my new convenience functions - for running batch scripts. based on (query-driver-loop)
 (define (init-query)
     (initialize-data-base microshaft-data-base))    
 (define (query input)
@@ -697,7 +697,4 @@
              (qeval q (singleton-stream '()))))
            (done))))) ;(query-driver-loop)))))
 
-; and a convenience function for installing rules
-; no; use (assert!) from sols.
-;(define (install-rule rule)
-;    (append! microshaft-data-base (list rule)))
+
