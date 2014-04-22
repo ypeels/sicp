@@ -161,44 +161,44 @@
 (define (extend-if-consistent var dat frame)                            ; helper function ONLY used by (pattern-match)
   (let ((binding (binding-in-frame var frame)))                             ; from 4.4.4.8
     (if binding
-        (pattern-match (binding-value binding) dat frame)                   ; pp 474-5: reality check, OR recursively check variables bound as values during unification
+        (pattern-match (binding-value binding) dat frame)                   ; pp 474-5, 459: reality check, OR recursively check variables bound as values during unification
         (extend var dat frame))))                                           ; from 4.4.4.8: bind previously unbound variable.
 
 ;;;SECTION 4.4.4.4                                                      ; ok, now to move beyond simple queries...
 ;;;Rules and Unification
 
-(define (apply-rules pattern frame)
-  (stream-flatmap (lambda (rule)
-                    (apply-a-rule rule pattern frame))
-                  (fetch-rules pattern frame)))
-
-(define (apply-a-rule rule query-pattern query-frame)
-  (let ((clean-rule (rename-variables-in rule)))
+(define (apply-rules pattern frame)                                     ; "the rule analog of (find-assertions)"
+  (stream-flatmap (lambda (rule)                                            ; returns stream of frames extended by database rule applications
+                    (apply-a-rule rule pattern frame))                      ; (apply-a-rule) instead of (check-an-assertion)
+                  (fetch-rules pattern frame)))                             ; (fetch-rules) instead of (fetch-assertions). 
+                                                                                ; 4.4.4.5: stream of possibly applicable rules (cheap pre-check)
+(define (apply-a-rule rule query-pattern query-frame)                   ; method outlined in 4.4.2 p. 460; SIMILAR to (check-an-assertion)
+  (let ((clean-rule (rename-variables-in rule)))                            ; 0. rename all rule variables with unique names, to prevent collisions between different rule applications
     (let ((unify-result
-           (unify-match query-pattern
-                        (conclusion clean-rule)
-                        query-frame)))
-      (if (eq? unify-result 'failed)
+           (unify-match query-pattern                                       ; 1. Unite query pattern with... 
+                        (conclusion clean-rule)                                 ; 4.4.4.7: rule conclusion to...
+                        query-frame)))                                          ; augment the argument frame.
+      (if (eq? unify-result 'failed)                                        ; 2. If this succeeds...
           the-empty-stream
-          (qeval (rule-body clean-rule)
-                 (singleton-stream unify-result))))))
+          (qeval (rule-body clean-rule)                                         ; 4.4.4.7: evaluate the rule body...
+                 (singleton-stream unify-result))))))                           ; in the new frame from 1.
 
-(define (rename-variables-in rule)
-  (let ((rule-application-id (new-rule-application-id)))
-    (define (tree-walk expr)
+(define (rename-variables-in rule)                                      ; helper function ONLY used in (apply-a-rule); no analog in pattern matching. "[instead], we could devise a more clever environment structure... [see] exercise 4.79... A good answer is probably worth a Ph.D."
+  (let ((rule-application-id (new-rule-application-id)))                    ; 4.4.4.7: unique id for this rule application
+    (define (tree-walk expr)                                                ; need nested function because all recursions share the same id
       (cond ((var? expr)
-             (make-new-variable expr rule-application-id))
-            ((pair? expr)
+             (make-new-variable expr rule-application-id))                  ; 4.4.4.7: syntax procedures. ?x becomes ?x-7, say (p. 476)
+            ((pair? expr)                                                   ; parse lists recursively
              (cons (tree-walk (car expr))
                    (tree-walk (cdr expr))))
             (else expr)))
-    (tree-walk rule)))
+    (tree-walk rule)))                                                      ; "root node" is the entire rule.
 
-(define (unify-match p1 p2 frame)
-  (cond ((eq? frame 'failed) 'failed)
-        ((equal? p1 p2) frame)
+(define (unify-match p1 p2 frame)                                       ; helper function ONLY used in this subsection. 
+  (cond ((eq? frame 'failed) 'failed)                                       ; cf. (pattern-match), except
+        ((equal? p1 p2) frame)                                              ; ...matching TWO patterns instead of pattern and datum
         ((var? p1) (extend-if-possible p1 p2 frame))
-        ((var? p2) (extend-if-possible p2 p1 frame)) ; {\em ; ***}
+        ((var? p2) (extend-if-possible p2 p1 frame)) ; {\em ; ***}          ; ...so the other direction needs extension too
         ((and (pair? p1) (pair? p2))
          (unify-match (cdr p1)
                       (cdr p2)
@@ -207,32 +207,32 @@
                                    frame)))
         (else 'failed)))
 
-(define (extend-if-possible var val frame)
-  (let ((binding (binding-in-frame var frame)))
-    (cond (binding
+(define (extend-if-possible var val frame)                              ; helper function ONLY used in (unify-match)
+  (let ((binding (binding-in-frame var frame)))                             ; same as (extend-if-consistent) + new cases 2 and 3
+    (cond (binding                                                          ; 1. var already bound. match with its value!
            (unify-match
             (binding-value binding) val frame))
-          ((var? val)                     ; {\em ; ***}
+          ((var? val)                     ; {\em ; ***}                     ; 2. var not bound but VAL is itself a (different) variable (guaranteed by "equal?" case in (unify-match))
            (let ((binding (binding-in-frame val frame)))
-             (if binding
-                 (unify-match
-                  var (binding-value binding) frame)
-                 (extend var val frame))))
-          ((depends-on? val var frame)    ; {\em ; ***}
-           'failed)
-          (else (extend var val frame)))))
+             (if binding                                                        ; if val is bound...
+                 (unify-match                                                   
+                  var (binding-value binding) frame)                            ; match its value...
+                 (extend var val frame))))                                      ; else both var and val are unbound! bind one to the other (direction doesn't matter)
+          ((depends-on? val var frame)    ; {\em ; ***}                     ; 3. reject unifying (?x ?x) (?y <expr in ?y>) - p. 478
+           'failed)                                                             ; (unify (?x ?x) (?y ?y)) is handled by (equal?) check in (unify-match)
+          (else (extend var val frame)))))                                  ; 4. var unbound, val is neither a variable nor f(var). bind to var!
 
-(define (depends-on? expr var frame)
-  (define (tree-walk e)
+(define (depends-on? expr var frame)                                    ; helper function ONLY used in (extend-if-possible); no analog in pattern matching
+  (define (tree-walk e)                                                     ; nested function lets all recursions share var, frame more easily
     (cond ((var? e)
-           (if (equal? var e)
-               true
-               (let ((b (binding-in-frame e frame)))
+           (if (equal? var e)                                               
+               true                                                         ; expr contained var somewhere! (equal? expr var) is ruled out by (unify-match), where it is handled preemptively
+               (let ((b (binding-in-frame e frame)))                        ; might need to scan multiple mappings (bindings) in the frame
                  (if b
-                     (tree-walk (binding-value b))
+                     (tree-walk (binding-value b))                          ; substitute values of variables whenever they exist    
                      false))))
-          ((pair? e)
-           (or (tree-walk (car e))
+          ((pair? e)                                                        ; parse expr down to individual variables
+           (or (tree-walk (car e))                                          ; a SINGLE dependence is enough to return "yes" conclusively
                (tree-walk (cdr e))))
           (else false)))
   (tree-walk expr))
