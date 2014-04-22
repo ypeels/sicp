@@ -323,23 +323,23 @@
 ;;;SECTION 4.4.4.6
 ;;;Stream operations
 
-(define (stream-append-delayed s1 delayed-s2)                           ; "postpones looping in some cases (see Exercise 4.71)"
-  (if (stream-null? s1)
+(define (stream-append-delayed s1 delayed-s2)                           ; helper function ONLY used in (simple-query)
+  (if (stream-null? s1)                                                     
       (force delayed-s2)                                                    ; unlike (stream-append), 2nd argument is FULLY delayed (not just its stream-cdr)
       (cons-stream
        (stream-car s1)
-       (stream-append-delayed (stream-cdr s1) delayed-s2))))
+       (stream-append-delayed (stream-cdr s1) delayed-s2))))                ; "postpones looping in some cases (see Exercise 4.71)"
 
-(define (interleave-delayed s1 delayed-s2)                              ; "postpones looping in some cases (see exercise 4.71)"
-  (if (stream-null? s1)
+(define (interleave-delayed s1 delayed-s2)                              ; helper function ONLY used in (disjoin) and (flatten-stream)
+  (if (stream-null? s1)                                                     ; although (stream-flatmap) is used in several places...
       (force delayed-s2)
       (cons-stream
        (stream-car s1)
        (interleave-delayed (force delayed-s2)
-                           (delay (stream-cdr s1))))))
+                           (delay (stream-cdr s1))))))                      ; "postpones looping in some cases (see exercise 4.71)"
 
-(define (stream-flatmap proc s)
-  (flatten-stream (stream-map proc s)))
+(define (stream-flatmap proc s)                                         ; e.g. from (simple-query) - (stream-map) returns a stream for each frame
+  (flatten-stream (stream-map proc s)))                                     ; flatten merges the streams for all the frames into one BIG stream.
 
 (define (flatten-stream stream)                                         ; helper function used ONLY by (stream-flatmap)    
   (if (stream-null? stream)
