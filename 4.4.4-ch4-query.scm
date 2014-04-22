@@ -439,21 +439,21 @@
 
 
 ;;;SECTION 4.4.4.8
-;;;Frames and bindings
-(define (make-binding variable value)
+;;;Frames and bindings                                                  ; "Frames are represented as lists of bindings, which are variable-value pairs."
+(define (make-binding variable value)                                       ; i.e., as 1-d tables, p. 267
   (cons variable value))
 
-(define (binding-variable binding)
-  (car binding))
+;(define (binding-variable binding)                                          ; this is actually UNUSED
+;  (car binding))
 
-(define (binding-value binding)
+(define (binding-value binding)                                             ; helper selector ONLY used in (instantiate) and the 2 (extend) procedures
   (cdr binding))
 
 
 (define (binding-in-frame variable frame)
-  (assoc variable frame))
+  (assoc variable frame))                                                   ; pp. 267-268: assoc does 1-d table lookup via (caar)
 
-(define (extend variable value frame)
+(define (extend variable value frame)                                       ; low-level "constructor" for (extend-if-consistent) and (extend-if-possible)
   (cons (make-binding variable value) frame))
 
 
@@ -470,17 +470,17 @@
 
 ;;;;Stream support from Chapter 3
 
-(define (stream-map proc s)
-  (if (stream-null? s)
-      the-empty-stream
-      (cons-stream (proc (stream-car s))
-                   (stream-map proc (stream-cdr s)))))
-
-(define (stream-for-each proc s)
-  (if (stream-null? s)
-      'done
-      (begin (proc (stream-car s))
-             (stream-for-each proc (stream-cdr s)))))
+;(define (stream-map proc s)                                             ; actually, aren't these built-in?
+;  (if (stream-null? s)
+;      the-empty-stream
+;      (cons-stream (proc (stream-car s))
+;                   (stream-map proc (stream-cdr s)))))
+;
+;(define (stream-for-each proc s)
+;  (if (stream-null? s)
+;      'done
+;      (begin (proc (stream-car s))
+;             (stream-for-each proc (stream-cdr s)))))
 
 (define (display-stream s)
   (stream-for-each display-line s))
@@ -488,19 +488,19 @@
   (newline)
   (display x))
 
-(define (stream-filter pred stream)
-  (cond ((stream-null? stream) the-empty-stream)
-        ((pred (stream-car stream))
-         (cons-stream (stream-car stream)
-                      (stream-filter pred
-                                     (stream-cdr stream))))
-        (else (stream-filter pred (stream-cdr stream)))))
-
-(define (stream-append s1 s2)
-  (if (stream-null? s1)
-      s2
-      (cons-stream (stream-car s1)
-                   (stream-append (stream-cdr s1) s2))))
+;(define (stream-filter pred stream)
+;  (cond ((stream-null? stream) the-empty-stream)
+;        ((pred (stream-car stream))
+;         (cons-stream (stream-car stream)
+;                      (stream-filter pred
+;                                     (stream-cdr stream))))
+;        (else (stream-filter pred (stream-cdr stream)))))
+;
+;(define (stream-append s1 s2)
+;  (if (stream-null? s1)
+;      s2
+;      (cons-stream (stream-car s1)
+;                   (stream-append (stream-cdr s1) s2))))
 
 (define (interleave s1 s2)
   (if (stream-null? s1)
@@ -540,7 +540,7 @@
             (else (error "Unknown operation -- TABLE" m))))
     dispatch))
 
-;;;; From instructor's manual
+;;;; From instructor's manual                                           ; this'd be LOW if they hadn't open-sourced everything
 
 (define get '())
 
