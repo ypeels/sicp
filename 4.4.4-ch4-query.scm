@@ -128,7 +128,7 @@
          (args expr)))                                                      ; (args) from 4.4.4.7: not (eval (args expr)), since args of expr come in pre-evaluated
                                                                                 ; ok, (eval) is what magically pulls the lisp function into the query system.
 (define (always-true ignore frame-stream) frame-stream)                 ; special form used by (rule-body) in 4.4.4.7 for bodyless rules (conclusions always satisfied)
-
+                                                                            ; (qeval): ((get 'always-true 'qeval) (contents query) frame-stream)
 ;;(put 'always-true 'qeval always-true)
 
 ;;;SECTION 4.4.4.3
@@ -356,47 +356,47 @@
 ;;;SECTION 4.4.4.7
 ;;;Query syntax procedures
 
-(define (type expr)
-  (if (pair? expr)
+(define (type expr)                                                     ; low-level selector ONLY used in (qeval) and (assertion-to-be-added?)
+  (if (pair? expr)                                                          ; same as (type-tag) in 2.4.2, except error message
       (car expr)
       (error "Unknown expression TYPE" expr)))
 
-(define (contents expr)
-  (if (pair? expr)
+(define (contents expr)                                                 ; low-level selector ONLY used in (qeval) and (add-assertion-body)
+  (if (pair? expr)                                                          ; same as (contents) in 2.4.2, except error message
       (cdr expr)
       (error "Unknown expression CONTENTS" expr)))
 
-(define (assertion-to-be-added? expr)
-  (eq? (type expr) 'assert!))
+(define (assertion-to-be-added? expr)                                   ; low-level predicate ONLY used in (query-driver-loop)
+  (eq? (type expr) 'assert!))                                               ; Query input: (assert! <rule-or-assertion>)
 
-(define (add-assertion-body expr)
-  (car (contents expr)))
+(define (add-assertion-body expr)                                       ; low-level SELECTOR only used in (query-driver-loop)
+  (car (contents expr)))                                                    ; a less misleading name would be (assertion-body expr)
 
-(define (empty-conjunction? exps) (null? exps))
-(define (first-conjunct exps) (car exps))
-(define (rest-conjuncts exps) (cdr exps))
+(define (empty-conjunction? exps) (null? exps))                         ; "syntax definitions" for (and) special form handler, (conjoin)
+(define (first-conjunct exps) (car exps))                                   ; these are for PARSING QUERIES, not constructing streams per se...
+(define (rest-conjuncts exps) (cdr exps))                                   ; stream construnction is done via (qeval) and frame accounting.
 
-(define (empty-disjunction? exps) (null? exps))
+(define (empty-disjunction? exps) (null? exps))                         ; syntax definitions for (or) special form handler, (disjoin)
 (define (first-disjunct exps) (car exps))
 (define (rest-disjuncts exps) (cdr exps))
 
-(define (negated-query exps) (car exps))
+(define (negated-query exps) (car exps))                                ; syntax definition for (not) special form handler, (negate)
 
-(define (predicate exps) (car exps))
+(define (predicate exps) (car exps))                                    ; syntax definitions for (lisp-value) special form sub-handler, (execute)
 (define (args exps) (cdr exps))
 
 
-(define (rule? statement)
-  (tagged-list? statement 'rule))
+(define (rule? statement)                                               ; syntax definitions of rules
+  (tagged-list? statement 'rule))                                           ; helper selector only used in (add-rule-or-assertion!) and (initialize-data-base)
 
-(define (conclusion rule) (cadr rule))
+(define (conclusion rule) (cadr rule))                                      ; helper selector only used in (apply-a-rule) and (store-rule-in-index)
 
-(define (rule-body rule)
+(define (rule-body rule)                                                    ; helper selector ONLY used in (apply-a-rule).
   (if (null? (cddr rule))
       '(always-true)
       (caddr rule)))
 
-(define (query-syntax-process expr)
+(define (query-syntax-process expr)                                     ; helper function only called from (query-driver-loop) and (initialize-data-base)
   (map-over-symbols expand-question-mark expr))
 
 (define (map-over-symbols proc expr)
