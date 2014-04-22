@@ -240,10 +240,10 @@
 ;;;SECTION 4.4.4.5
 ;;;Maintaining the Data Base
 
-(define THE-ASSERTIONS the-empty-stream)
+(define THE-ASSERTIONS the-empty-stream)                                ; <----- initialize the (unindexed) assertion database
 
-(define (fetch-assertions pattern frame)                                    ; helper function ONLY used in (find-assertions)
-  (if (use-index? pattern)
+(define (fetch-assertions pattern frame)                                ; helper function ONLY used in (find-assertions) from 4.4.4.3
+  (if (use-index? pattern)                                                  ; pp. 479-80: index all patterns starting with a symbol, like (job ...)
       (get-indexed-assertions pattern)
       (get-all-assertions)))
 
@@ -252,44 +252,44 @@
 (define (get-indexed-assertions pattern)
   (get-stream (index-key-of pattern) 'assertion-stream))
 
-(define (get-stream key1 key2)
-  (let ((s (get key1 key2)))
-    (if s s the-empty-stream)))
+(define (get-stream key1 key2)                                          ; key1 = name, key2 = 'assertion-stream or 'rule-stream
+  (let ((s (get key1 key2)))                                                ; (get <name> <category>) from GLOBAL TABLE (stores indexed assertions/rules, and also special forms for qeval)
+    (if s s the-empty-stream)))                                             ; each table entry is a stream - e.g. multiple (job) assertions or (lives-near) rules
 
-(define THE-RULES the-empty-stream)
+(define THE-RULES the-empty-stream)                                     ; <----- initialize the (unindexed) rule database
 
-(define (fetch-rules pattern frame)
-  (if (use-index? pattern)
+(define (fetch-rules pattern frame)                                     ; helper function ONLY used in (apply-rules) from 4.4.4.4
+  (if (use-index? pattern)                                                  ; cf. (fetch-assertions)
       (get-indexed-rules pattern)
       (get-all-rules)))
 
 (define (get-all-rules) THE-RULES)
 
-(define (get-indexed-rules pattern)
-  (stream-append
+(define (get-indexed-rules pattern)                                     ; helper function ONLY used in (fetch-rules)
+  (stream-append                                                            ; why not (stream-append-delayed)? because fetched rules are unified immediately anyway?
    (get-stream (index-key-of pattern) 'rule-stream)
-   (get-stream '? 'rule-stream)))
+   (get-stream '? 'rule-stream)))                                           ; (<symbol> ...) can match rule conclusions starting with a variable
 
-(define (add-rule-or-assertion! assertion)
+(define (add-rule-or-assertion! assertion)                              ; helper function ONLY used in (query-driver-loop)
   (if (rule? assertion)
       (add-rule! assertion)
       (add-assertion! assertion)))
 
-(define (add-assertion! assertion)
-  (store-assertion-in-index assertion)
+(define (add-assertion! assertion)                                      ; helper function ONLY used in (add-rule-or-assertion!)
+  (store-assertion-in-index assertion)                                      ; store in indexed database if possible (may fail silently)
   (let ((old-assertions THE-ASSERTIONS))
-    (set! THE-ASSERTIONS
-          (cons-stream assertion old-assertions))
-    'ok))
+    (set! THE-ASSERTIONS                                                    ; store in main (unindexed) assertion database
+          (cons-stream assertion old-assertions))                           ; paranoid? can't you just (set! THE-ASSERTIONS (cons-stream assertion THE-ASSERTIONS))?
+    'ok))                                                                       ; oh, actually, this is Exercise 4.70...
 
-(define (add-rule! rule)
-  (store-rule-in-index rule)
+(define (add-rule! rule)                                                ; helper function ONLY used in (add-rule-or-assertion!)
+  (store-rule-in-index rule)                                                ; store in indexed database if possible (may fail silently)
   (let ((old-rules THE-RULES))
-    (set! THE-RULES (cons-stream rule old-rules))
+    (set! THE-RULES (cons-stream rule old-rules))                           ; store in main (unindexed) rule database
     'ok))
 
-(define (store-assertion-in-index assertion)
-  (if (indexable? assertion)
+(define (store-assertion-in-index assertion)                            ; helper function only used by (add-assertion!) and (initialize-data-base)
+  (if (indexable? assertion)                                                ; shouldn't this be (use-index?) instead? assertions can't contain variables...
       (let ((key (index-key-of assertion)))
         (let ((current-assertion-stream
                (get-stream key 'assertion-stream)))
@@ -298,27 +298,27 @@
                (cons-stream assertion
                             current-assertion-stream))))))
 
-(define (store-rule-in-index rule)
-  (let ((pattern (conclusion rule)))
-    (if (indexable? pattern)
+(define (store-rule-in-index rule)                                      ; helper function only used by (add-rule!) and (initialize-data-base)
+  (let ((pattern (conclusion rule)))                                        ; index by CONCLUSION, not the entire rule
+    (if (indexable? pattern)                                                ; rules starting with a symbol OR a variable will be indexed.
         (let ((key (index-key-of pattern)))
           (let ((current-rule-stream
                  (get-stream key 'rule-stream)))
             (put key
                  'rule-stream
-                 (cons-stream rule
+                 (cons-stream rule                                          ; store the entire rule in the indexed database
                               current-rule-stream)))))))
 
-(define (indexable? pat)
-  (or (constant-symbol? (car pat))
-      (var? (car pat))))
+(define (indexable? pat)                                                ; helper function ONLY used in (store-assertion) and (store-rule)   
+  (or (constant-symbol? (car pat))                                          ; this function is only used to decide whether to WRITE pat=rule/assertion to the index
+      (var? (car pat))))                                                    
 
 (define (index-key-of pat)
   (let ((key (car pat)))
-    (if (var? key) '? key)))
+    (if (var? key) '? key)))                                            ; (get '? 'rule-stream) = all rules starting with a variable
 
-(define (use-index? pat)
-  (constant-symbol? (car pat)))
+(define (use-index? pat)                                                ; helper function ONLY used in (fetch-assertions) and (fetch-rules)
+  (constant-symbol? (car pat)))                                             ; this function is only used to decide whether to READ pat=query from the index (else, read full unindexed database)
 
 ;;;SECTION 4.4.4.6
 ;;;Stream operations
@@ -565,8 +565,8 @@
                               rules
                               (cons s assertions))))))))
   (let ((operation-table (make-table)))
-    (set! get (operation-table 'lookup-proc))
-    (set! put (operation-table 'insert-proc!)))
+    (set! get (operation-table 'lookup-proc))                                   ; (get <name> <category>) and (put <name> <category> value)    
+    (set! put (operation-table 'insert-proc!)))                                 ; categories: 'qeval (4.4.4.2); 'assertion-stream and 'rule-stream (4.4.4.5)
   (put 'and 'qeval conjoin)
   (put 'or 'qeval disjoin)
   (put 'not 'qeval negate)
