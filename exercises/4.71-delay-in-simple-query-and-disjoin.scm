@@ -22,7 +22,7 @@
 ; 4.4.4.2: "The output streams for the various disjuncts of the or are computed separately and merged using the 
     ; interleave-delayed procedure from section 4.4.4.6. (See exercises 4.71 and 4.72.)"
 ; 4.4.4.6: "This postpones looping in some cases (see exercise 4.71)."
-    ; my remote possibility above?
+    ; my remote possibility above? yeah, and it KIND of makes a difference for debugging...
 
 (load "ch4-query.scm")
 
