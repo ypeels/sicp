@@ -71,7 +71,7 @@
      (stream-append-delayed                                                 ; from 4.4.4.6; see also Exercise 4.71
       (find-assertions query-pattern frame)                                 ; 4.4.4.3 - match the pattern against all assertions in the data base, producing a stream of extended frames
       (delay (apply-rules query-pattern frame))))                           ; 4.4.4.4 - apply all possible rules, producing another stream of extended frames
-   frame-stream))
+   frame-stream))                                                               ; the WHOLE second stream must be delayed to prevent evaluating its (stream-car) out of order
 
 ;;;Compound queries
 
