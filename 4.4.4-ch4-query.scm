@@ -323,14 +323,14 @@
 ;;;SECTION 4.4.4.6
 ;;;Stream operations
 
-(define (stream-append-delayed s1 delayed-s2)
+(define (stream-append-delayed s1 delayed-s2)                           ; "postpones looping in some cases (see Exercise 4.71)"
   (if (stream-null? s1)
-      (force delayed-s2)
+      (force delayed-s2)                                                    ; unlike (stream-append), 2nd argument is FULLY delayed (not just its stream-cdr)
       (cons-stream
        (stream-car s1)
        (stream-append-delayed (stream-cdr s1) delayed-s2))))
 
-(define (interleave-delayed s1 delayed-s2)
+(define (interleave-delayed s1 delayed-s2)                              ; "postpones looping in some cases (see exercise 4.71)"
   (if (stream-null? s1)
       (force delayed-s2)
       (cons-stream
@@ -341,15 +341,15 @@
 (define (stream-flatmap proc s)
   (flatten-stream (stream-map proc s)))
 
-(define (flatten-stream stream)
+(define (flatten-stream stream)                                         ; helper function used ONLY by (stream-flatmap)    
   (if (stream-null? stream)
       the-empty-stream
-      (interleave-delayed
-       (stream-car stream)
+      (interleave-delayed                                                   ; uses interleave instead of append, unlike ordinary flatmap [because streams might be infinite? or at least very long...?]
+       (stream-car stream)                                                  ; "see exercises 4.72 and 4.73"
        (delay (flatten-stream (stream-cdr stream))))))
 
 
-(define (singleton-stream x)
+(define (singleton-stream x)                                            ; generate a stream consisting of a single element
   (cons-stream x the-empty-stream))
 
 
