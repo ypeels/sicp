@@ -41,6 +41,7 @@
         
 ; "This is similar to the implementation of the not special form."
 ; i can probably refactor into something cleaner, based on the logic in (negate)
+    ; yeah, this is the same logic that the solutions use.
 (define (uniquely-asserted-v2 operands frame-stream)
     (define (is-singleton? stream)
         (= 1 (stream-length stream)))   ; TODO: make this infinite-stream-friendly (not null and stream-cdr is null)
@@ -86,8 +87,8 @@
     ; Ben Bitdiddle, computer wizard
     
     ; a query that lists all people who supervise precisely one person
-    ;(query '(and (job ?who ?what) (unique (supervisor ?slave ?who)))) ; will this work?? is there no simpler alternative?
-    ; scrooge supervises cratchet
+    (query '(and (job ?who ?what) (unique (supervisor ?slave ?who)))) ; will this work?? is there no simpler alternative?
+    ; scrooge supervises cratchet                                           ; sols use (and (supervisor) (unique (supervisor))), which i find unnecessarily confusing...    
     ; hacker supervises reasoner
     ; and that's IT! warbucks supervises EVERYBODY.
     
