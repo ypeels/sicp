@@ -66,7 +66,10 @@
     ; Ben Bitdiddle, computer wizard
     
     ; a query that lists all people who supervise precisely one person
-    ;(query '(and (job ?who ?what) (unique (supervisor ?slave ?who)))) ; will this work?? is there no simpler alternative?
+    (query '(and (job ?who ?what) (unique (supervisor ?slave ?who)))) ; will this work?? is there no simpler alternative?
+    ; scrooge supervises cratchet
+    ; hacker supervises reasoner
+    ; and that's IT! warbucks supervises EVERYBODY.
     
     (query-driver-loop)
 )
