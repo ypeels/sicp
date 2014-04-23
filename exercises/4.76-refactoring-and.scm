@@ -64,7 +64,7 @@
                                         (let ((merge-result (merge-frames-if-possible frame1 frame2)))
                                             ;(display "\nmerge-2-streams: inner result ") (display merge-result)
                                             (if (eq? merge-result 'failed-merge)
-                                                '() ; i THINK stream-map will automagically filter out null entries??
+                                                'failed-merge-2;'() ; stream-map will NOT automagically filter out null entries!!
                                                 merge-result
                                             )
                                         )     
@@ -85,7 +85,7 @@
             ))
             
             ;(display "\nmerge-2-streams done") (display result)
-            result
+            (stream-filter (lambda (frame) (not (eq? frame 'failed-merge-2))) result)
         )
             
     )
@@ -101,7 +101,8 @@
     (let ((evaluated-conjuncts (map (lambda (c) (qeval c frame-stream)) conjuncts)))
         ; each member of the list evaluated-conjuncts is a stream of frames.
         
-        (merge-all evaluated-conjuncts)
+        (merge-all evaluated-conjuncts)        
+        ; still need to filter out results that still contain variables!?
     )
 )
 
@@ -152,5 +153,9 @@
     
     ; just a regression test, for lack of creativity
     (query '(and (job ?who ?what) (supervisor ?who (warbucks oliver))))
+    ; aull dewitt
+    ; scrooge eben
+    ; bitdiddle ben
+    ; these are his 3 main stooges.
 )
-(test-4.76)
+;(test-4.76)
