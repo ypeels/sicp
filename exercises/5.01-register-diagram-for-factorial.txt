@@ -1,0 +1,34 @@
+Mark 1: had 2 temp registers, one for + and one for *
+
+Mark 2: + and * shared a single temp register
+
+Mark 3 (based on sols): no temp registers at all! counter update is indep of product update.
+
+
+
+
+        product    counter -----> (>) <---- n
+         A  |      |   A |
+         |  |      |   | |
+    p<-*(x) |      |  (x)|c<-+___
+         |  |      |   | |    \1/
+         |  |      |   | |     |
+         |  V      V   | V     V
+         | \---------/ |\---------/
+         |  \   *   /  | \   +   /        
+         |   -------   |  -------
+         |______|      |_____|
+        
+
+Controller
+
+start
+>       yes: done
+no: below
+
+p<-*
+c<-+    
+go to >        
+        
+        
+        
