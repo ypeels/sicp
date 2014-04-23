@@ -10,19 +10,20 @@
 ; query-pattern = <query>
 (define (unique-query exps) (car exps)) ; cf. (negated-query) in (negate)
 
-(define (uniquely-asserted operands frame-stream)
+(define (uniquely-asserted-V1 operands frame-stream)
 
     
     ; ugh, read from inside out... the alternative (let)s are either ugly or illegible
             
     ; The remaining streams should be passed back to be accumulated into one big stream that is the result of the unique query.
-    (stream-flatmap         
+    (stream-flatmap         ; using this as a lazy (accumulate)
         (lambda (str) str)
     ;(stream-accumulate     ; meh, couldn't get this to work
     ;    (lambda (x y) (cons-stream x y));stream-cons DAMN YOU SCHEME
     ;    the-empty-stream
         
         ; Any stream that does not have exactly one item in it should be eliminated.
+        ; [not QUITE a solution to 4.66]
         (stream-filter
             (lambda (str) (= 1 (stream-length str)))
         
@@ -39,8 +40,27 @@
     
         
 ; "This is similar to the implementation of the not special form."
-; i can probably refactor into something cleaner
-    
+; i can probably refactor into something cleaner, based on the logic in (negate)
+(define (uniquely-asserted-v2 operands frame-stream)
+    (define (is-singleton? stream)
+        (= 1 (stream-length stream)))   ; TODO: make this infinite-stream-friendly (not null and stream-cdr is null)
+    (stream-flatmap
+        (lambda (frame)        
+            (let ((query-result (qeval (unique-query operands) (singleton-stream frame))))
+                (if (is-singleton? query-result)
+                    query-result
+                    the-empty-stream
+                )
+            )
+        )
+        frame-stream
+    )
+)
+; yes, this seems to work fine too.
+
+
+;(define uniquely-asserted uniquely-asserted-v1)
+(define uniquely-asserted uniquely-asserted-v2)
     
 
 
@@ -66,11 +86,11 @@
     ; Ben Bitdiddle, computer wizard
     
     ; a query that lists all people who supervise precisely one person
-    (query '(and (job ?who ?what) (unique (supervisor ?slave ?who)))) ; will this work?? is there no simpler alternative?
+    ;(query '(and (job ?who ?what) (unique (supervisor ?slave ?who)))) ; will this work?? is there no simpler alternative?
     ; scrooge supervises cratchet
     ; hacker supervises reasoner
     ; and that's IT! warbucks supervises EVERYBODY.
     
     (query-driver-loop)
 )
-(test-4.75)
+;(test-4.75)
