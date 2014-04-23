@@ -445,8 +445,8 @@
 (define (make-binding variable value)                                       ; i.e., as 1-d tables, p. 267
   (cons variable value))
 
-;(define (binding-variable binding)                                          ; this is actually UNUSED
-;  (car binding))
+(define (binding-variable binding)                                          ; this is actually UNUSED - until Exercise 4.76, that is...
+  (car binding))
 
 (define (binding-value binding)                                             ; helper selector ONLY used in (instantiate) and the 2 (extend) procedures
   (cdr binding))

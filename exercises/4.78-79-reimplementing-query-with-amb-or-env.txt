@@ -1,0 +1,16 @@
+4.78
+Sequential/recursive search would be replaced by backtracking, which was already confusing...
+
+https://github.com/l0stman/sicp/blob/master/4.78.tex
+https://github.com/l0stman/sicp/blob/master/amb-query.scm
+
+
+4.79
+I see what they mean - you could conceivably implement an entire frame system for rule vars.
+Much more overhead, right?
+In ch4-mceval.scm, this was implemented as nested environments, with lots of lookup overhead
+
+No idea about the open-ended question
+
+Has ANYBODY posted a solution to this??
+Wouldn't it be funny if somebody actually titled their dissertation "a solution to SICP 4.79"?
