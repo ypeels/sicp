@@ -19,6 +19,9 @@ Section 3.5.5 p. 356: "the implementation a banking system [sic]". fixed on webs
 
 Section 4.3 p. 412: "This is expressed by following procedure [sic]". NOT fixed on website!
 
+Section 5.1.4 p. 509: "the old contents of val is not useful [sic]". NOT fixed on website!
+- also, no paragraph break on web version
+
 -------------------
 
 Exercise 2.52a p. 141 - finally, a spacing error (2 spaces between "exercise" and "2.49")
