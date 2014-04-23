@@ -98,7 +98,7 @@
 ;;;Filters
 
 (define (negate operands frame-stream)                                  ; (NOT) filters - p. 457
-  (stream-flatmap
+  (simple-stream-flatmap    ; changed for Exercise 4.74
    (lambda (frame)
      (if (stream-null? (qeval (negated-query operands)                      ; attempt to extend each frame in input stream to satisfy the query being negated
                               (singleton-stream frame)))                    ; 4.4.4.7: selectors
@@ -109,7 +109,7 @@
 ;;(put 'not 'qeval negate)                                                  ; from (initialize-data-base) - so (get 'not 'qeval) will dispatch here.
 
 (define (lisp-value call frame-stream)                                  ; Lisp filters - p. 458
-  (stream-flatmap
+  (simple-stream-flatmap    ; changed for Exercise 4.74
    (lambda (frame)
      (if (execute
           (instantiate
@@ -135,7 +135,7 @@
 ;;;Finding Assertions by Pattern Matching
 
 (define (find-assertions pattern frame)                                 ; returns stream of frames extended by the database match
-  (stream-flatmap (lambda (datum)
+  (simple-stream-flatmap (lambda (datum)    ; changed for Exercise 4.74
                     (check-an-assertion datum pattern frame))
                   (fetch-assertions pattern frame)))                        ; 4.4.4.5: stream of assertions to be checked (cheap pre-check - p. 455 Footnote 67?)
 
@@ -351,6 +351,8 @@
 
 (define (singleton-stream x)                                            ; generate a stream consisting of a single element
   (cons-stream x the-empty-stream))
+  
+(define simple-stream-flatmap stream-flatmap)   ; override in Exercise 4.74                    
 
 
 ;;;SECTION 4.4.4.7
