@@ -127,7 +127,7 @@
                     )
                 (merge-frames-if-possible
                     rest-bindings
-                    (extend-if-possible ; var val frame
+                    (extend-if-possible ; var val frame                 ; <===== TODO: is it really ok to reuse this? corner cases??
                         (binding-variable first-binding)
                         (binding-value first-binding)
                         dest-frame
@@ -139,8 +139,15 @@
 )
         
                
-                    
-                
+; this is actually not IN the wiki sols, despite the index page.                   
+; https://github.com/l0stman/sicp/blob/master/4.76.tex - a LOT shorter...? or is it just the indentation?
+    ; he rolled his own (unify-if-possible), instead of reusing (extend-if-possible)
+    ; his (unify-frames) is the same as my (merge-frames-if-possible) - oh my trailing parens make it look a lot longer
+    ; yes, he has (stream-filter (stream-map)
+    ; his (conjoin) looks pretty similar to mine too...
+    ; mine is probably equivalent, just really unschemingly-formatted
+    ; in any case, not getting any awesome insights reading it.
+    
 
 
 
@@ -157,5 +164,17 @@
     ; scrooge eben
     ; bitdiddle ben
     ; these are his 3 main stooges.
+    
+    ; http://eli.thegreenplace.net/2008/02/09/sicp-sections-442-444/
+    (load "4.63-genealogy-of-ada.scm")
+    (install-genesis)
+    (install-genealogy)    
+    (query '(son Lamech ?s))
+    ; "The evaluator goes into an infinite loop when matching son rules."
+    ; true of my implementation too. MEH.
+    
+    
+    (query-driver-loop)
 )
 ;(test-4.76)
+
