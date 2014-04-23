@@ -73,3 +73,13 @@
 
 
 ; less clear how to get a good flatmap example, since it's used by so many other special forms... meh
+
+; sols just mention infinite streams
+; i guess if you ever DO generate an infinite stream somewhere, you would want to interleave
+; it's not quite clear how you would generate and display one without hanging on it...?
+
+;(query '(assert! (married Mickey Minnie)))
+;(query '(assert! (married Donald Daisy)))
+;(query '(assert! (rule (married ?x ?y) (married ?y ?x))))
+;(query '(or (married Mickey ?who) (married Donald ?who2)))
+; ok, here you go: without interleaving, you'll never see results for Donald/Daisy - it'll hang on Mickey/Minnie
