@@ -42,6 +42,6 @@
     (query '(job ?who ?what))
 )
 ;(test-4.74)
-(define simple-stream-flatmap simple-stream-flatmap-4.74) (test-4.74)
-    ; doesn't look like it...
+;(define simple-stream-flatmap simple-stream-flatmap-4.74) (test-4.74)
+    ; doesn't look like it... her logic is sound, and this is just a refactoring. TODO: add defensive error checking
     ; still, not sure the (probably tiny) extra performance is worth this extra code/complexity
