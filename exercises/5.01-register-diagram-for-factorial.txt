@@ -31,4 +31,5 @@ c<-+
 go to >        
         
         
-        
+p. 494: "Data-path and controller diagrams...are unwieldy for describing large machines"
+I'll take this as their implicit stamp of disapproval on LabVIEW
