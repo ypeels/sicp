@@ -1,0 +1,16 @@
+"Devise a way to fix this shortcoming."
+
+Uh...what you say in the problem statement sounds good...
+
+Basically, the idea they hint at is to treat filters (not and lisp-value) differently.
+- move all filters to the highest priority in an (and).
+- if they have no unbound variables, filter immediately!
+- if there are unbound variables, queue them for later
+- do this for all filters
+- apply the next non-filter query
+- cycle through all filters again
+
+
+holy crap https://github.com/l0stman/sicp/blob/master/4.77.tex
+- a full solution!?
+- looks like he followed their suggestions...? meh
