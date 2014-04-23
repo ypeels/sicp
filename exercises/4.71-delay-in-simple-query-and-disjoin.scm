@@ -24,6 +24,9 @@
 ; 4.4.4.6: "This postpones looping in some cases (see exercise 4.71)."
     ; my remote possibility above? yeah, and it KIND of makes a difference for debugging...
 
+; sols http://community.schemewiki.org/?sicp-ex-4.71
+    ; "this is better than nothing...if we delay it, we still can get some meaningful answers"
+
 (load "ch4-query.scm")
 
 ; louis' version from problem statement
