@@ -69,12 +69,13 @@
         ; this would be more valuable if the first entry were a RULE and not just a pattern
  
  
-;(query '(assert! (rule (job ?x ?y) (job ?x ?y)))) ; just perverse
-;(query '(job (bitdiddle ben) ?*))
+(query '(assert! (rule (job ?x ?y) (job ?x ?y)))) ; just perverse
+(query '(job (bitdiddle ben) ?*))
 ;(display "never gets here")
 ; hmm, this one's pathological EITHER way
     ; with fully delayed streams, you get an infinite OUTPUT loop
     ; with louis' half-delayed stream, you get infinite HANG as apply-rules loops on first application
+    ; this is the same as the sols'/text's Mickey/Minnie example
+        ; infinite output is more informative than infinite hang with no output
 
 
-    
