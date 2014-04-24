@@ -1,0 +1,101 @@
+"Hand-simulate the factorial and Fibonacci machines, using some nontrivial input 
+(requiring execution of at least one recursive call). 
+Show the contents of the stack at each significant point in the execution. "
+
+Well, if they want to see a "recursive call", they must want to see the RECURSIVE machines.
+
+1 >= 1, so let's step through (fib 2) and (factorial 2).
+
+this is NOTHING compared with 51...
+UNROLL all loops.
+
+=========================================================================================
+
+(factorial 2)
+(reg n) = 2 initially.                      ; stack = (top .... bottom)
+                                            
+                       
+                                            
+   (assign continue (label fact-done))      
+ fact-loop                                  
+   (test (op =) (reg n) (const 1))          
+   (branch (label base-case))               ; nope, n is 2
+                                            
+   (save continue)                          
+   (save n)                                 ; stack = (2 fact-done)
+   (assign n (op -) (reg n) (const 1))      ; n = 1
+   (assign continue (label after-fact))     ; continue = after-fact
+   (goto (label fact-loop))
+   
+ fact-loop
+   (test (op =) (reg n) (const 1)) 
+   (branch (label base-case))               ; yep, n is 1 now!  
+
+ base-case
+   (assign val (const 1))                   ; val = 1 (finally initialized!)
+   (goto (reg continue))                    ; goto after-fact
+   
+ after-fact
+   (restore n)                              ; n = 2, stack = (fact-done)
+   (restore continue)                       ; continue = fact-done, stack = ()
+   (assign val (op *) (reg n) (reg val))    ; val = (* 2 1)
+   (goto (reg continue))                    ; goto fact-done
+          
+ fact-done
+ 
+=========================================================================================
+(fib 2). this should be much more involved...
+n = 2 initially.
+
+
+   (assign continue (label fib-done))       ; continue = fib-done
+ fib-loop
+   (test (op <) (reg n) (const 2))      
+   (branch (label immediate-answer))        ; nope, n is 2
+   ;; set up to compute Fib(n - 1)
+   (save continue)                          ; stack = (fib-done)
+   (assign continue (label afterfib-n-1))   ; continue = afterfib-n-1
+   (save n)                                 ; stack = (2 fib-done)
+   (assign n (op -) (reg n) (const 1))      ; n = 1
+   (goto (label fib-loop))            
+   
+ fib-loop
+   (test (op <) (reg n) (const 2))
+   (branch (label immediate-answer))        ; yep, n is 1 now
+
+ immediate-answer
+   (assign val (reg n))                     ; val = 1      
+   (goto (reg continue))                    ; goto afterfib-n-1
+   
+ afterfib-n-1                         
+   (restore n)                              ; n = 2
+   (restore continue)                       ; continue = fib-done. stack = ()
+   ;; set up to compute Fib(n - 2)
+   (assign n (op -) (reg n) (const 2))      ; n = 0
+   (save continue)                          ; stack = (fib-done)
+   (assign continue (label afterfib-n-2))   ; continue = afterfib-n-2
+   (save val)                               ; stack = (1 fib-done)
+   (goto (label fib-loop))  
+   
+ fib-loop
+   (test (op <) (reg n) (const 2))
+   (branch (label immediate-answer))        ; yep, n is 0 now
+   
+ immediate-answer
+   (assign val (reg n))                     ; val = 0      
+   (goto (reg continue))                    ; goto afterfib-n-2
+
+ afterfib-n-2                         
+   (assign n (reg val))                     ; n = 0 (used as TEMP register)          
+   (restore val)                            ; val = 1 (saved from Fib(n-1))
+   (restore continue)                       ; continue = fib-done. stack = ()
+   (assign val                              ; val = 1 = 1 + 0 = Fib(n-1) + Fib(n-2) 
+           (op +) (reg val) (reg n)) 
+   (goto (reg continue))                    ; goto fib-done
+
+ fib-done
+ 
+ 
+I was right - this is downright PLEASANT compared with 51...
+- list of commands is so simple and short, there's NOTHING to look up
+- there's no memory map or i/o to look up, or whole massive system to comprehend in its entirety before reading
