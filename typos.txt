@@ -22,6 +22,12 @@ Section 4.3 p. 412: "This is expressed by following procedure [sic]". NOT fixed 
 Section 5.1.4 p. 509: "the old contents of val is not useful [sic]". NOT fixed on website!
 - also, no paragraph break on web version
 
+Section 5.1.4 p. 511 Figure 5.11: there should be no data line from n to val.
+- (assign val (op *) (reg n) (reg val)) - that's the feedback line from the SW.
+- (assign val (const 1)) - that's the initialization line from the top
+- there's NO THIRD ASSIGN statement for val, let alone one directly from n!
+- "copy/paste" error from the preceding gcd diagrams?
+
 -------------------
 
 Exercise 2.52a p. 141 - finally, a spacing error (2 spaces between "exercise" and "2.49")
