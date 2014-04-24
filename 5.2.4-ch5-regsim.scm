@@ -223,16 +223,16 @@
         (cdr val)
         (error "Undefined label -- ASSEMBLE" label-name))))
 
-
-(define (make-execution-procedure inst labels machine
-                                  pc flag stack ops)
-  (cond ((eq? (car inst) 'assign)
+                                            ; ------------ 5.2.3: Generating Execution Procedures for Instructions
+(define (make-execution-procedure inst labels machine                   ; ONLY invoked from (update-insts!)
+                                  pc flag stack ops)                        ; generate the execution procedure for an instruction.
+  (cond ((eq? (car inst) 'assign)                                           ; supports instruction list from p. 513
          (make-assign inst machine labels ops pc))
         ((eq? (car inst) 'test)
-         (make-test inst machine labels ops flag pc))
-        ((eq? (car inst) 'branch)
+         (make-test inst machine labels ops flag pc))                       ; The details of these procedures determine both the syntax and 
+        ((eq? (car inst) 'branch)                                           ; meaning of the individual instructions in the register-machine language.
          (make-branch inst machine labels flag pc))
-        ((eq? (car inst) 'goto)
+        ((eq? (car inst) 'goto)                                             ; they were a BIT lazy and didn't write (goto? inst), etc.
          (make-goto inst machine labels pc))
         ((eq? (car inst) 'save)
          (make-save inst machine stack pc))
@@ -244,28 +244,28 @@
                      inst))))
 
 
-(define (make-assign inst machine labels operations pc)
+(define (make-assign inst machine labels operations pc)                 ; only invoked from (make-execution-procedure)
   (let ((target
-         (get-register machine (assign-reg-name inst)))
-        (value-exp (assign-value-exp inst)))
-    (let ((value-proc
+         (get-register machine (assign-reg-name inst)))                     ; extract target register name - done only once, at assembly time.
+        (value-exp (assign-value-exp inst)))                                ; extract value expression
+    (let ((value-proc                                                       ; (assign <reg name> <value>)
            (if (operation-exp? value-exp)
-               (make-operation-exp
+               (make-operation-exp                                          ; p. 513: <value> = (op <name2>) <input1> ... <inputN>, or...
                 value-exp machine labels operations)
-               (make-primitive-exp
+               (make-primitive-exp                                                  ; (reg <name2>) or (const <name2>)
                 (car value-exp) machine labels))))
-      (lambda ()                ; execution procedure for assign
-        (set-contents! target (value-proc))
+      (lambda ()                ; execution procedure for assign            ; the machine instruction to be evaluated in machine's (execute)
+        (set-contents! target (value-proc))                                     ; opcode = set-contents!, target = register, and EVALUATE (value-proc)
         (advance-pc pc)))))
 
-(define (assign-reg-name assign-instruction)
+(define (assign-reg-name assign-instruction)                                
   (cadr assign-instruction))
 
 (define (assign-value-exp assign-instruction)
-  (cddr assign-instruction))
+  (cddr assign-instruction))                 
 
-(define (advance-pc pc)
-  (set-contents! pc (cdr (get-contents pc))))
+(define (advance-pc pc)                                                 ; <=== the normal termination for all instructions except branch and goto
+  (set-contents! pc (cdr (get-contents pc))))                               ; pc = pointer to instruction list
 
 (define (make-test inst machine labels operations flag pc)
   (let ((condition (test-condition inst)))
