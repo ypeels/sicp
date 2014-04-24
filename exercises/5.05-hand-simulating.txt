@@ -6,6 +6,7 @@ Well, if they want to see a "recursive call", they must want to see the RECURSIV
 
 1 >= 1, so let's step through (fib 2) and (factorial 2).
 
+Section 5.2: "this is extremely tedious for all but the simplest machines"
 this is NOTHING compared with 51...
 UNROLL all loops.
 

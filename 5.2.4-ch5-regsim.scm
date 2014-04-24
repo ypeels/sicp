@@ -13,44 +13,44 @@
 ;;; To find this stack code below, look for comments with **
 
 
-(define (make-machine register-names ops controller-text)
-  (let ((machine (make-new-machine)))
-    (for-each (lambda (register-name)
+(define (make-machine register-names ops controller-text)               ; API procedure 1 of 4
+  (let ((machine (make-new-machine)))                                       ; construct empty basic machine model - to which you PASS MESSAGES
+    (for-each (lambda (register-name)                                       ; allocate the requested registers
                 ((machine 'allocate-register) register-name))
               register-names)
-    ((machine 'install-operations) ops)    
-    ((machine 'install-instruction-sequence)
-     (assemble controller-text machine))
-    machine))
+    ((machine 'install-operations) ops)                                     ; install the designated operations
+    ((machine 'install-instruction-sequence)                                ; install the machine's instruction sequence...
+     (assemble controller-text machine))                                    ; as output by the ASSEMBLER (5.2.2)
+    machine))                                                               ; return value: the modified machine model, ready to (set!)/(start).
 
-(define (make-register name)
-  (let ((contents '*unassigned*))
+(define (make-register name)                                            ; ONLY called from (make-new-machine): represent a register as a procedure with local state
+  (let ((contents '*unassigned*))                                           ; register value that can be...
     (define (dispatch message)
-      (cond ((eq? message 'get) contents)
+      (cond ((eq? message 'get) contents)                                   ; accessed or...
             ((eq? message 'set)
-             (lambda (value) (set! contents value)))
+             (lambda (value) (set! contents value)))                        ; changed
             (else
              (error "Unknown request -- REGISTER" message))))
     dispatch))
 
-(define (get-contents register)
+(define (get-contents register)                                         ; register API: syntactic sugar
   (register 'get))
 
 (define (set-contents! register value)
   ((register 'set) value))
 
 ;;**original (unmonitored) version from section 5.2.1
-(define (make-stack)
+(define (make-stack)                                                    ; ONLY called from (make-new-machine): also represent a stack as a procedure with local state
   (let ((s '()))
-    (define (push x)
+    (define (push x)                                                        ; push an item onto the stack
       (set! s (cons x s)))
-    (define (pop)
+    (define (pop)                                                           ; pop the top item off the stack and return it
       (if (null? s)
           (error "Empty stack -- POP")
           (let ((top (car s)))
             (set! s (cdr s))
             top)))
-    (define (initialize)
+    (define (initialize)                                                    ; initialize the stack to empty
       (set! s '())
       'done)
     (define (dispatch message)
@@ -68,7 +68,7 @@
   ((stack 'push) value))
 
 ;;**monitored version from section 5.2.4
-(define (make-stack)
+(define (make-stack)                                                    ; ONLY called from (make-new-machine)
   (let ((s '())
         (number-pushes 0)
         (max-depth 0)
@@ -105,66 +105,66 @@
              (error "Unknown request -- STACK" message))))
     dispatch))
 
-(define (make-new-machine)
-  (let ((pc (make-register 'pc))
-        (flag (make-register 'flag))
+(define (make-new-machine)                                              ; ONLY called from (make-machine)
+  (let ((pc (make-register 'pc))                                            ; Program Counter determines instruction sequence as implemented by (execute)
+        (flag (make-register 'flag))                                        ; flag controls branching (contains result of TEST instructions)
         (stack (make-stack))
-        (the-instruction-sequence '()))
-    (let ((the-ops
+        (the-instruction-sequence '()))                                     ; initially empty instruction sequence.
+    (let ((the-ops                                                          ; local operation list - initialized with stack manipulation utilities
            (list (list 'initialize-stack
-                       (lambda () (stack 'initialize)))
+                       (lambda () (stack 'initialize)))                         ; binds stack, hence the nested (let)
                  ;;**next for monitored stack (as in section 5.2.4)
                  ;;  -- comment out if not wanted
                  (list 'print-stack-statistics
                        (lambda () (stack 'print-statistics)))))
-          (register-table
-           (list (list 'pc pc) (list 'flag flag))))
-      (define (allocate-register name)
-        (if (assoc name register-table)
+          (register-table                                                   ; local register table - initialized with all default registers
+           (list (list 'pc pc) (list 'flag flag))))                             ; binds pc and flag, hence the nested (let)
+      (define (allocate-register name)                                      ; adds new entries to the register table
+        (if (assoc name register-table)                                         ; this procedure is ONLY invoked by message passing in (make-machine)
             (error "Multiply defined register: " name)
             (set! register-table
                   (cons (list name (make-register name))
                         register-table)))
         'register-allocated)
-      (define (lookup-register name)
-        (let ((val (assoc name register-table)))
-          (if val
+      (define (lookup-register name)                                        ; looks up registers in the [register] table
+        (let ((val (assoc name register-table)))                                ; invoked by (get-register), which is called in MANY places. 
+          (if val                                                               ; this means many places are modifying raw registers directly...
               (cadr val)
               (error "Unknown register:" name))))
       (define (execute)
-        (let ((insts (get-contents pc)))
+        (let ((insts (get-contents pc)))                                    ; pc points to the next instruction to be executed
           (if (null? insts)
               'done
-              (begin
-                ((instruction-execution-proc (car insts)))
-                (execute)))))
+              (begin                                                        ; each machine instruction includes a procedure of no arguments, called the instruction execution procedure...
+                ((instruction-execution-proc (car insts)))                  ; calling this procedure simulates executing the instruction
+                (execute)))))                                                   ; [and i guess it will update pc too, before the recursion?]
       (define (dispatch message)
-        (cond ((eq? message 'start)
+        (cond ((eq? message 'start)                                         ; only invoked by public API procedure (start)
                (set-contents! pc the-instruction-sequence)
                (execute))
-              ((eq? message 'install-instruction-sequence)
+              ((eq? message 'install-instruction-sequence)                  ; only invoked by message passing in (make-machine)
                (lambda (seq) (set! the-instruction-sequence seq)))
-              ((eq? message 'allocate-register) allocate-register)
-              ((eq? message 'get-register) lookup-register)
-              ((eq? message 'install-operations)
+              ((eq? message 'allocate-register) allocate-register)          ; only invoked by message passing in (make-machine)
+              ((eq? message 'get-register) lookup-register)                 ; used extensively via (get-register)?
+              ((eq? message 'install-operations)                            ; only invoked by message passing in (make-machine)
                (lambda (ops) (set! the-ops (append the-ops ops))))
-              ((eq? message 'stack) stack)
-              ((eq? message 'operations) the-ops)
+              ((eq? message 'stack) stack)                                  ; only invoked by message passing in (update-insts!)?
+              ((eq? message 'operations) the-ops)                           ; only invoked by message passing in (update-insts!)?
               (else (error "Unknown request -- MACHINE" message))))
       dispatch)))
 
 
-(define (start machine)
+(define (start machine)                                                 ; the other 3 API procedures (convenience functions, really)
   (machine 'start))
 
-(define (get-register-contents machine register-name)
+(define (get-register-contents machine register-name)                       ; syntactic sugar/convenience procedure to READ from register in machine
   (get-contents (get-register machine register-name)))
 
-(define (set-register-contents! machine register-name value)
+(define (set-register-contents! machine register-name value)                ; syntactic sugar/convenience procedure to WRITE to register in machine
   (set-contents! (get-register machine register-name) value)
   'done)
 
-(define (get-register machine reg-name)
+(define (get-register machine reg-name)                                     ; pull a raw register right out of the machine. breaks encapsulation?
   ((machine 'get-register) reg-name))
 
 (define (assemble controller-text machine)
