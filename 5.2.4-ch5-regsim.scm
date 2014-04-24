@@ -166,56 +166,56 @@
 
 (define (get-register machine reg-name)                                     ; pull a raw register right out of the machine. breaks encapsulation?
   ((machine 'get-register) reg-name))
+                                            ; ------------ 5.2.2: The assembler transforms the sequence of controller expressions for a machine into a corresponding list of machine instructions, each with its execution procedure
+(define (assemble controller-text machine)                              ; ONLY invoked from (make-machine) - the main entry to the assembler.
+  (extract-labels controller-text                                           ; build initial instruction list and label table
+    (lambda (insts labels)                                                  ; a procedure to be called to process these results
+      (update-insts! insts labels machine)                                      ; insts = running MACHINE instruction list, labels = running label list (only used internally, and not returned)
+      insts)))                                                              ; returns instruction sequence to be stored in machine 
 
-(define (assemble controller-text machine)
-  (extract-labels controller-text
-    (lambda (insts labels)
-      (update-insts! insts labels machine)
-      insts)))
-
-(define (extract-labels text receive)
+(define (extract-labels text receive)                                   ; ONLY invoked from (assemble): text = raw instruction list, receive = procedure
   (if (null? text)
       (receive '() '())
-      (extract-labels (cdr text)
-       (lambda (insts labels)
-         (let ((next-inst (car text)))
-           (if (symbol? next-inst)
-               (receive insts
-                        (cons (make-label-entry next-inst
-                                                insts)
-                              labels))
-               (receive (cons (make-instruction next-inst)
-                              insts)
-                        labels)))))))
+      (extract-labels (cdr text)                                            ; will recurse to the rest of text
+       (lambda (insts labels)                                               ; receive function, really updated just to build up DATA iteratively... such is the price of recursing a higher order function.
+         (let ((next-inst (car text)))                                      ; but first, process next-inst(ruction)
+           (if (symbol? next-inst)                                          ; if the element is a symbol (and thus a label)...
+               (receive insts                                                   
+                        (cons (make-label-entry next-inst                       ; an appropriate entry is added to the labels table
+                                                insts)                          ; [building it up from RIGHT TO LEFT, since "insts" and "labels" come from the NEXT RECURSION. i can't WAIT to be done with this book, and with Lisp...]
+                              labels))                                              ; currently, insts = pointer to REST OF INSTRUCTION LIST [i.e., supports multiple labels]
+               (receive (cons (make-instruction next-inst)                      ; otherwise the element is accumulated onto the insts list
+                              insts)                                        ; Footnote 4: effectively return two values -- labels and insts -- without explicitly making a compound data structure to hold them.
+                        labels)))))))                                           ; "an excuse to show off a programming trick." - technically a continuoation, like in 4.3.3 for ambeval.
 
-(define (update-insts! insts labels machine)
-  (let ((pc (get-register machine 'pc))
+(define (update-insts! insts labels machine)                            ; ONLY invoked from (assemble) - appends execution procedures to instruction list
+  (let ((pc (get-register machine 'pc))                                     ; executed AFTER (extract-labels) has fully completed
         (flag (get-register machine 'flag))
         (stack (machine 'stack))
         (ops (machine 'operations)))
-    (for-each
+    (for-each                                                               
      (lambda (inst)
-       (set-instruction-execution-proc! 
+       (set-instruction-execution-proc!                                     ; simply pairs the instruction text with the corresponding execution procedure
         inst
-        (make-execution-procedure
+        (make-execution-procedure                                           ; 5.2.3: the heart of the assembler
          (instruction-text inst) labels machine
          pc flag stack ops)))
      insts)))
 
-(define (make-instruction text)
-  (cons text '()))
+(define (make-instruction text)                                         ; only invoked from (extract-labels)
+  (cons text '()))                                                          ; cdr will be modified by (update-insts!) -> (set-instruction-execution-proc!)
 
-(define (instruction-text inst)
-  (car inst))
+(define (instruction-text inst)                                         ; only invoked from (update-insts!)
+  (car inst))                                                               ; The instruction text is not used by our simulator, but it is handy to keep around for debugging (see exercise 5.16).
 
-(define (instruction-execution-proc inst)
-  (cdr inst))
+(define (instruction-execution-proc inst)                               ; only invoked from machine's (execute)
+  (cdr inst))                                                               ; retrieve machine instruction just prior to executing it.
 
-(define (set-instruction-execution-proc! inst proc)
-  (set-cdr! inst proc))
+(define (set-instruction-execution-proc! inst proc)                     ; ONLY invoked from (update-insts!)
+  (set-cdr! inst proc))                                                     ; inst = (text . '()) from (make-instruction)
 
-(define (make-label-entry label-name insts)
-  (cons label-name insts))
+(define (make-label-entry label-name insts)                             ; only invoked from (extract-labels)
+  (cons label-name insts))                                                  ; insts = pointer to rest of instruction list
 
 (define (lookup-label labels label-name)
   (let ((val (assoc label-name labels)))
