@@ -70,36 +70,36 @@
 ;;**monitored version from section 5.2.4
 (define (make-stack)                                                    ; ONLY called from (make-new-machine)
   (let ((s '())
-        (number-pushes 0)
+        (number-pushes 0)                                                   ; 3 additional state variables for monitoring
         (max-depth 0)
         (current-depth 0))
     (define (push x)
       (set! s (cons x s))
-      (set! number-pushes (+ 1 number-pushes))
-      (set! current-depth (+ 1 current-depth))
+      (set! number-pushes (+ 1 number-pushes))                              ; 3 additional assignments 
+      (set! current-depth (+ 1 current-depth))                                  ; current-depth is only used internally by max-depth
       (set! max-depth (max current-depth max-depth)))
     (define (pop)
       (if (null? s)
           (error "Empty stack -- POP")
           (let ((top (car s)))
             (set! s (cdr s))
-            (set! current-depth (- current-depth 1))
+            (set! current-depth (- current-depth 1))                        ; 1 additional assignment (pop doesn't affect # pushes or max depth)
             top)))    
     (define (initialize)
       (set! s '())
-      (set! number-pushes 0)
+      (set! number-pushes 0)                                                ; 3 additional initializations
       (set! max-depth 0)
       (set! current-depth 0)
       'done)
-    (define (print-statistics)
+    (define (print-statistics)                                              ; new function! 
       (newline)
-      (display (list 'total-pushes  '= number-pushes
+      (display (list 'total-pushes  '= number-pushes                            ; display state variables (current-depth is not printed)
                      'maximum-depth '= max-depth)))
     (define (dispatch message)
       (cond ((eq? message 'push) push)
             ((eq? message 'pop) (pop))
             ((eq? message 'initialize) (initialize))
-            ((eq? message 'print-statistics)
+            ((eq? message 'print-statistics)                                ; dispatch for new function
              (print-statistics))
             (else
              (error "Unknown request -- STACK" message))))
@@ -115,7 +115,7 @@
                        (lambda () (stack 'initialize)))                         ; binds stack, hence the nested (let)
                  ;;**next for monitored stack (as in section 5.2.4)
                  ;;  -- comment out if not wanted
-                 (list 'print-stack-statistics
+                 (list 'print-stack-statistics                              ; added in 5.2.4 for stack statistics
                        (lambda () (stack 'print-statistics)))))
           (register-table                                                   ; local register table - initialized with all default registers
            (list (list 'pc pc) (list 'flag flag))))                             ; binds pc and flag, hence the nested (let)
