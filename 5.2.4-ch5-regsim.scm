@@ -252,7 +252,7 @@
            (if (operation-exp? value-exp)
                (make-operation-exp                                          ; p. 513: <value> = (op <name2>) <input1> ... <inputN>, or...
                 value-exp machine labels operations)
-               (make-primitive-exp                                                  ; (reg <name2>) or (const <name2>)
+               (make-primitive-exp                                              ; (reg <name2>) or (const <name2>)
                 (car value-exp) machine labels))))
       (lambda ()                ; execution procedure for assign            ; the machine instruction to be evaluated in machine's (execute)
         (set-contents! target (value-proc))                                     ; opcode = set-contents!, target = register, and EVALUATE (value-proc)
@@ -267,133 +267,133 @@
 (define (advance-pc pc)                                                 ; <=== the normal termination for all instructions except branch and goto
   (set-contents! pc (cdr (get-contents pc))))                               ; pc = pointer to instruction list
 
-(define (make-test inst machine labels operations flag pc)
-  (let ((condition (test-condition inst)))
+(define (make-test inst machine labels operations flag pc)              ; only invoked from (make-execution-procedure). similar [to make-assign]
+  (let ((condition (test-condition inst)))                                  ; extracts expression specifying the condition to be tested...
     (if (operation-exp? condition)
         (let ((condition-proc
-               (make-operation-exp
+               (make-operation-exp                                          ; and generates an execution procedure for it
                 condition machine labels operations)))
           (lambda ()
-            (set-contents! flag (condition-proc))
+            (set-contents! flag (condition-proc))                           ; at simulation time, result is assigned to the flag register
             (advance-pc pc)))
         (error "Bad TEST instruction -- ASSEMBLE" inst))))
 
-(define (test-condition test-instruction)
+(define (test-condition test-instruction)                                   ; (test (op <op-name>) <input1> ... <inputN>)
   (cdr test-instruction))
 
 
-(define (make-branch inst machine labels flag pc)
-  (let ((dest (branch-dest inst)))
+(define (make-branch inst machine labels flag pc)                       ; only invoked from (make-execution-procedure)
+  (let ((dest (branch-dest inst)))                                          ; uses (lookup-label) from 5.2.2 and (label-exp-label) from below.
     (if (label-exp? dest)
-        (let ((insts
-               (lookup-label labels (label-exp-label dest))))
-          (lambda ()
-            (if (get-contents flag)
-                (set-contents! pc insts)
-                (advance-pc pc))))
+        (let ((insts                                                        ; insts = pointer to inst list starting at label.
+               (lookup-label labels (label-exp-label dest))))               ; branch destination must be a label; looked up at ASSEMBLY time. 
+          (lambda ()                                                        ; the execution procedure for a branch instruction...
+            (if (get-contents flag)                                         ; checks the contents of the flag register and either...
+                (set-contents! pc insts)                                    ; jumps to the branch destination...
+                (advance-pc pc))))                                          ; or else just advances the pc
         (error "Bad BRANCH instruction -- ASSEMBLE" inst))))
 
-(define (branch-dest branch-instruction)
+(define (branch-dest branch-instruction)                                    ; (branch (label <label-name>))
   (cadr branch-instruction))
 
 
-(define (make-goto inst machine labels pc)
-  (let ((dest (goto-dest inst)))
-    (cond ((label-exp? dest)
+(define (make-goto inst machine labels pc)                              ; only invoked from (make-execution-procedure)
+  (let ((dest (goto-dest inst)))                                            ; similar to a branch...
+    (cond ((label-exp? dest)                                                ; except that the destination may be specified either as a label...
            (let ((insts
                   (lookup-label labels
                                 (label-exp-label dest))))
              (lambda () (set-contents! pc insts))))
-          ((register-exp? dest)
+          ((register-exp? dest)                                             ; or a register [e.g., (save/restore continue)]...
            (let ((reg
                   (get-register machine
                                 (register-exp-reg dest))))
-             (lambda ()
-               (set-contents! pc (get-contents reg)))))
+             (lambda ()                                                     ; and there is no condition to check
+               (set-contents! pc (get-contents reg)))))                     ; [execution procedures are unconditional]
           (else (error "Bad GOTO instruction -- ASSEMBLE"
                        inst)))))
 
-(define (goto-dest goto-instruction)
+(define (goto-dest goto-instruction)                                        ; (goto (label <name>)) or (goto (reg <name>))
   (cadr goto-instruction))
 
-(define (make-save inst machine stack pc)
+(define (make-save inst machine stack pc)                               ; only invoked from (make-execution-procedure)
   (let ((reg (get-register machine
                            (stack-inst-reg-name inst))))
     (lambda ()
-      (push stack (get-contents reg))
-      (advance-pc pc))))
+      (push stack (get-contents reg))                                       ; simply use the stack with the designated register
+      (advance-pc pc))))                                                    ; (push) from 5.2.1 (or monitored version from 5.2.4)
 
-(define (make-restore inst machine stack pc)
+(define (make-restore inst machine stack pc)                            ; only invoked from (make-execution-procedure)
   (let ((reg (get-register machine
                            (stack-inst-reg-name inst))))
     (lambda ()
-      (set-contents! reg (pop stack))    
+      (set-contents! reg (pop stack))                                       ; the inverse of the execution procedure for (save)
       (advance-pc pc))))
 
-(define (stack-inst-reg-name stack-instruction)
+(define (stack-inst-reg-name stack-instruction)                             ; (save <register-name>) and (restore <register-name>)
   (cadr stack-instruction))
 
-(define (make-perform inst machine labels operations pc)
+(define (make-perform inst machine labels operations pc)                ; only invoked from (make-execution-procedure)
   (let ((action (perform-action inst)))
     (if (operation-exp? action)
         (let ((action-proc
                (make-operation-exp
                 action machine labels operations)))
-          (lambda ()
+          (lambda ()                                                        ; execution procedure for the action to be performed
             (action-proc)
             (advance-pc pc)))
         (error "Bad PERFORM instruction -- ASSEMBLE" inst))))
 
-(define (perform-action inst) (cdr inst))
+(define (perform-action inst) (cdr inst))                                   ; (perform (op <name>) <input1> ... <inputN>)
 
-(define (make-primitive-exp exp machine labels)
-  (cond ((constant-exp? exp)
-         (let ((c (constant-exp-value exp)))
-           (lambda () c)))
-        ((label-exp? exp)
+(define (make-primitive-exp expr machine labels)                        ; only invoked by (make-assign) or (make-operation-exp)
+  (cond ((constant-exp? expr)                                               ; execution procedures that produce values for...
+         (let ((c (constant-exp-value expr)))
+           (lambda () c)))                                                  ; constants,
+        ((label-exp? expr)
          (let ((insts
                 (lookup-label labels
-                              (label-exp-label exp))))
-           (lambda () insts)))
-        ((register-exp? exp)
+                              (label-exp-label expr))))
+           (lambda () insts)))                                              ; labels - pc pointer value via (lookup-label), 
+        ((register-exp? expr)
          (let ((r (get-register machine
-                                (register-exp-reg exp))))
-           (lambda () (get-contents r))))
+                                (register-exp-reg expr))))
+           (lambda () (get-contents r))))                                   ; and registers
         (else
-         (error "Unknown expression type -- ASSEMBLE" exp))))
+         (error "Unknown exprression type -- ASSEMBLE" expr))))
 
-(define (register-exp? exp) (tagged-list? exp 'reg))
+(define (register-exp? expr) (tagged-list? expr 'reg))                  ; these determine the syntax of reg, label, and const expressions
+                                                                            ; an ordering consistent with (make-primitive-exp) would have been nice...
+(define (register-exp-reg expr) (cadr expr))                                ; (reg <name-without-whitespace>)
 
-(define (register-exp-reg exp) (cadr exp))
+(define (constant-exp? expr) (tagged-list? expr 'const))
 
-(define (constant-exp? exp) (tagged-list? exp 'const))
+(define (constant-exp-value expr) (cadr expr))                              ; (const <value>)
 
-(define (constant-exp-value exp) (cadr exp))
+(define (label-exp? expr) (tagged-list? expr 'label))
 
-(define (label-exp? exp) (tagged-list? exp 'label))
-
-(define (label-exp-label exp) (cadr exp))
+(define (label-exp-label expr) (cadr expr))                                 ; (label <name-without-whitespace>)
 
 
-(define (make-operation-exp exp machine labels operations)
-  (let ((op (lookup-prim (operation-exp-op exp) operations))
-        (aprocs
-         (map (lambda (e)
-                (make-primitive-exp e machine labels))
-              (operation-exp-operands exp))))
-    (lambda ()
-      (apply op (map (lambda (p) (p)) aprocs)))))
+(define (make-operation-exp expr machine labels operations)             ; only invoked from (make-assign), (make-test), and (make-perform)
+  (let ((op (lookup-prim (operation-exp-op expr) operations))               
+        (aprocs                                                             ; aprocs = execution procedures for individual arguments
+         (map (lambda (e)                                                       ; cf. (analyze-application) from 4.1.7 p. 397
+                (make-primitive-exp e machine labels))                      ; arguments are PRESUMED to be primitive
+              (operation-exp-operands expr))))
+    (lambda ()                                                              ; execution procedure for (op <arg1> ... <argN>)
+      (apply op (map (lambda (p) (p)) aprocs)))))                           ; get value of EVERY argument, then apply op to values
 
-(define (operation-exp? exp)
+(define (operation-exp? exp)                                            ; these determine the syntax of operation expressions
   (and (pair? exp) (tagged-list? (car exp) 'op)))
 (define (operation-exp-op operation-exp)
   (cadr (car operation-exp)))
-(define (operation-exp-operands operation-exp)
+(define (operation-exp-operands operation-exp)                              ; ((op <op-name>) <input1> ... <inputN>)
   (cdr operation-exp))
 
 
-(define (lookup-prim symbol operations)
-  (let ((val (assoc symbol operations)))
+(define (lookup-prim symbol operations)                                 ; ONLY invoked from (make-operation-exp)
+  (let ((val (assoc symbol operations)))                                    ; operations = ('op op) table all the way from (make-[new]-machine)
     (if val
         (cadr val)
         (error "Unknown operation -- ASSEMBLE" symbol))))
