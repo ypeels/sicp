@@ -71,10 +71,10 @@
                     
 
             
-(define (even? n) (= (remainder n 2) 0))
+;(define (even? n) (= (remainder n 2) 0))
 
 
-(define (f n) (fast-fib-iterative n)); for testing
+;(define (f n) (fast-fib-iterative n)); for testing
 
 
 

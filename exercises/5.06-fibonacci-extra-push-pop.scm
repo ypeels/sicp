@@ -1,6 +1,6 @@
 (load "ch5-regsim.scm")
 
-(define fib-machine (make-machine
+(define (make-fib-machine-5.6) (make-machine
 
     '(n val continue)
     (list
@@ -44,9 +44,33 @@
 
 ))
 
-(set-register-contents! fib-machine 'n 7)
-(start fib-machine)
-(display (get-register-contents fib-machine 'val))  ; 13, correctly, with and without the superfluous push/pop.
+(load "1.19-fast-fibonnaci.scm")
+(define (test-fib-5.6 n)
+    ; do NOT load regsim - allows reuse of this machine factory in other files where regsim has been modified
+    
+    (define machine (make-fib-machine-5.6))
+    (set-register-contents! machine 'n n)
+    (start machine)
+    
+    (newline)
+    (display "Fib (") (display n) (display ")\n")
+    (display (get-register-contents machine 'val))
+    (display " from regsim\n")
+    (display (fast-fib-iterative n)) 
+    (display " exact\n")
+    
+)
+
+
+(define (test-5.6)
+    (load "ch5-regsim.scm")
+
+    (test-fib-5.6 7)
+    (test-fib-5.6 11)
+    
+      ; 13, correctly, with and without the superfluous push/pop.
+)
+(test-5.6)
 
 
 ; the (save continue) is GOOD PRACTICE, before a "subroutine call", and matched with a (restore continue) afterwards.
