@@ -53,6 +53,7 @@
             ; they were just lazy with their error handling. or perhaps wanted this exercise to be easy...
             
 ; meteorgan's solution modifies (make-operation-exp) instead. how crude!
+    ; meh i GUESS it's fewer total lines of code added, though... plus, the original already HAD a lambda
 
     
   
