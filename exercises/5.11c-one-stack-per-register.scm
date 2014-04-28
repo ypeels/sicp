@@ -26,6 +26,8 @@
         ; this also means you can use the monitored stack no problem!
     ; doing it this way minimizes the amount of changes to existing code!
         ; in particular, the stack implementation is untouched!! this has to do with stack USAGE.
+            ; yep, meteorgan modified (make-stack), and it looks like he had to change a LOT...?
+            ; l0stman's solution is closer to mine - he modified the register-table. but i think he has a syntax error with his execution procedures??
     
     
 
@@ -36,16 +38,17 @@
         ;(stack (make-stack))                                               ; <---- commented out.
         (the-instruction-sequence '()))                                  
     (let ((the-ops                                                       
-           (list (list 'initialize-stack
-                       (lambda () (stack 'initialize)))                  
+           (list ;(list 'initialize-stack                                   ; hmm, this public api breaks...
+                 ;      (lambda () (stack 'initialize)))                  
                  ;;**next for monitored stack (as in section 5.2.4)
                  ;;  -- comment out if not wanted
-                 (list 'print-stack-statistics                           
-                       (lambda () (stack 'print-statistics)))))
+                 ;(list 'print-stack-statistics                           
+                 ;      (lambda () (stack 'print-statistics)))))
+                 )))
           (stack-table                                                      ; <----- new, by analogy with register-table. (user COULD in principle push/pop these!!)                       
            (list (list 'pc (make-stack)) (list 'flag (make-stack))))        
           (register-table                                                
-           (list (list 'pc pc) (list 'flag flag))))                         ; alternative: (list 'pc pc (make-stack)). BUT then more dependent code would change...
+           (list (list 'pc pc) (list 'flag flag))))                         ; alternative: (list 'pc pc (make-stack)). BUT then more dependent code might change...?
       (define (allocate-register name)                                      
         (if (assoc name register-table)                                  
             (error "Multiply defined register: " name)
@@ -189,3 +192,5 @@
 ; override and run
 ;(load "ch5-regsim.scm") (define make-new-machine make-new-machine-5.11c) (define make-save make-save-5.11c) (define make-restore make-restore-5.11c) (test-5.11c)
 
+; i think i'm finally starting to understand the mit/scheme philosophy
+    ; "slow and steady", or "take the time to do it right", or "thoughtful", or "non-hacky"
