@@ -1,5 +1,3 @@
-(load "ch5-regsim.scm")
-
 (define (make-fib-machine-5.6) (make-machine
 
     '(n val continue)
@@ -52,25 +50,45 @@
     (set-register-contents! machine 'n n)
     (start machine)
     
-    (newline)
-    (display "Fib (") (display n) (display ")\n")
-    (display (get-register-contents machine 'val))
-    (display " from regsim\n")
-    (display (fast-fib-iterative n)) 
-    (display " exact\n")
+    (let ((simulated (get-register-contents machine 'val)) (exact (fast-fib-iterative n)))
+        (if (= simulated exact)
+            (begin   
+                (newline)
+                (display "Fib (") (display n) (display ")\n")
+                (display simulated)
+                (display " from regsim\n")
+                (display exact) 
+                (display " exact\n")
+            )
+            (error "Fibonacci simulation error" simulated exact n)
+        )
+    )
     
 )
+
+(define (test-5.6-long)
+
+    (define (test n)
+        (if (< n 12)
+            (begin
+                (test-fib-5.6 n)
+                (test (+ n 1))
+            )
+        )
+    )
+    (test 6)
+)
+
 
 
 (define (test-5.6)
     (load "ch5-regsim.scm")
 
-    (test-fib-5.6 7)
-    (test-fib-5.6 11)
+    (test-5.6-long)
     
       ; 13, correctly, with and without the superfluous push/pop.
 )
-(test-5.6)
+;(test-5.6)
 
 
 ; the (save continue) is GOOD PRACTICE, before a "subroutine call", and matched with a (restore continue) afterwards.
