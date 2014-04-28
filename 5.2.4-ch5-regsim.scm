@@ -31,7 +31,7 @@
              (lambda (value) (set! contents value)))                        ; changed
             (else
              (error "Unknown request -- REGISTER" message))))
-    dispatch))
+    dispatch))                                                              ; n.b. register name is thrown away!! left as an exercise for 5.2.4?
 
 (define (get-contents register)                                         ; register API: syntactic sugar
   (register 'get))
