@@ -41,7 +41,8 @@
         (flag (make-register 'flag))                                   
         (stack (make-stack))
         (the-instruction-sequence '())
-        (entry-datalist '())                                            ; <---- new data structures
+        (entry-datalist '(*entry-datalist*))                            ; <---- new data structures
+                                                                        ; not init to empty because of (append!) quirk...
        )                                
     (let ((the-ops                                                     
            (list (list 'initialize-stack
@@ -71,10 +72,29 @@
               (begin                                                   
                 ((instruction-execution-proc (car insts)))             
                 (execute)))))        
-      (define (print-datalists)                                         ; <---- new procedure
+      (define (print-datalists)                                         ; <---- new procedures
         (display "\nEntry points\n")
-        (display entry-datalist)
+        (display (cdr entry-datalist))
       )
+      (define (add-to-entry-datalist! entry)
+        (add-to-datalist! entry entry-datalist)
+      )
+      (define (is-in-datalist? entry datalist)
+        (cond
+            ((symbol? entry) (memq entry (cdr datalist)))               ; (append!) doesn't like empty lists?!
+            ((list? entry) (member entry (cdr datalist)))
+            (else (error "Unknown data type -- IS-IN-DATALIST?" entry))
+        )
+      )
+      (define (add-to-datalist! entry datalist)
+        (if (not (is-in-datalist? entry datalist))
+            (append! datalist (list entry))
+            ;(set! datalist (append datalist (list entry)))
+        )
+        ;(display datalist) (display (append datalist (list entry)))
+        ;(display datalist)
+        'done
+      )            
       (define (dispatch message)
         (cond ((eq? message 'start)                                    
                (set-contents! pc the-instruction-sequence)
@@ -87,11 +107,29 @@
                (lambda (ops) (set! the-ops (append the-ops ops))))
               ((eq? message 'stack) stack)                             
               ((eq? message 'operations) the-ops)                      
-              ((eq? message 'print-datalists) (print-datalists))        ; <---- new message "to provide access to the new information"
+              ((eq? message 'print-datalists) (print-datalists))        ; <---- new messages to provide access to the new information
+              ((eq? message 'log-entry) add-to-entry-datalist!)
               (else (error "Unknown request -- MACHINE" message))))
       dispatch)))
       
-; TODO: modify (make-goto)
+; modify for case b.
+(define (make-goto-5.12 inst machine labels pc)
+  (let ((dest (goto-dest inst)))
+    (cond ((label-exp? dest)
+           (let ((insts
+                  (lookup-label labels
+                                (label-exp-label dest))))
+             (lambda () (set-contents! pc insts))))
+          ((register-exp? dest)
+           (let ((reg
+                  (get-register machine
+                                (register-exp-reg dest))))
+             ((machine 'log-entry) (register-exp-reg dest))             ; <---- new logging code (just 1 line)
+             (lambda ()
+               (set-contents! pc (get-contents reg)))))
+          (else (error "Bad GOTO instruction -- ASSEMBLE"
+                       inst)))))
+
       
       
 ; -------------------------------------------------------------------------
@@ -99,7 +137,9 @@
       
 (load "ch5-regsim.scm")
 (load "5.06-fibonacci-extra-push-pop.scm")
-(define make-new-machine make-new-machine-5.12)
 
-(define fib-machine (make-new-machine))
+; overrides
+(define make-new-machine make-new-machine-5.12) (define make-goto make-goto-5.12)
+
+(define fib-machine (make-fib-machine-5.6))
 (fib-machine 'print-datalists)
