@@ -145,9 +145,47 @@
     ; first a regression test. yes indeed, it passes...
     (load "5.06-fibonacci-extra-push-pop.scm")
     (test-5.6-long)
+    
+    ; modify a non-trivial push-pop example (the factorial example from 5.2 will not do, since it HAS no push/pops...)
+    ; how about the recursive exponentiation from 5.4, which is just factorial?
+    (define recursive-expt-machine (make-machine          
+                                                          
+        '(b n val continue)                               
+        (list
+            (list '= =)
+            (list '- -)
+            (list '* *)
+        )
+        '(                                                
+               (assign continue (label expt-done))         
+             expt-loop                                        
+               (test (op =) (reg n) (const 0))            
+               (branch (label base-case))    
+               (save continue)                                
+               (save n)                                      ; <---- extra, unbalanced push will not affect the program
+               (assign n (op -) (reg n) (const 1))    
+               (assign continue (label after-expt))    
+               (goto (label expt-loop))    
+             after-expt    
+               ;(restore n) (restore n)                      ; but, of course, unbalanced pops will raise stack error
+               (restore continue)                          
+               (assign val (op *) (reg b) (reg val))          
+               (goto (reg continue))                       
+             base-case    
+               (assign val (const 1))                      
+               (goto (reg continue))                       
+             expt-done    
+        )    
+    ))
+
+    (set-register-contents! recursive-expt-machine 'b 2)
+    (set-register-contents! recursive-expt-machine 'n 5)
+    (start recursive-expt-machine)
+    (display (get-register-contents recursive-expt-machine 'val)) ; 32, right? yeahh!!!
+    
 )
     
     
 ; override and run
-(load "ch5-regsim.scm") (define make-new-machine make-new-machine-5.11c) (define make-save make-save-5.11c) (define make-restore make-restore-5.11c) (test-5.11c)
+;(load "ch5-regsim.scm") (define make-new-machine make-new-machine-5.11c) (define make-save make-save-5.11c) (define make-restore make-restore-5.11c) (test-5.11c)
 
