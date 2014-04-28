@@ -11,11 +11,11 @@
 ; this should still be doable with a small surgical modification
 
 
-(load "ch5-regsim.scm")
+;(load "ch5-regsim.scm")
 
 
 ; overrides
-(define (make-save inst machine stack pc)                          
+(define (make-save-5.11b inst machine stack pc)                          
   (let ((reg (get-register machine
                            (stack-inst-reg-name inst))))
     (lambda ()
@@ -30,7 +30,7 @@
       
       (advance-pc pc))))                                           
 
-(define (make-restore inst machine stack pc)                       
+(define (make-restore-5.11b inst machine stack pc)                       
   (let ((reg (get-register machine
                            (stack-inst-reg-name inst))))
     (lambda ()
@@ -59,4 +59,4 @@
     (test-fib-5.11a 6) ; <--- should throw an error from make-restore
     (error "should never get here -- TEST-5.11B")
 )
-(test-5.11b)
+;(load "ch5-regsim.scm") (define make-save make-save-5.11b) (define make-restore make-restore-5.11b) (test-5.11b)
