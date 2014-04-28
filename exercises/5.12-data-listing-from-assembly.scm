@@ -42,7 +42,8 @@
         (stack (make-stack))
         (the-instruction-sequence '())
         (entry-datalist '(*entry-datalist*))                            ; <---- new data structures
-                                                                        ; not init to empty because of (append!) quirk...
+        (save-datalist '(*save-datalist*))                              ; not init to empty because of (append!) quirk...
+        (restore-datalist '(*restore-datalist*))
        )                                
     (let ((the-ops                                                     
            (list (list 'initialize-stack
@@ -73,26 +74,30 @@
                 ((instruction-execution-proc (car insts)))             
                 (execute)))))        
       (define (print-datalists)                                         ; <---- new procedures
-        (display "\nEntry points\n")
+        (display "\n\nRegisters used by (goto)\n")
         (display (cdr entry-datalist))
+        (display "\n\nRegisters used by (save)\n")
+        (display (cdr save-datalist))
+        (display "\n\nRegisters used by (restore)\n")
+        (display (cdr restore-datalist))
       )
-      (define (add-to-entry-datalist! entry)
-        (add-to-datalist! entry entry-datalist)
-      )
-      (define (is-in-datalist? entry datalist)
+      (define (add-to-entry-datalist! register-name)
+        (add-to-datalist! register-name entry-datalist))
+      (define (add-to-save-datalist! register-name)
+        (add-to-datalist! register-name save-datalist))
+      (define (add-to-restore-datalist! register-name)
+        (add-to-datalist! register-name restore-datalist))
+      (define (is-in-datalist? datum datalist)
         (cond
-            ((symbol? entry) (memq entry (cdr datalist)))               ; (append!) doesn't like empty lists?!
-            ((list? entry) (member entry (cdr datalist)))
+            ((symbol? datum) (memq datum (cdr datalist)))               ; (append!) doesn't like empty lists?!
+            ((list? datum) (member datum (cdr datalist)))
             (else (error "Unknown data type -- IS-IN-DATALIST?" entry))
         )
       )
       (define (add-to-datalist! entry datalist)
         (if (not (is-in-datalist? entry datalist))
             (append! datalist (list entry))
-            ;(set! datalist (append datalist (list entry)))
         )
-        ;(display datalist) (display (append datalist (list entry)))
-        ;(display datalist)
         'done
       )            
       (define (dispatch message)
@@ -107,12 +112,16 @@
                (lambda (ops) (set! the-ops (append the-ops ops))))
               ((eq? message 'stack) stack)                             
               ((eq? message 'operations) the-ops)                      
+              
               ((eq? message 'print-datalists) (print-datalists))        ; <---- new messages to provide access to the new information
               ((eq? message 'log-entry) add-to-entry-datalist!)
+              ((eq? message 'log-save) add-to-save-datalist!)
+              ((eq? message 'log-restore) add-to-restore-datalist!)
+              
               (else (error "Unknown request -- MACHINE" message))))
       dispatch)))
       
-; modify for case b.
+; modified for case b.
 (define (make-goto-5.12 inst machine labels pc)
   (let ((dest (goto-dest inst)))
     (cond ((label-exp? dest)
@@ -129,6 +138,23 @@
                (set-contents! pc (get-contents reg)))))
           (else (error "Bad GOTO instruction -- ASSEMBLE"
                        inst)))))
+                       
+; modified for case c
+(define (make-save-5.12 inst machine stack pc)
+  (let ((reg (get-register machine
+                           (stack-inst-reg-name inst))))
+    ((machine 'log-save) (stack-inst-reg-name inst))                    ; <---- new logging code (1 line)
+    (lambda ()
+      (push stack (get-contents reg))
+      (advance-pc pc))))
+
+(define (make-restore-5.12 inst machine stack pc)
+  (let ((reg (get-register machine
+                           (stack-inst-reg-name inst))))
+    ((machine 'log-restore) (stack-inst-reg-name inst))                 ; <---- new logging code (1 line)
+    (lambda ()
+      (set-contents! reg (pop stack))    
+      (advance-pc pc))))
 
       
       
@@ -139,7 +165,10 @@
 (load "5.06-fibonacci-extra-push-pop.scm")
 
 ; overrides
-(define make-new-machine make-new-machine-5.12) (define make-goto make-goto-5.12)
+(define make-new-machine make-new-machine-5.12) 
+(define make-goto make-goto-5.12)
+(define make-save make-save-5.12)
+(define make-restore make-restore-5.12)
 
 (define fib-machine (make-fib-machine-5.6))
 (fib-machine 'print-datalists)
