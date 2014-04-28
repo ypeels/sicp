@@ -384,8 +384,8 @@
     (lambda ()                                                              ; execution procedure for (op <arg1> ... <argN>)
       (apply op (map (lambda (p) (p)) aprocs)))))                           ; get value of EVERY argument, then apply op to values
 
-(define (operation-exp? exp)                                            ; these determine the syntax of operation expressions
-  (and (pair? exp) (tagged-list? (car exp) 'op)))
+(define (operation-exp? expr)                                           ; these determine the syntax of operation expressions
+  (and (pair? expr) (tagged-list? (car expr) 'op)))
 (define (operation-exp-op operation-exp)
   (cadr (car operation-exp)))
 (define (operation-exp-operands operation-exp)                              ; ((op <op-name>) <input1> ... <inputN>)
@@ -399,9 +399,9 @@
         (error "Unknown operation -- ASSEMBLE" symbol))))
 
 ;; from 4.1
-(define (tagged-list? exp tag)
-  (if (pair? exp)
-      (eq? (car exp) tag)
+(define (tagged-list? expr tag)
+  (if (pair? expr)
+      (eq? (car expr) tag)
       false))
 
 '(REGISTER SIMULATOR LOADED)
