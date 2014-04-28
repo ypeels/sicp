@@ -35,7 +35,7 @@
     (test '((op DIE) (reg c) (label goo) (const 'aaaaa)))
     
 )
-(define operation-exp-operands operation-exp-operands-with-labels-forbidden) (test-5.9)      
+;(define operation-exp-operands operation-exp-operands-with-labels-forbidden) (test-5.9)      
         
     
 ; it's SOO TEMPTING to forbid labels outright in (operation-exp-operands). is it right??
@@ -51,6 +51,8 @@
     ; it looks PERFECTLY FINE to modify 
         ; the usage (op <blah>) (label <bleh>) is NOT INTENDED
             ; they were just lazy with their error handling. or perhaps wanted this exercise to be easy...
+            
+; meteorgan's solution modifies (make-operation-exp) instead. how crude!
 
     
   
