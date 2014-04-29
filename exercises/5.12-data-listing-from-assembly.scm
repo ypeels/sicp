@@ -43,24 +43,19 @@
 
 ; not init to '() so that (append!) will work
 ; fwiw, the headers make the sets somewhat self-documenting if printed outside a table...
-(define (make-dataset sym)             
-    (let ((dataset (list (string->symbol (string-append
-            "*" (symbol->string sym) "*")))))
-            
+(define (make-dataset)             
+    (let ((dataset '()))            
         (define (adjoin! datum)
             (if (not (is-in-dataset? datum))
-                (append! dataset (list datum)))) ; ugly, but it gets the job done
-                
+                (set! dataset (cons datum dataset))))                
         (define (print)
             (display dataset)
             (newline))
-
-        (define (is-in-dataset? datum)
+        (define (is-in-dataset? datum) ; private helper function
             (cond
-                ((symbol? datum) (memq datum (cdr dataset)))   ; skip dummy header
-                ((list? datum) (member datum (cdr dataset)))
-                (else (error "Unknown data type -- IS-IN-dataset?" datum))))        
-            
+                ((symbol? datum) (memq datum dataset))
+                ((list? datum) (member datum dataset))
+                (else (error "Unknown data type -- IS-IN-dataset?" datum))))                    
         (define (dispatch message)
             (cond
                 ((eq? message 'adjoin!) adjoin!)
@@ -87,34 +82,33 @@
 (define (make-new-machine-5.12)             
   (let ((machine-regsim (make-new-machine-regsim)) ; "base object" or "delegate" 
         (dataset-table                                          
-            (list ; the register table in regsim uses symbols twice too! pc and flag.
-                (list 'assign (make-dataset 'assign))
-                (list 'branch (make-dataset 'branch))
-                (list 'goto (make-dataset 'goto))
-                (list 'perform (make-dataset 'perform))
-                (list 'restore (make-dataset 'restore))
-                (list 'save (make-dataset 'save))
-                (list 'test (make-dataset 'test))
-                
-                ; previously separate 1-d sets
-                (list 'goto-registers (make-dataset 'goto-registers))
-                (list 'save-registers (make-dataset 'save-registers))
-                (list 'restore-registers (make-dataset 'restore-registers))))
+            (list 
+                (list 'assign (make-dataset))
+                (list 'branch (make-dataset))
+                (list 'goto (make-dataset))
+                (list 'perform (make-dataset))
+                (list 'restore (make-dataset))
+                (list 'save (make-dataset))
+                (list 'test (make-dataset))
+
+                (list 'goto-registers (make-dataset))
+                (list 'save-registers (make-dataset))
+                (list 'restore-registers (make-dataset))))
               
         ; register names are determined by the user, so these should be stored separately
-            ; Sure, it'd take one sick cookie to name a register 'goto',
-            ; But a register named 'test' is not inconceivable.
-            ; Also, a user could technically manipulate pc and flag directly
+            ; sure, it'd take one sick cookie to name a register 'goto',
+            ; but a register named 'test' is not inconceivable.
+            ; also, a user could technically manipulate pc and flag directly
         (assign-dataset-table
             (list
-                (list 'pc (make-dataset 'pc))
-                (list 'flag (make-dataset 'flag)))))
+                (list 'pc (make-dataset))
+                (list 'flag (make-dataset)))))
         
     ; "public procedures"
     (define (allocate-register-5.12 name)        
       (set! assign-dataset-table
             (cons  ; no duplicate checking - original regsim will crash on that anyway
-              (list name (make-dataset name))
+              (list name (make-dataset))
               assign-dataset-table))                
       ((machine-regsim 'allocate-register) name))
       
@@ -141,6 +135,8 @@
         (newline)
         (for-each 
             (lambda (table-entry) 
+                (display (car table-entry))
+                (display ": ")
                 (print-dataset (cadr table-entry)))
             table))
       
