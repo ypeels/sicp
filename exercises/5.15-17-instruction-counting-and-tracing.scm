@@ -172,18 +172,22 @@
 ; how about scanning at assembly time, and binding the label text into the execution procedure??
     ; i don't really see what this has to do with instruction counting...
         ; oh, i see, i guess i was supposed to implement that in (make-execution-procedure) too?
+    ; actually, you don't HAVE the full information at assembly time...?
+        ; for example, the fibonacci program starts with (assign continue <label>) before <label> is declared
+    ; therefore, the CLEANEST idea seems to be to scan the label list at EXECUTION time
+        ; this indeed could conflict with my instruction counting in (execute).
         
         
 ; "inverse" of (lookup-label), at the same level of abstraction (i.e., raw table manipulation...)
+    ; unfortunately, i think this is CONCEPTUALLY flawed, because labels aren't initialized yet...?
+    ; how about scanning the label list EVERY time
 (define (labels-for-instruction inst labels)
-
-    (if (not (null? labels))
-        (display (caar labels)))
-
+    (display inst)
     (cond
         ((null? labels)
             '())
         ((eq? inst (cdar labels)) ; damn you scheme (impenetrable error message for cadr)
+            (display "\nfound label: ") (display (caar labels))
             (cons (caar labels) (labels-for-instruction inst (cdr labels))))
         (else
             (labels-for-instruction inst (cdr labels)))
@@ -192,6 +196,9 @@
             
         
         
+; this approach doesn't work DIRECTLY
+    ; the "inst" input into (make-execution-procedure) is JUST the text...
+    ; have to modify (update-insts!)!
 (define (make-make-execution-procedure-5.17 old-proc)
 
     (define (print-all-labels label-list)
@@ -206,9 +213,13 @@
         )
     )
 
-    (lambda (inst labels machine pc flag stack ops)
-        (let (  (proc (old-proc inst labels machine pc flag stack ops))     ; no new special forms 
-                (inst-labels (labels-for-instruction inst labels))          ; but scan the label list at assembly time
+    (lambda (inst-and-exec-proc labels machine pc flag stack ops)
+        (let (  
+                ; no new special forms, so just call (old-proc) unconditionally...
+                (proc (old-proc 
+                    (instruction-text inst-and-exec-proc)                   ; but this argument processes differently
+                    labels machine pc flag stack ops))     
+                (inst-labels (labels-for-instruction inst-and-exec-proc labels)); but scan the label list at assembly time
                 )                                                               ; inefficient! scans the ENTIRE list each time...
 
             (lambda ()            
@@ -219,3 +230,23 @@
         
     )
 )
+
+
+
+(define (update-insts-5.17! insts labels machine)        
+  (let ((pc (get-register machine 'pc))             
+        (flag (get-register machine 'flag))
+        (stack (machine 'stack))
+        (ops (machine 'operations)))
+    (for-each                                       
+     (lambda (inst)
+       (set-instruction-execution-proc!             
+        inst
+        (make-execution-procedure                
+         ;(instruction-text inst) labels machine
+         inst labels machine                                                ; requires (make-make-execution-procedure-5.17)!
+         pc flag stack ops)))
+     insts)))
+     
+     
+     

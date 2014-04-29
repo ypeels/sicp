@@ -16,6 +16,8 @@
 (define make-execution-procedure (make-make-execution-procedure-5.16 make-execution-procedure))
 (define make-execution-procedure (make-make-execution-procedure-5.17 make-execution-procedure))
 
+(define update-insts! update-insts-5.17!)
+
 ; regression test
 (load "5.06-fibonacci-extra-push-pop.scm")
 (test-5.6-long)
