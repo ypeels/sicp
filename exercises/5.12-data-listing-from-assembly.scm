@@ -40,6 +40,9 @@
     ; i think it would be cleanest if the lookup were done at the machine level, 
     ; and then the (make) functions worked directly with datalists.
 
+    
+; it's ALL ABOUT THE DATA STRUCTURES. (although assignment plays a bit of a role too)
+    
 
 ; not init to '() so that (append!) will work
 ; fwiw, the headers make the sets somewhat self-documenting if printed outside a table...
@@ -55,7 +58,7 @@
             (cond
                 ((symbol? datum) (memq datum dataset))
                 ((list? datum) (member datum dataset))
-                (else (error "Unknown data type -- IS-IN-dataset?" datum))))                    
+                (else (error "Unknown data type -- IS-IN-dataset?" datum))))
         (define (dispatch message)
             (cond
                 ((eq? message 'adjoin!) adjoin!)
@@ -248,6 +251,7 @@
            (goto (reg continue))
          fib-done)))
 
+(fib-machine 'print-all-datasets)
 
 
 ;(load "5.06-fibonacci-extra-push-pop.scm")
