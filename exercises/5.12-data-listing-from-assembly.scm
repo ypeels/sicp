@@ -43,42 +43,56 @@
 
 ; not init to '() so that (append!) will work
 ; fwiw, the headers make the sets somewhat self-documenting if printed outside a table...
-(define (make-empty-dataset sym)                                   
-    (list (string->symbol (string-append                                               
-        "*" (symbol->string sym) "*"))))
+(define (make-dataset sym)             
+    (let ((dataset (list (string->symbol (string-append
+            "*" (symbol->string sym) "*")))))
+            
+        (define (adjoin! datum)
+            (if (not (is-in-dataset? datum))
+                (append! dataset (list datum)))) ; ugly, but it gets the job done
+                
+        (define (print)
+            (display dataset)
+            (newline))
 
-(define (is-in-dataset? datum dataset)
-    (cond
-        ((symbol? datum) (memq datum (cdr dataset)))   ; first entry is a dummy header
-        ((list? datum) (member datum (cdr dataset)))
-        (else (error "Unknown data type -- IS-IN-dataset?" datum))))
-        
-(define (add-to-dataset! datum dataset) 
-    (adjoin-to-dataset! datum dataset))
+        (define (is-in-dataset? datum)
+            (cond
+                ((symbol? datum) (memq datum (cdr dataset)))   ; first entry is a dummy header
+                ((list? datum) (member datum (cdr dataset)))
+                (else (error "Unknown data type -- IS-IN-dataset?" datum))))        
+            
+        (define (dispatch message)
+            (cond
+                ((eq? message 'adjoin!) adjoin!)
+                ((eq? message 'print) (print))
+                (else (error "Unknown operation -- DATASET" message))))
+        dispatch))
 
 (define (adjoin-to-dataset! datum dataset)
-    (if (not (is-in-dataset? datum dataset))
-        (append! dataset (list datum)))) ; ugly, but it gets the job done     
+    ((dataset 'adjoin!) datum))
 
+(define (print-dataset dataset)
+    (dataset 'print))
+    
 
 
 ; implemented as a "facade" in front of the old machine
 (define (make-new-machine-5.12)             
   (let ((machine-regsim (make-new-machine-regsim)) ; "base object" or "delegate" 
         (dataset-table                                          
-            (list
-                (list 'assign (make-empty-dataset 'assign))
-                (list 'branch (make-empty-dataset 'branch))
-                (list 'goto (make-empty-dataset 'goto))
-                (list 'perform (make-empty-dataset 'perform))
-                (list 'restore (make-empty-dataset 'restore))
-                (list 'save (make-empty-dataset 'save))
-                (list 'test (make-empty-dataset 'test))
+            (list ; the register table in regsim uses symbols twice too! pc and flag.
+                (list 'assign (make-dataset 'assign))
+                (list 'branch (make-dataset 'branch))
+                (list 'goto (make-dataset 'goto))
+                (list 'perform (make-dataset 'perform))
+                (list 'restore (make-dataset 'restore))
+                (list 'save (make-dataset 'save))
+                (list 'test (make-dataset 'test))
                 
                 ; previously separate 1-d sets
-                (list 'goto-registers (make-empty-dataset 'goto-registers))
-                (list 'save-registers (make-empty-dataset 'save-registers))
-                (list 'restore-registers (make-empty-dataset 'restore-registers))))
+                (list 'goto-registers (make-dataset 'goto-registers))
+                (list 'save-registers (make-dataset 'save-registers))
+                (list 'restore-registers (make-dataset 'restore-registers))))
               
         ; register names are determined by the user, so these should be stored separately
             ; Sure, it'd take one sick cookie to name a register 'goto',
@@ -86,14 +100,14 @@
             ; Also, a user could technically manipulate pc and flag directly
         (assign-dataset-table
             (list
-                (list 'pc (make-empty-dataset 'pc))
-                (list 'flag (make-empty-dataset 'flag)))))
+                (list 'pc (make-dataset 'pc))
+                (list 'flag (make-dataset 'flag)))))
         
     ; "public procedures"
     (define (allocate-register-5.12 name)        
       (set! assign-dataset-table
             (cons  ; no duplicate checking - original regsim will crash on that anyway
-              (list name (make-empty-dataset name))
+              (list name (make-dataset name))
               assign-dataset-table))                
       ((machine-regsim 'allocate-register) name))
       
@@ -120,8 +134,7 @@
         (newline)
         (for-each 
             (lambda (table-entry) 
-                (display (cdr table-entry)) 
-                (newline))
+                (print-dataset (cadr table-entry)))
             table))
       
     ; expose public API
