@@ -130,7 +130,7 @@
         (print-single-datalist save-datalist "Registers used by (save)")
         (print-single-datalist restore-datalist "Registers used by (restore)")
         (print-datalist-table assign-datalist-table "Assignments")
-        (print-datalist-table instruction-datalist-table "Instructions")   ; toggle this one - it's the wordiest (still don't know how to scroll in MIT Scheme on Windows, and 88% through the book, i ain't learning now...)
+        ;(print-datalist-table instruction-datalist-table "Instructions")   ; toggle this one - it's the wordiest (still don't know how to scroll in MIT Scheme on Windows, and 88% through the book, i ain't learning now...)
         
         ; denser version
         ;(for-each
@@ -165,8 +165,9 @@
         (if (not (is-in-datalist? datum datalist))
             
             ;(set! datalist (append datalist (list datum))) ; won't work - because it's only modifying the local pointer
-            ;(append! datalist (list datum)) ; fails for general instructions
-            (set-cdr! datalist (append (list datum) '())) ; works ok too
+            ;(set-cdr! datalist (append (list datum) '())) ; doesn't work either - you have to set-cdr! for the LAST-PAIR
+            (append! datalist (list datum)) ; fails for general instructions
+            
             
             
         )
@@ -219,83 +220,32 @@
               ((eq? message 'log-instruction) add-to-instruction-datalists!)
               
               (else (error "Unknown request -- MACHINE" message))))
-      dispatch)))
-      
-; modified for case b.
-(define (make-goto-5.12 inst machine labels pc)
-  (let ((dest (goto-dest inst)))
-    (cond ((label-exp? dest)
-           (let ((insts
-                  (lookup-label labels
-                                (label-exp-label dest))))
-             (lambda () (set-contents! pc insts))))
-          ((register-exp? dest)
-           (let ((reg
-                  (get-register machine
-                                (register-exp-reg dest))))
-             ((machine 'log-entry) (register-exp-reg dest))             ; <---- new logging code (just 1 line)
-             (lambda ()
-               (set-contents! pc (get-contents reg)))))
-          (else (error "Bad GOTO instruction -- ASSEMBLE"
-                       inst)))))
-                       
-; modified for case c
-(define (make-save-5.12 inst machine stack pc)
-  (let ((reg (get-register machine
-                           (stack-inst-reg-name inst))))
-    ((machine 'log-save) (stack-inst-reg-name inst))                    ; <---- new logging code (1 line)
-    (lambda ()
-      (push stack (get-contents reg))
-      (advance-pc pc))))
+      dispatch)))      
 
-(define (make-restore-5.12 inst machine stack pc)
-  (let ((reg (get-register machine
-                           (stack-inst-reg-name inst))))
+(define (make-goto-5.12 inst machine labels pc)                         ; modified for case b.
+    (let ((dest (goto-dest inst)))
+        (if (register-exp? dest)
+            ((machine 'log-entry) (register-exp-reg dest))))            ; <---- new logging code (1 new line, plus supporting logic)
+    (make-goto-regsim inst machine labels pc))
+                       
+(define (make-save-5.12 inst machine stack pc)                          ; modified for case c
+    ((machine 'log-save) (stack-inst-reg-name inst))                    ; <---- new logging code (1 line)
+    (make-save-regsim inst machine stack pc))
+
+(define (make-restore-5.12 inst machine stack pc)                       
     ((machine 'log-restore) (stack-inst-reg-name inst))                 ; <---- new logging code (1 line)
-    (lambda ()
-      (set-contents! reg (pop stack))    
-      (advance-pc pc))))
-      
-; modified for case d
-(define (make-assign-5.12 inst machine labels operations pc)   
-  ;(display "\nbefore: ") (display inst) (newline)
-  ((machine 'log-assign) (assign-reg-name inst) (assign-value-exp inst))
-  ;(display "\nafter: ") (display inst) (newline)
-  (let ((target
-         (get-register machine (assign-reg-name inst)))             
-        (value-exp (assign-value-exp inst)))                        
-    (let ((value-proc                                               
-           (if (operation-exp? value-exp)
-               (make-operation-exp                                  
-                value-exp machine labels operations)
-               (make-primitive-exp                                  
-                (car value-exp) machine labels))))
-      (lambda ()                ; execution procedure for assign    
-        (set-contents! target (value-proc))                         
-        (advance-pc pc)))))
-        
-; modified for case a
-(define (make-execution-procedure-5.12 inst labels machine         
+    (make-restore-regsim inst machine stack pc))      
+
+(define (make-assign-5.12 inst machine labels operations pc)            ; modified for case d
+    ((machine 'log-assign) (assign-reg-name inst) (assign-value-exp inst))
+    (make-assign-regsim inst machine labels operations pc))        
+
+(define (make-execution-procedure-5.12 inst labels machine              ; modified for case a
                                   pc flag stack ops)  
-  ;(display "\nbefore: ") (display inst) (newline)
-  ((machine 'log-instruction) (car inst) (cdr inst))                    ; <---- new logging code (1 line)
-  ;(display "\nafter: ") (display inst) (newline)
-  (cond ((eq? (car inst) 'assign)                             
-         (make-assign inst machine labels ops pc))
-        ((eq? (car inst) 'test)
-         (make-test inst machine labels ops flag pc))         
-        ((eq? (car inst) 'branch)                             
-         (make-branch inst machine labels flag pc))
-        ((eq? (car inst) 'goto)                               
-         (make-goto inst machine labels pc))
-        ((eq? (car inst) 'save)
-         (make-save inst machine stack pc))
-        ((eq? (car inst) 'restore)
-         (make-restore inst machine stack pc))
-        ((eq? (car inst) 'perform)
-         (make-perform inst machine labels ops pc))
-        (else (error "Unknown instruction type -- ASSEMBLE"
-                     inst))))      
+    ((machine 'log-instruction) (car inst) (cdr inst))                  ; <---- new logging code (1 line)
+    (make-execution-procedure-regsim inst labels machine
+        pc flag stack ops))
+   
       
 ; -------------------------------------------------------------------------
       
@@ -305,11 +255,11 @@
 
 ; overrides
 (define make-new-machine make-new-machine-5.12) 
-(define make-goto make-goto-5.12)
-(define make-save make-save-5.12)
-(define make-restore make-restore-5.12)
-(define make-assign make-assign-5.12)
-(define make-execution-procedure make-execution-procedure-5.12)
+(define make-goto-regsim make-goto) (define make-goto make-goto-5.12)
+(define make-save-regsim make-save) (define make-save make-save-5.12)
+(define make-restore-regsim make-restore) (define make-restore make-restore-5.12)
+(define make-assign-regsim make-assign) (define make-assign make-assign-5.12)
+(define make-execution-procedure-regsim make-execution-procedure) (define make-execution-procedure make-execution-procedure-5.12)
 
 (define fib-machine (make-fib-machine-5.6))
 
