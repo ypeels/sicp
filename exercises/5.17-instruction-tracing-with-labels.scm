@@ -19,3 +19,6 @@
 ; regression test
 (load "5.06-fibonacci-extra-push-pop.scm")
 (test-5.6-long)
+
+
+(test-5.16)
