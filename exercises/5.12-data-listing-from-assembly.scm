@@ -162,7 +162,12 @@
       )
       (define (add-to-datalist! datum datalist)
         (if (not (is-in-datalist? datum datalist))
-            (append! datalist (list datum))
+            
+            ;(set! datalist (append datalist (list datum))) ; fails always - because it's only modifying the local pointer
+            ;(append! datalist (list datum)) ; fails for general instructions
+            (set-cdr! datalist (append (list datum) '()))
+            
+            
         )
         'done
       )            
