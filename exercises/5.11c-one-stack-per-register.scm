@@ -44,7 +44,7 @@
                  ;;  -- comment out if not wanted
                  ;(list 'print-stack-statistics                           
                  ;      (lambda () (stack 'print-statistics)))))
-                 )))
+                 ))
           (stack-table                                                      ; <----- new, by analogy with register-table. (user COULD in principle push/pop these!!)                       
            (list (list 'pc (make-stack)) (list 'flag (make-stack))))        
           (register-table                                                
@@ -119,12 +119,19 @@
     (let (  (reg (get-register machine name))
             (stack (get-stack machine name))
             )
-
+  
         (lambda ()        
           (push stack (get-contents reg))         ;(push stack reg) ; no need to modify this, though!!          
           (advance-pc pc));))                                             
     )
   )
+  
+  ;(make-save-regsim
+  ;  inst
+  ;  machine
+  ;  (get-stack machine (stack-inst-reg-name inst))
+  ;  pc
+  ;)  
 )
 
 (define (make-restore-5.11c inst machine unused-argument pc)                         
@@ -190,7 +197,11 @@
     
     
 ; override and run
-;(load "ch5-regsim.scm") (define make-new-machine make-new-machine-5.11c) (define make-save make-save-5.11c) (define make-restore make-restore-5.11c) (test-5.11c)
+(load "ch5-regsim.scm") 
+(define make-new-machine make-new-machine-5.11c) 
+(define make-save-regsim make-save) (define make-save make-save-5.11c) 
+(define make-restore make-restore-5.11c) 
+(test-5.11c)
 
 ; i think i'm finally starting to understand the mit/scheme philosophy
     ; "slow and steady", or "take the time to do it right", or "thoughtful", or "non-hacky"
