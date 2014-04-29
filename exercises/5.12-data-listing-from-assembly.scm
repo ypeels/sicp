@@ -215,48 +215,12 @@
 (define make-execution-procedure-regsim make-execution-procedure) 
 (define make-execution-procedure make-execution-procedure-5.12)
 
+; i uploaded a version of this to http://community.schemewiki.org/?sicp-ex-5.12
+; anonymous? i didn't even SEE a way to stick my name on it...oh well, it's the work that matters
 
-(define fib-machine (make-machine ;register-names ops controller-text
-    '(n val continue)
-    (list (list '< <) (list '- -) (list '+ +))
-    '(  ; from ch5.scm
-           (assign continue (label fib-done))
-         fib-loop
-           (test (op <) (reg n) (const 2))
-           (branch (label immediate-answer))
-           ;; set up to compute Fib(n-1)
-           (save continue)
-           (assign continue (label afterfib-n-1))
-           (save n)                           ; save old value of n
-           (assign n (op -) (reg n) (const 1)); clobber n to n-1
-           (goto (label fib-loop))            ; perform recursive call
-         afterfib-n-1                         ; upon return, val contains Fib(n-1)
-           (restore n)
-           (restore continue)
-           ;; set up to compute Fib(n-2)
-           (assign n (op -) (reg n) (const 2))
-           (save continue)
-           (assign continue (label afterfib-n-2))
-           (save val)                         ; save Fib(n-1)
-           (goto (label fib-loop))
-         afterfib-n-2                         ; upon return, val contains Fib(n-2)
-           (assign n (reg val))               ; n now contains Fib(n-2)
-           (restore val)                      ; val now contains Fib(n-1)
-           (restore continue)
-           (assign val                        ; Fib(n-1)+Fib(n-2)
-                   (op +) (reg val) (reg n)) 
-           (goto (reg continue))              ; return to caller, answer is in val
-         immediate-answer
-           (assign val (reg n))               ; base case: Fib(n)=n
-           (goto (reg continue))
-         fib-done)))
-
-(fib-machine 'print-all-datasets)
-
-
-;(load "5.06-fibonacci-extra-push-pop.scm")
-;(define fib-machine (make-fib-machine-5.6))
-;(test-5.6-long) ; regression test
+(load "5.06-fibonacci-extra-push-pop.scm")
+(define fib-machine (make-fib-machine-5.6))
+(test-5.6-long) ; regression test
 (fib-machine 'print-all-datasets) ; test new functionality
 
 ; ;;; Results - cf. p. 497
