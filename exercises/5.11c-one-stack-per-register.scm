@@ -39,8 +39,6 @@
     (let (  (machine (make-new-machine-regsim)) 
             (stack-table                                                      ; <----- new, by analogy with register-table. (user COULD in principle push/pop these!!)                       
                 (list (list 'pc (make-stack)) (list 'flag (make-stack)))))
-                                  
-           
            
       ; overrides
       (define (allocate-register-5.11c name)
@@ -49,7 +47,8 @@
         ((machine 'allocate-register) name))                                ; defer to base class error-checking
               
               
-      (define (lookup-stack name)                                           ; <----- new, by analogy with lookup-register                         
+      ; new, by analogy with lookup-register     
+      (define (lookup-stack name)   
         (let ((val (assoc name stack-table)))                         
           (if val                                                        
               (cadr val)
@@ -61,8 +60,6 @@
         
             ; overrides
             ((eq? message 'allocate-register) allocate-register-5.11c)
-                
-
         
             ; full breakdown
             ; (machine 'stack) is ONLY called from (update-insts!)
