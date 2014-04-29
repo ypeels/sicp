@@ -33,34 +33,72 @@
     ; should probably create 3 1-d tables and 2 2-d tables (start by testing the former)
     
     
+    
+; datalist functions moved outside of the machine, like registers
+(define (make-empty-datalist sym)                                   ; new helper function
+    (list                                                               ; not init to '() because of (append!) quirk...?
+        (string->symbol                                                 ; would set! + cons work better? meh
+            (string-append
+                "*"
+                (symbol->string sym)
+                "-datalist*"
+            )
+        )
+    )
+)
+
+(define (print-single-datalist datalist title)
+    (newline)
+    (display title)
+    (newline)
+    (display (cdr datalist))
+    (newline)
+)
+(define (print-datalist-table table title)
+    (for-each 
+        (lambda (datalist) 
+            (print-single-datalist datalist title))
+        table
+    )
+)
+
+(define (is-in-datalist? datum datalist)
+    (cond
+        ((symbol? datum) (memq datum (cdr datalist)))               ; (append!) doesn't like empty lists?!
+        ((list? datum) (member datum (cdr datalist)))
+        (else (error "Unknown data type -- IS-IN-DATALIST?" datum))
+    )
+)
+(define (add-to-datalist! datum datalist)
+    (if (not (is-in-datalist? datum datalist))
+        (append! datalist (list datum)) ; ugly, but gets the job done    
+    )
+    'done
+)            
+
+; datalist table functions. figuring out my data structures was 90% of the battle
+(define (get-datalist-from-table name table)
+    (let ((datalist (assoc name table)))
+        (if datalist
+            datalist
+            (error "Datalist not found -- GET-DATALIST-FROM-TABLE" name table)
+        )
+    )
+)
+
+
+    
 
 
     
 ; new data structures for logging
 ; new interface function to dump logs
-(define (make-new-machine-5.12)
-    (define (make-empty-datalist sym)                                   ; new helper function
-        (list                                                               ; not init to '() because of (append!) quirk...?
-            (string->symbol                                                 ; would set! + cons work better? meh
-                (string-append
-                    "*"
-                    (symbol->string sym)
-                    "-datalist*"
-                )
-            )
-        )
-    )
-
-                                            
+(define (make-new-machine-5.12)             
   (let ((machine-regsim (make-new-machine-regsim))                      ; nested delegate machine 
-        ;(pc (make-register 'pc))                                       
-        ;(flag (make-register 'flag))                                   
-        ;(stack (make-stack))
-        ;(the-instruction-sequence '())
         (entry-datalist (make-empty-datalist 'entry))                            ; <---- new data structures
         (save-datalist (make-empty-datalist 'save))        
         (restore-datalist (make-empty-datalist 'restore))
-        (instruction-datalist-table 
+        (instruction-datalist-table                                     ; cf. operation and register tables, which were initialized similarly
             (list
                 (cons 'assign (make-empty-datalist 'assign))
                 (cons 'branch (make-empty-datalist 'branch))
@@ -68,105 +106,54 @@
                 (cons 'perform (make-empty-datalist 'perform))
                 (cons 'restore (make-empty-datalist 'restore))
                 (cons 'save (make-empty-datalist 'save))
-                (cons 'test (make-empty-datalist 'test))
-            )                
-        )
+                (cons 'test (make-empty-datalist 'test))))
         (assign-datalist-table                                                  ; could also put in the next let... but this keeps all datalists together
             (list
                 (cons 'pc (make-empty-datalist 'pc))
-                (cons 'flag (make-empty-datalist 'flag))                        
-            )
-        )
-       )
+                (cons 'flag (make-empty-datalist 'flag)))))
                   
 
         
-      (define (allocate-register-5.12 name)        
-        (set! assign-datalist-table                                             ; <---- new: keep track of data sources for each register's (assign)'s
-              (cons                                                             ; no duplicate checking - original regsim will crash on that anyway
-                (list name (make-empty-datalist name))
-                assign-datalist-table))                
-        ((machine-regsim 'allocate-register) name)
-      )
-        
-      
-      (define (print-datalists)                                         ; <---- new procedures
-        (define (print-single-datalist datalist title)
-            (newline)
-            (display title)
-            (newline)
-            (display (cdr datalist))
-            (newline)
-        )
-        (define (print-datalist-table table title)
-            (for-each 
-                (lambda (datalist) 
-                    (print-single-datalist datalist title))
-                table
-            )
-        )
-        
+    (define (allocate-register-5.12 name)        
+      (set! assign-datalist-table                                             ; <---- new: keep track of data sources for each register's (assign)'s
+            (cons                                                             ; no duplicate checking - original regsim will crash on that anyway
+              (list name (make-empty-datalist name))
+              assign-datalist-table))                
+      ((machine-regsim 'allocate-register) name))
+    
+    (define (print-datalists)                                         ; <---- new procedures
+    
         (print-single-datalist entry-datalist "Registers used by (goto)")
         (print-single-datalist save-datalist "Registers used by (save)")
         (print-single-datalist restore-datalist "Registers used by (restore)")
         (print-datalist-table assign-datalist-table "Assignments")
         ;(print-datalist-table instruction-datalist-table "Instructions")   ; toggle this one - it's the wordiest (still don't know how to scroll in MIT Scheme on Windows, and 88% through the book, i ain't learning now...)
-        
+    
         ; denser version
         ;(for-each
         ;    (lambda (datalist) (newline) (display datalist))
         ;    instruction-datalist-table) ; otherwise it's just too cluttered
-      )
+    )
       
-      ; single-datalist functions
-      (define (add-to-entry-datalist! register-name)
-        (add-to-datalist! register-name entry-datalist))
-      (define (add-to-save-datalist! register-name)
-        (add-to-datalist! register-name save-datalist))
-      (define (add-to-restore-datalist! register-name)
-        (add-to-datalist! register-name restore-datalist))
-      (define (is-in-datalist? datum datalist)
-        (cond
-            ((symbol? datum) (memq datum (cdr datalist)))               ; (append!) doesn't like empty lists?!
-            ((list? datum) (member datum (cdr datalist)))
-            (else (error "Unknown data type -- IS-IN-DATALIST?" datum))
-        )
+    ; single-datalist functions
+    (define (add-to-entry-datalist! register-name)
+      (add-to-datalist! register-name entry-datalist))
+    (define (add-to-save-datalist! register-name)
+      (add-to-datalist! register-name save-datalist))
+    (define (add-to-restore-datalist! register-name)
+      (add-to-datalist! register-name restore-datalist))
+
+    ; datalist table functions
+    (define (add-to-assign-datalists! register-name value-exp)
+      (let ((datalist (get-datalist-from-table register-name assign-datalist-table)))
+          (add-to-datalist! value-exp datalist)
       )
-      (define (add-to-datalist! datum datalist)
-        (if (not (is-in-datalist? datum datalist))
-            
-            ;(set! datalist (append datalist (list datum))) ; won't work - because it's only modifying the local pointer
-            ;(set-cdr! datalist (append (list datum) '())) ; doesn't work either - you have to set-cdr! for the LAST-PAIR
-            (append! datalist (list datum)) ; fails for general instructions
-            
-            
-            
-        )
-        'done
-      )            
-      
-      ; datalist table functions. figuring out my data structures was 90% of the battle
-      (define (get-datalist-from-table name table)
-        (let ((datalist (assoc name table)))
-            (if datalist
-                datalist
-                (error "Datalist not found -- GET-DATALIST-FROM-TABLE" name table)
-            )
-        )
+    )      
+    (define (add-to-instruction-datalists! instruction-type expr)
+      (let ((datalist (get-datalist-from-table instruction-type instruction-datalist-table)))
+          (add-to-datalist! expr datalist)    ; oh, i had a brain fart bug here
       )
-      
-      (define (add-to-assign-datalists! register-name value-exp)
-        (let ((datalist (get-datalist-from-table register-name assign-datalist-table)))
-            (add-to-datalist! value-exp datalist)
-        )
-      )      
-      (define (add-to-instruction-datalists! instruction-type expr)
-        ;(display instruction-type)(newline)
-        ;(display expr)(newline)(newline)
-        (let ((datalist (get-datalist-from-table instruction-type instruction-datalist-table)))
-            (add-to-datalist! expr datalist)    ; oh, i had a brain fart bug here
-        )
-      )      
+    )      
       
       
       
