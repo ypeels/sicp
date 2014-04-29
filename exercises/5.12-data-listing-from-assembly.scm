@@ -130,8 +130,9 @@
         (print-single-datalist save-datalist "Registers used by (save)")
         (print-single-datalist restore-datalist "Registers used by (restore)")
         (print-datalist-table assign-datalist-table "Assignments")
-        ;(display assign-datalist-table)
-        ;(print-datalist-table instruction-datalist-table "Instructions")   ; toggle this one - it's the wordiest (still don't know how to scroll in MIT Scheme on Windows, and 88% through the book, i ain't learning now...)
+        (print-datalist-table instruction-datalist-table "Instructions")   ; toggle this one - it's the wordiest (still don't know how to scroll in MIT Scheme on Windows, and 88% through the book, i ain't learning now...)
+        
+        ; denser version
         ;(for-each
         ;    (lambda (datalist) (newline) (display datalist))
         ;    instruction-datalist-table) ; otherwise it's just too cluttered
@@ -163,11 +164,9 @@
       (define (add-to-datalist! datum datalist)
         (if (not (is-in-datalist? datum datalist))
             
-            ;(set! datalist (append datalist (list datum))) ; fails always - because it's only modifying the local pointer
-            (append! datalist (list datum)) ; fails for general instructions
-            
-            ; no, this ain't gonna work either - it's friggin equivalent... the problem is it's modifying the SECOND list too..?
-            ;(set-cdr! datalist (append (list datum) '()))
+            ;(set! datalist (append datalist (list datum))) ; won't work - because it's only modifying the local pointer
+            ;(append! datalist (list datum)) ; fails for general instructions
+            (set-cdr! datalist (append (list datum) '())) ; works ok too
             
             
         )
@@ -319,4 +318,68 @@
 
 ; test new functionality
 (fib-machine 'print-datalists)
+
+; ;;; Results - cf. p. 497
+; Registers used by goto
+; continue
+; 
+; Registers used by save
+; continue
+; n
+; val
+; 
+; Registers used by restore (in order of appearance)
+; n
+; val
+; continue
+; 
+; Values for register continue
+; (label fib-done)
+; (label afterfib-n-1)
+; (label afterfib-n-2)
+; 
+; Values for register val
+; ((op +) (reg val) (reg n))
+; (reg n)
+; 
+; Values for register n
+; ((op -) (reg n) (const 1))
+; ((op -) (reg n) (const 2))
+; (reg val)
+; 
+; Assign instructions 
+; continue (label fib-done)
+; continue (label afterfib-n-1)
+; n (op -) (reg n) (const 1)
+; n (op -) (reg n) (const 2)
+; continue (label afterfib-n-2)
+; n (reg val)
+; val (op +) (reg val) (reg n)
+; val (reg n)
+; 
+; Branch instructions
+; label immediate-answer
+; 
+; Goto instructions
+; label fib-loop
+; reg continue
+; 
+; Perform instructions: none
+; 
+; Restore instructions
+; n
+; val
+; continue
+; 
+; Save instructions
+; continue
+; n
+; val
+; 
+; Test instructions
+; (op <) (reg n) (const 2)
+
+
+
+
 
