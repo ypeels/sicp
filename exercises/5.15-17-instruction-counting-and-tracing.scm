@@ -116,3 +116,60 @@
         (advance-pc pc)
     )
 )
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Exercise 5.17: instruction tracing that prints labels too
+
+; "You will have to make the simulator retain the necessary label information. "
+    ; OR, i could just rescan the label list at each instruction?
+        ; not QUITE in the "assembler" spirit, where everything is done at assembly time
+        
+        
+; how about scanning at assembly time, and binding the label text into the execution procedure??
+    ; i don't really see what this has to do with instruction counting...
+        ; oh, i see, i guess i was supposed to implement that in (make-execution-procedure) too?
+        
+        
+; "inverse" of (lookup-label), at the same level of abstraction (i.e., raw table manipulation...)
+(define (labels-for-instruction inst labels)
+    (cond
+        ((null? labels)
+            '())
+        ((eq? inst (cdar labels)) ; damn you scheme (impenetrable error message for cadr)
+            (cons (caar labels) (labels-for-instruction inst (cdr labels))))
+        (else
+            (labels-for-instruction inst (cdr labels)))
+    )
+)
+            
+        
+        
+(define (make-make-execution-procedure-5.17 old-proc)
+
+    (define (print-all-labels label-list)
+        (if (null? label-list)
+            'done
+            (begin
+                (display "Label: ")
+                (display (car label-list))
+                (newline)
+                (print-all-labels (cdr label-list))
+            )
+        )
+    )
+
+    (lambda (inst labels machine pc flag stack ops)
+        (let (  (proc (old-proc inst labels machine pc flag stack ops))     ; no new special forms 
+                (inst-labels (labels-for-instruction inst labels))          ; but scan the label list at assembly time
+                )                                                               ; inefficient! scans the ENTIRE list each time...
+
+            (lambda ()            
+                (print-all-labels inst-labels)
+                (proc)            
+            )        
+        )
+        
+    )
+)

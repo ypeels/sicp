@@ -14,6 +14,7 @@
 
 ;(define make-execution-procedure-regsim make-execution-procedure) (define make-execution-procedure make-execution-procedure-5.16)
 (define make-execution-procedure (make-make-execution-procedure-5.16 make-execution-procedure))
+(define make-execution-procedure (make-make-execution-procedure-5.17 make-execution-procedure))
 
 ; regression test
 (load "5.06-fibonacci-extra-push-pop.scm")
