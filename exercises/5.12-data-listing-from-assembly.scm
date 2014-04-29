@@ -131,10 +131,10 @@
         (print-single-datalist restore-datalist "Registers used by (restore)")
         (print-datalist-table assign-datalist-table "Assignments")
         ;(display assign-datalist-table)
-        ;(print-datalist-table instruction-datalist-table "Instructions")
-        (for-each
-            (lambda (datalist) (newline) (display datalist))
-            instruction-datalist-table) ; otherwise it's just too cluttered
+        ;(print-datalist-table instruction-datalist-table "Instructions")   ; toggle this one - it's the wordiest (still don't know how to scroll in MIT Scheme on Windows, and 88% through the book, i ain't learning now...)
+        ;(for-each
+        ;    (lambda (datalist) (newline) (display datalist))
+        ;    instruction-datalist-table) ; otherwise it's just too cluttered
             
       
         ;(display "\n\nRegisters used by (goto)\n")
@@ -164,8 +164,10 @@
         (if (not (is-in-datalist? datum datalist))
             
             ;(set! datalist (append datalist (list datum))) ; fails always - because it's only modifying the local pointer
-            ;(append! datalist (list datum)) ; fails for general instructions
-            (set-cdr! datalist (append (list datum) '()))
+            (append! datalist (list datum)) ; fails for general instructions
+            
+            ; no, this ain't gonna work either - it's friggin equivalent... the problem is it's modifying the SECOND list too..?
+            ;(set-cdr! datalist (append (list datum) '()))
             
             
         )
@@ -191,7 +193,7 @@
         ;(display instruction-type)(newline)
         ;(display expr)(newline)(newline)
         (let ((datalist (get-datalist-from-table instruction-type instruction-datalist-table)))
-            (add-to-datalist! instruction-type expr)
+            (add-to-datalist! expr datalist)    ; oh, i had a brain fart bug here
         )
       )      
       
@@ -257,7 +259,9 @@
       
 ; modified for case d
 (define (make-assign-5.12 inst machine labels operations pc)   
+  ;(display "\nbefore: ") (display inst) (newline)
   ((machine 'log-assign) (assign-reg-name inst) (assign-value-exp inst))
+  ;(display "\nafter: ") (display inst) (newline)
   (let ((target
          (get-register machine (assign-reg-name inst)))             
         (value-exp (assign-value-exp inst)))                        
@@ -274,8 +278,9 @@
 ; modified for case a
 (define (make-execution-procedure-5.12 inst labels machine         
                                   pc flag stack ops)  
-  ;((machine 'log-instruction) (car inst) (cdr inst))                    ; <---- new logging code (1 line)
-  ;(display (car inst)) (newline)
+  ;(display "\nbefore: ") (display inst) (newline)
+  ((machine 'log-instruction) (car inst) (cdr inst))                    ; <---- new logging code (1 line)
+  ;(display "\nafter: ") (display inst) (newline)
   (cond ((eq? (car inst) 'assign)                             
          (make-assign inst machine labels ops pc))
         ((eq? (car inst) 'test)
