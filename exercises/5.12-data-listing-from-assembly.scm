@@ -77,18 +77,18 @@
         ; 
         (dataset-table                                     ; cf. operation and register tables, which were initialized similarly
             (list
-                (cons 'assign (make-empty-dataset 'assign))
-                (cons 'branch (make-empty-dataset 'branch))
-                (cons 'goto (make-empty-dataset 'goto))
-                (cons 'perform (make-empty-dataset 'perform))
-                (cons 'restore (make-empty-dataset 'restore))
-                (cons 'save (make-empty-dataset 'save))
-                (cons 'test (make-empty-dataset 'test))
+                (list 'assign (make-empty-dataset 'assign))
+                (list 'branch (make-empty-dataset 'branch))
+                (list 'goto (make-empty-dataset 'goto))
+                (list 'perform (make-empty-dataset 'perform))
+                (list 'restore (make-empty-dataset 'restore))
+                (list 'save (make-empty-dataset 'save))
+                (list 'test (make-empty-dataset 'test))
                 
                 ; previously separate 1-d sets
-                (cons 'goto-registers (make-empty-dataset 'goto-registers))
-                (cons 'save-registers (make-empty-dataset 'save-registers))
-                (cons 'restore-registers (make-empty-dataset 'restore-registers))))
+                (list 'goto-registers (make-empty-dataset 'goto-registers))
+                (list 'save-registers (make-empty-dataset 'save-registers))
+                (list 'restore-registers (make-empty-dataset 'restore-registers))))
               
         ; register names are determined by the user, so these should be stored separately
             ; Sure, it'd take one sick cookie to name a register 'goto',
@@ -96,8 +96,8 @@
             ; Also, a user could technically manipulate pc and flag directly
         (assign-dataset-table
             (list
-                (cons 'pc (make-empty-dataset 'pc))
-                (cons 'flag (make-empty-dataset 'flag)))))
+                (list 'pc (make-empty-dataset 'pc))
+                (list 'flag (make-empty-dataset 'flag)))))
         
     (define (allocate-register-5.12 name)        
       (set! assign-dataset-table                                             ; <---- new: keep track of data sources for each register's (assign)'s
@@ -106,36 +106,40 @@
               assign-dataset-table))                
       ((machine-regsim 'allocate-register) name))
       
-    (define (lookup-dataset name table)
-        (let ((dataset (assoc name table)))
-            (if dataset
-                dataset ; NOT cadr, since I used cons instead of 
+    (define (lookup-dataset name)
+        (lookup-dataset-in-table name dataset-table))
+    (define (lookup-assign-dataset name)
+        (lookup-dataset-in-table name assign-dataset-table))      
+      
+    (define (lookup-dataset-in-table name table)
+        (let ((val (assoc name table)))
+            (if val
+                (cadr val)
                 (error "dataset not found -- GET-DATASET-FROM-TABLE" name table))))
       
     
     (define (add-to-instruction-datasets! instruction-type expr)
-      (let ((dataset (lookup-dataset instruction-type dataset-table)))
+      (let ((dataset (lookup-dataset instruction-type)))
           (add-to-dataset! expr dataset))) 
 
     (define (add-to-entry-dataset! register-name)
       (add-to-dataset! 
         register-name 
-        (lookup-dataset 'goto-registers dataset-table)))
+        (lookup-dataset 'goto-registers)))
       
     (define (add-to-save-dataset! register-name)
       (add-to-dataset! 
         register-name 
-        (lookup-dataset 'save-registers dataset-table)))
+        (lookup-dataset 'save-registers)))
       
     (define (add-to-restore-dataset! register-name)
       (add-to-dataset! 
         register-name 
-        (lookup-dataset 'restore-registers dataset-table)))
-        
+        (lookup-dataset 'restore-registers)))        
 
     ; assignments go into a different table
     (define (add-to-assign-datasets! register-name value-exp)
-      (let ((dataset (lookup-dataset register-name assign-dataset-table)))
+      (let ((dataset (lookup-assign-dataset register-name)))
           (add-to-dataset! value-exp dataset)))    
 
     ; for displaying results
