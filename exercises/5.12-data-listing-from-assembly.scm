@@ -47,35 +47,25 @@
     (list (string->symbol (string-append                                               
         "*" (symbol->string sym) "*"))))
 
-
-    
-
-
 (define (is-in-dataset? datum dataset)
     (cond
         ((symbol? datum) (memq datum (cdr dataset)))   ; first entry is a dummy header
         ((list? datum) (member datum (cdr dataset)))
         (else (error "Unknown data type -- IS-IN-dataset?" datum))))
         
-(define (add-to-dataset! datum dataset)
+(define (add-to-dataset! datum dataset) 
+    (adjoin-to-dataset! datum dataset))
+
+(define (adjoin-to-dataset! datum dataset)
     (if (not (is-in-dataset? datum dataset))
-        (append! dataset (list datum))))            
-
-; dataset table functions. figuring out my data structures was 90% of the battle
+        (append! dataset (list datum)))) ; ugly, but it gets the job done     
 
 
 
-    
-
-
-    
-; new data structures for logging
-; new interface function to dump logs
+; implemented as a "facade" in front of the old machine
 (define (make-new-machine-5.12)             
-  (let ((machine-regsim (make-new-machine-regsim))                      ; "base object" (or the delegate behind the facade)
-        
-        ; 
-        (dataset-table                                     ; cf. operation and register tables, which were initialized similarly
+  (let ((machine-regsim (make-new-machine-regsim)) ; "base object" or "delegate" 
+        (dataset-table                                          
             (list
                 (list 'assign (make-empty-dataset 'assign))
                 (list 'branch (make-empty-dataset 'branch))
@@ -99,53 +89,30 @@
                 (list 'pc (make-empty-dataset 'pc))
                 (list 'flag (make-empty-dataset 'flag)))))
         
+    ; "public procedures"
     (define (allocate-register-5.12 name)        
-      (set! assign-dataset-table                                             ; <---- new: keep track of data sources for each register's (assign)'s
-            (cons                                                             ; no duplicate checking - original regsim will crash on that anyway
+      (set! assign-dataset-table
+            (cons  ; no duplicate checking - original regsim will crash on that anyway
               (list name (make-empty-dataset name))
               assign-dataset-table))                
       ((machine-regsim 'allocate-register) name))
       
     (define (lookup-dataset name)
         (lookup-dataset-in-table name dataset-table))
+        
     (define (lookup-assign-dataset name)
-        (lookup-dataset-in-table name assign-dataset-table))      
+        (lookup-dataset-in-table name assign-dataset-table))   
+
+    (define (print-all-datasets)
+        (print-dataset-table dataset-table "Instructions and registers used")
+        (print-dataset-table assign-dataset-table "Assignments"))      
       
+    ; "private procedures" (cannot be invoked from outside the object) 
     (define (lookup-dataset-in-table name table)
         (let ((val (assoc name table)))
             (if val
                 (cadr val)
-                (error "dataset not found -- GET-DATASET-FROM-TABLE" name table))))
-      
-    
-    (define (add-to-instruction-datasets! instruction-type expr)
-      (let ((dataset (lookup-dataset instruction-type)))
-          (add-to-dataset! expr dataset))) 
-
-    (define (add-to-entry-dataset! register-name)
-      (add-to-dataset! 
-        register-name 
-        (lookup-dataset 'goto-registers)))
-      
-    (define (add-to-save-dataset! register-name)
-      (add-to-dataset! 
-        register-name 
-        (lookup-dataset 'save-registers)))
-      
-    (define (add-to-restore-dataset! register-name)
-      (add-to-dataset! 
-        register-name 
-        (lookup-dataset 'restore-registers)))        
-
-    ; assignments go into a different table
-    (define (add-to-assign-datasets! register-name value-exp)
-      (let ((dataset (lookup-assign-dataset register-name)))
-          (add-to-dataset! value-exp dataset)))    
-
-    ; for displaying results
-    (define (print-all-datasets)
-        (print-dataset-table dataset-table "Instructions and registers used")
-        (print-dataset-table assign-dataset-table "Assignments"))
+                (error "dataset not found -- GET-DATASET-FROM-TABLE" name table))))      
         
     (define (print-dataset-table table title)
         (newline)
@@ -156,51 +123,51 @@
                 (display (cdr table-entry)) 
                 (newline))
             table))
-          
-          
-    
-     
       
-      
-      
+    ; expose public API
     (define (dispatch message)
       (cond               
-            ; one override
-            ((eq? message 'allocate-register) allocate-register-5.12)              
-            
-            ; new functions
-            ((eq? message 'print-all-datasets) (print-all-datasets))
-            ((eq? message 'log-entry) add-to-entry-dataset!)
-            ((eq? message 'log-save) add-to-save-dataset!)
-            ((eq? message 'log-restore) add-to-restore-dataset!)
-            ((eq? message 'log-assign) add-to-assign-datasets!)
-            ((eq? message 'log-instruction) add-to-instruction-datasets!)
-            (else (machine-regsim message))))                         ; punt everything else to "base class" / delegate - INCLUDING error handling
-    dispatch))      
+        ; one override
+        ((eq? message 'allocate-register) allocate-register-5.12)              
 
-(define (make-goto-5.12 inst machine labels pc)                         ; modified for case b.
-    (let ((dest (goto-dest inst)))
+        ; new messages
+        ((eq? message 'print-all-datasets) (print-all-datasets))
+        ((eq? message 'lookup-dataset) lookup-dataset)
+        ((eq? message 'lookup-assign-dataset) lookup-assign-dataset)
+
+        ; punt everything else to "base class" / delegate - INCLUDING error handling
+        (else (machine-regsim message))))                         
+    dispatch))   
+
+    
+(define (make-execution-procedure-5.12 inst labels machine pc flag stack ops)  
+    (let ((dataset ((machine 'lookup-dataset) (car inst))))
+        (adjoin-to-dataset! (cdr inst) dataset))    
+    (make-execution-procedure-regsim inst labels machine pc flag stack ops))    
+
+(define (make-goto-5.12 inst machine labels pc) 
+    (let ((dest (goto-dest inst)))  ; duplicated 2 lines of supporting logic
         (if (register-exp? dest)
-            ((machine 'log-entry) (register-exp-reg dest))))            ; <---- new logging code (1 new line, plus supporting logic)
-    (make-goto-regsim inst machine labels pc))
+            (let ((dataset ((machine 'lookup-dataset) 'goto-registers)))
+                (adjoin-to-dataset! (register-exp-reg dest) dataset))))                 
+    (make-goto-regsim inst machine labels pc)) ; punt to ch5-regsim.scm
                        
-(define (make-save-5.12 inst machine stack pc)                          ; modified for case c
-    ((machine 'log-save) (stack-inst-reg-name inst))                    ; <---- new logging code (1 line)
+(define (make-save-5.12 inst machine stack pc)        
+    (let ((dataset ((machine 'lookup-dataset) 'save-registers)))
+        (adjoin-to-dataset! (stack-inst-reg-name inst) dataset))
     (make-save-regsim inst machine stack pc))
 
 (define (make-restore-5.12 inst machine stack pc)                       
-    ((machine 'log-restore) (stack-inst-reg-name inst))                 ; <---- new logging code (1 line)
+    (let ((dataset ((machine 'lookup-dataset) 'restore-registers)))
+        (adjoin-to-dataset! (stack-inst-reg-name inst) dataset))
     (make-restore-regsim inst machine stack pc))      
 
-(define (make-assign-5.12 inst machine labels operations pc)            ; modified for case d
-    ((machine 'log-assign) (assign-reg-name inst) (assign-value-exp inst))
+(define (make-assign-5.12 inst machine labels operations pc)    
+    (let ((dataset ((machine 'lookup-assign-dataset) (assign-reg-name inst))))
+        (adjoin-to-dataset! (assign-value-exp inst) dataset))
     (make-assign-regsim inst machine labels operations pc))        
 
-(define (make-execution-procedure-5.12 inst labels machine              ; modified for case a
-                                  pc flag stack ops)  
-    ((machine 'log-instruction) (car inst) (cdr inst))                  ; <---- new logging code (1 line)
-    (make-execution-procedure-regsim inst labels machine
-        pc flag stack ops))
+
    
       
 ; -------------------------------------------------------------------------
@@ -209,13 +176,24 @@
 (load "ch5-regsim.scm")
 (load "5.06-fibonacci-extra-push-pop.scm")
 
-; overrides - but saving the "base class procedure" for reuse/punting
-(define make-new-machine-regsim make-new-machine) (define make-new-machine make-new-machine-5.12) 
-(define make-goto-regsim make-goto) (define make-goto make-goto-5.12)
-(define make-save-regsim make-save) (define make-save make-save-5.12)
-(define make-restore-regsim make-restore) (define make-restore make-restore-5.12)
-(define make-assign-regsim make-assign) (define make-assign make-assign-5.12)
-(define make-execution-procedure-regsim make-execution-procedure) (define make-execution-procedure make-execution-procedure-5.12)
+; make the overrides official.
+(define make-new-machine-regsim make-new-machine) 
+(define make-new-machine make-new-machine-5.12) 
+
+(define make-goto-regsim make-goto) 
+(define make-goto make-goto-5.12)
+
+(define make-save-regsim make-save) 
+(define make-save make-save-5.12)
+
+(define make-restore-regsim make-restore) 
+(define make-restore make-restore-5.12)
+
+(define make-assign-regsim make-assign) 
+(define make-assign make-assign-5.12)
+
+(define make-execution-procedure-regsim make-execution-procedure) 
+(define make-execution-procedure make-execution-procedure-5.12)
 
 (define fib-machine (make-fib-machine-5.6))
 
