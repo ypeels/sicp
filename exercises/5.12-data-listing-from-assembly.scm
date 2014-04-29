@@ -32,6 +32,8 @@
     ; could create a gigantic merged 2-d table, but there MIGHT be name collisions from register names
     ; should probably create 3 1-d tables and 2 2-d tables (start by testing the former)
     
+    
+
 
     
 ; new data structures for logging
@@ -50,10 +52,11 @@
     )
 
                                             
-  (let ((pc (make-register 'pc))                                       
-        (flag (make-register 'flag))                                   
-        (stack (make-stack))
-        (the-instruction-sequence '())
+  (let ((machine-regsim (make-new-machine-regsim))                      ; nested delegate machine 
+        ;(pc (make-register 'pc))                                       
+        ;(flag (make-register 'flag))                                   
+        ;(stack (make-stack))
+        ;(the-instruction-sequence '())
         (entry-datalist (make-empty-datalist 'entry))                            ; <---- new data structures
         (save-datalist (make-empty-datalist 'save))        
         (restore-datalist (make-empty-datalist 'restore))
@@ -75,41 +78,18 @@
             )
         )
        )
-    (let ((the-ops                                                     
-           (list (list 'initialize-stack
-                       (lambda () (stack 'initialize)))                
-                 ;;**next for monitored stack (as in section 5.2.4)
-                 ;;  -- comment out if not wanted
-                 (list 'print-stack-statistics                         
-                       (lambda () (stack 'print-statistics)))))
-          (register-table                                              
-           (list (list 'pc pc) (list 'flag flag))))                    
-      (define (allocate-register name)                                 
-        (if (assoc name register-table)                                
-            (error "Multiply defined register: " name)
-            (begin
-                (set! assign-datalist-table                                     ; <---- new: add new register to register-datalist-table
-                      (cons
-                        (list name (make-empty-datalist name))
-                        assign-datalist-table))
-                (set! register-table
-                      (cons (list name (make-register name))
-                            register-table));)
-            )
-        )
-        'register-allocated)
-      (define (lookup-register name)                                   
-        (let ((val (assoc name register-table)))                       
-          (if val                                                      
-              (cadr val)
-              (error "Unknown register:" name))))
-      (define (execute)
-        (let ((insts (get-contents pc)))                               
-          (if (null? insts)
-              'done
-              (begin                                                   
-                ((instruction-execution-proc (car insts)))             
-                (execute)))))        
+                  
+
+        
+      (define (allocate-register-5.12 name)        
+        (set! assign-datalist-table                                             ; <---- new: keep track of data sources for each register's (assign)'s
+              (cons                                                             ; no duplicate checking - original regsim will crash on that anyway
+                (list name (make-empty-datalist name))
+                assign-datalist-table))                
+        ((machine-regsim 'allocate-register) name)
+      )
+        
+      
       (define (print-datalists)                                         ; <---- new procedures
         (define (print-single-datalist datalist title)
             (newline)
@@ -136,15 +116,6 @@
         ;(for-each
         ;    (lambda (datalist) (newline) (display datalist))
         ;    instruction-datalist-table) ; otherwise it's just too cluttered
-            
-      
-        ;(display "\n\nRegisters used by (goto)\n")
-        ;(display (cdr entry-datalist))
-        ;(display "\n\nRegisters used by (save)\n")
-        ;(display (cdr save-datalist))
-        ;(display "\n\nRegisters used by (restore)\n")
-        ;(display (cdr restore-datalist))
-        ;(display "\n\nRegister data sources\n")
       )
       
       ; single-datalist functions
@@ -200,27 +171,19 @@
       
       
       (define (dispatch message)
-        (cond ((eq? message 'start)                                    
-               (set-contents! pc the-instruction-sequence)
-               (execute))
-              ((eq? message 'install-instruction-sequence)             
-               (lambda (seq) (set! the-instruction-sequence seq)))
-              ((eq? message 'allocate-register) allocate-register)     
-              ((eq? message 'get-register) lookup-register)            
-              ((eq? message 'install-operations)                       
-               (lambda (ops) (set! the-ops (append the-ops ops))))
-              ((eq? message 'stack) stack)                             
-              ((eq? message 'operations) the-ops)                      
+        (cond               
+              ; one override
+              ((eq? message 'allocate-register) allocate-register-5.12)              
               
+              ; new functions
               ((eq? message 'print-datalists) (print-datalists))        ; <---- new messages to provide access to the new information
               ((eq? message 'log-entry) add-to-entry-datalist!)
               ((eq? message 'log-save) add-to-save-datalist!)
               ((eq? message 'log-restore) add-to-restore-datalist!)
               ((eq? message 'log-assign) add-to-assign-datalists!)
               ((eq? message 'log-instruction) add-to-instruction-datalists!)
-              
-              (else (error "Unknown request -- MACHINE" message))))
-      dispatch)))      
+              (else (machine-regsim message))))                         ; punt everything else to "base class" / delegate - INCLUDING error handling
+      dispatch))      
 
 (define (make-goto-5.12 inst machine labels pc)                         ; modified for case b.
     (let ((dest (goto-dest inst)))
@@ -253,8 +216,8 @@
 (load "ch5-regsim.scm")
 (load "5.06-fibonacci-extra-push-pop.scm")
 
-; overrides
-(define make-new-machine make-new-machine-5.12) 
+; overrides - but saving the "base class procedure" for reuse/punting
+(define make-new-machine-regsim make-new-machine) (define make-new-machine make-new-machine-5.12) 
 (define make-goto-regsim make-goto) (define make-goto make-goto-5.12)
 (define make-save-regsim make-save) (define make-save make-save-5.12)
 (define make-restore-regsim make-restore) (define make-restore make-restore-5.12)
