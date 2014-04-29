@@ -42,22 +42,14 @@
 
 
 ; not init to '() so that (append!) will work
+; fwiw, the headers make the sets somewhat self-documenting if printed outside a table...
 (define (make-empty-dataset sym)                                   
     (list (string->symbol (string-append                                               
-        "*" (symbol->string sym) "-dataset*"))))
+        "*" (symbol->string sym) "*"))))
 
-(define (print-single-dataset dataset title)
-    (newline)
-    (display title)
-    (newline)
-    (display (cdr dataset))
-    (newline))
+
     
-(define (print-dataset-table table title)
-    (for-each 
-        (lambda (dataset) 
-            (print-single-dataset dataset title))
-        table))
+
 
 (define (is-in-dataset? datum dataset)
     (cond
@@ -70,11 +62,7 @@
         (append! dataset (list datum))))            
 
 ; dataset table functions. figuring out my data structures was 90% of the battle
-(define (get-dataset-from-table name table)
-    (let ((dataset (assoc name table)))
-        (if dataset
-            dataset
-            (error "dataset not found -- GET-dataset-FROM-TABLE" name table))))
+
 
 
     
@@ -84,11 +72,10 @@
 ; new data structures for logging
 ; new interface function to dump logs
 (define (make-new-machine-5.12)             
-  (let ((machine-regsim (make-new-machine-regsim))                      ; nested delegate machine 
-        (entry-dataset (make-empty-dataset 'entry))                            ; <---- new data structures
-        (save-dataset (make-empty-dataset 'save))        
-        (restore-dataset (make-empty-dataset 'restore))
-        (instruction-dataset-table                                     ; cf. operation and register tables, which were initialized similarly
+  (let ((machine-regsim (make-new-machine-regsim))                      ; "base object" (or the delegate behind the facade)
+        
+        ; 
+        (dataset-table                                     ; cf. operation and register tables, which were initialized similarly
             (list
                 (cons 'assign (make-empty-dataset 'assign))
                 (cons 'branch (make-empty-dataset 'branch))
@@ -96,8 +83,18 @@
                 (cons 'perform (make-empty-dataset 'perform))
                 (cons 'restore (make-empty-dataset 'restore))
                 (cons 'save (make-empty-dataset 'save))
-                (cons 'test (make-empty-dataset 'test))))
-        (assign-dataset-table                                                  ; could also put in the next let... but this keeps all datasets together
+                (cons 'test (make-empty-dataset 'test))
+                
+                ; previously separate 1-d sets
+                (cons 'goto-registers (make-empty-dataset 'goto-registers))
+                (cons 'save-registers (make-empty-dataset 'save-registers))
+                (cons 'restore-registers (make-empty-dataset 'restore-registers))))
+              
+        ; register names are determined by the user, so these should be stored separately
+            ; Sure, it'd take one sick cookie to name a register 'goto',
+            ; But a register named 'test' is not inconceivable.
+            ; Also, a user could technically manipulate pc and flag directly
+        (assign-dataset-table
             (list
                 (cons 'pc (make-empty-dataset 'pc))
                 (cons 'flag (make-empty-dataset 'flag)))))
@@ -108,35 +105,57 @@
               (list name (make-empty-dataset name))
               assign-dataset-table))                
       ((machine-regsim 'allocate-register) name))
-    
-    (define (print-datasets)
-    
-        (print-single-dataset entry-dataset "Registers used by (goto)")
-        (print-single-dataset save-dataset "Registers used by (save)")
-        (print-single-dataset restore-dataset "Registers used by (restore)")
-        (print-dataset-table assign-dataset-table "Assignments")
-        ;(print-dataset-table instruction-dataset-table "Instructions")   ; toggle this one - it's the wordiest (still don't know how to scroll in MIT Scheme on Windows, and 88% through the book, i ain't learning now...)
-    )
       
-    ; single dataset functions
+    (define (lookup-dataset name table)
+        (let ((dataset (assoc name table)))
+            (if dataset
+                dataset ; NOT cadr, since I used cons instead of 
+                (error "dataset not found -- GET-DATASET-FROM-TABLE" name table))))
+      
+    
+    (define (add-to-instruction-datasets! instruction-type expr)
+      (let ((dataset (lookup-dataset instruction-type dataset-table)))
+          (add-to-dataset! expr dataset))) 
+
     (define (add-to-entry-dataset! register-name)
-      (add-to-dataset! register-name entry-dataset))
+      (add-to-dataset! 
+        register-name 
+        (lookup-dataset 'goto-registers dataset-table)))
       
     (define (add-to-save-dataset! register-name)
-      (add-to-dataset! register-name save-dataset))
+      (add-to-dataset! 
+        register-name 
+        (lookup-dataset 'save-registers dataset-table)))
       
     (define (add-to-restore-dataset! register-name)
-      (add-to-dataset! register-name restore-dataset))
-      
+      (add-to-dataset! 
+        register-name 
+        (lookup-dataset 'restore-registers dataset-table)))
+        
 
-    ; dataset table functions
+    ; assignments go into a different table
     (define (add-to-assign-datasets! register-name value-exp)
-      (let ((dataset (get-dataset-from-table register-name assign-dataset-table)))
-          (add-to-dataset! value-exp dataset)))      
+      (let ((dataset (lookup-dataset register-name assign-dataset-table)))
+          (add-to-dataset! value-exp dataset)))    
+
+    ; for displaying results
+    (define (print-all-datasets)
+        (print-dataset-table dataset-table "Instructions and registers used")
+        (print-dataset-table assign-dataset-table "Assignments"))
+        
+    (define (print-dataset-table table title)
+        (newline)
+        (display title)
+        (newline)
+        (for-each 
+            (lambda (table-entry) 
+                (display (cdr table-entry)) 
+                (newline))
+            table))
           
-    (define (add-to-instruction-datasets! instruction-type expr)
-      (let ((dataset (get-dataset-from-table instruction-type instruction-dataset-table)))
-          (add-to-dataset! expr dataset)))      
+          
+    
+     
       
       
       
@@ -146,7 +165,7 @@
             ((eq? message 'allocate-register) allocate-register-5.12)              
             
             ; new functions
-            ((eq? message 'print-datasets) (print-datasets))        ; <---- new messages to provide access to the new information
+            ((eq? message 'print-all-datasets) (print-all-datasets))
             ((eq? message 'log-entry) add-to-entry-dataset!)
             ((eq? message 'log-save) add-to-save-dataset!)
             ((eq? message 'log-restore) add-to-restore-dataset!)
@@ -200,7 +219,7 @@
 (test-5.6-long)
 
 ; test new functionality
-(fib-machine 'print-datasets)
+(fib-machine 'print-all-datasets)
 
 ; ;;; Results - cf. p. 497
 ; Registers used by goto
