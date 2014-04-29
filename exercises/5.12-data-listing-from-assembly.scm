@@ -35,56 +35,46 @@
     
     
 ; datalist functions moved outside of the machine, like registers
-(define (make-empty-datalist sym)                                   ; new helper function
-    (list                                                               ; not init to '() because of (append!) quirk...?
-        (string->symbol                                                 ; would set! + cons work better? meh
-            (string-append
-                "*"
-                (symbol->string sym)
-                "-datalist*"
-            )
-        )
-    )
-)
+; however, registers are themselves data-directed objects
+; by analogy, 
+    ; i think it would be cleanest if the lookup were done at the machine level, 
+    ; and then the (make) functions worked directly with datalists.
 
-(define (print-single-datalist datalist title)
+
+; not init to '() so that (append!) will work
+(define (make-empty-dataset sym)                                   
+    (list (string->symbol (string-append                                               
+        "*" (symbol->string sym) "-dataset*"))))
+
+(define (print-single-dataset dataset title)
     (newline)
     (display title)
     (newline)
-    (display (cdr datalist))
-    (newline)
-)
-(define (print-datalist-table table title)
+    (display (cdr dataset))
+    (newline))
+    
+(define (print-dataset-table table title)
     (for-each 
-        (lambda (datalist) 
-            (print-single-datalist datalist title))
-        table
-    )
-)
+        (lambda (dataset) 
+            (print-single-dataset dataset title))
+        table))
 
-(define (is-in-datalist? datum datalist)
+(define (is-in-dataset? datum dataset)
     (cond
-        ((symbol? datum) (memq datum (cdr datalist)))               ; (append!) doesn't like empty lists?!
-        ((list? datum) (member datum (cdr datalist)))
-        (else (error "Unknown data type -- IS-IN-DATALIST?" datum))
-    )
-)
-(define (add-to-datalist! datum datalist)
-    (if (not (is-in-datalist? datum datalist))
-        (append! datalist (list datum)) ; ugly, but gets the job done    
-    )
-    'done
-)            
+        ((symbol? datum) (memq datum (cdr dataset)))   ; first entry is a dummy header
+        ((list? datum) (member datum (cdr dataset)))
+        (else (error "Unknown data type -- IS-IN-dataset?" datum))))
+        
+(define (add-to-dataset! datum dataset)
+    (if (not (is-in-dataset? datum dataset))
+        (append! dataset (list datum))))            
 
-; datalist table functions. figuring out my data structures was 90% of the battle
-(define (get-datalist-from-table name table)
-    (let ((datalist (assoc name table)))
-        (if datalist
-            datalist
-            (error "Datalist not found -- GET-DATALIST-FROM-TABLE" name table)
-        )
-    )
-)
+; dataset table functions. figuring out my data structures was 90% of the battle
+(define (get-dataset-from-table name table)
+    (let ((dataset (assoc name table)))
+        (if dataset
+            dataset
+            (error "dataset not found -- GET-dataset-FROM-TABLE" name table))))
 
 
     
@@ -95,82 +85,75 @@
 ; new interface function to dump logs
 (define (make-new-machine-5.12)             
   (let ((machine-regsim (make-new-machine-regsim))                      ; nested delegate machine 
-        (entry-datalist (make-empty-datalist 'entry))                            ; <---- new data structures
-        (save-datalist (make-empty-datalist 'save))        
-        (restore-datalist (make-empty-datalist 'restore))
-        (instruction-datalist-table                                     ; cf. operation and register tables, which were initialized similarly
+        (entry-dataset (make-empty-dataset 'entry))                            ; <---- new data structures
+        (save-dataset (make-empty-dataset 'save))        
+        (restore-dataset (make-empty-dataset 'restore))
+        (instruction-dataset-table                                     ; cf. operation and register tables, which were initialized similarly
             (list
-                (cons 'assign (make-empty-datalist 'assign))
-                (cons 'branch (make-empty-datalist 'branch))
-                (cons 'goto (make-empty-datalist 'goto))
-                (cons 'perform (make-empty-datalist 'perform))
-                (cons 'restore (make-empty-datalist 'restore))
-                (cons 'save (make-empty-datalist 'save))
-                (cons 'test (make-empty-datalist 'test))))
-        (assign-datalist-table                                                  ; could also put in the next let... but this keeps all datalists together
+                (cons 'assign (make-empty-dataset 'assign))
+                (cons 'branch (make-empty-dataset 'branch))
+                (cons 'goto (make-empty-dataset 'goto))
+                (cons 'perform (make-empty-dataset 'perform))
+                (cons 'restore (make-empty-dataset 'restore))
+                (cons 'save (make-empty-dataset 'save))
+                (cons 'test (make-empty-dataset 'test))))
+        (assign-dataset-table                                                  ; could also put in the next let... but this keeps all datasets together
             (list
-                (cons 'pc (make-empty-datalist 'pc))
-                (cons 'flag (make-empty-datalist 'flag)))))
-                  
-
+                (cons 'pc (make-empty-dataset 'pc))
+                (cons 'flag (make-empty-dataset 'flag)))))
         
     (define (allocate-register-5.12 name)        
-      (set! assign-datalist-table                                             ; <---- new: keep track of data sources for each register's (assign)'s
+      (set! assign-dataset-table                                             ; <---- new: keep track of data sources for each register's (assign)'s
             (cons                                                             ; no duplicate checking - original regsim will crash on that anyway
-              (list name (make-empty-datalist name))
-              assign-datalist-table))                
+              (list name (make-empty-dataset name))
+              assign-dataset-table))                
       ((machine-regsim 'allocate-register) name))
     
-    (define (print-datalists)                                         ; <---- new procedures
+    (define (print-datasets)
     
-        (print-single-datalist entry-datalist "Registers used by (goto)")
-        (print-single-datalist save-datalist "Registers used by (save)")
-        (print-single-datalist restore-datalist "Registers used by (restore)")
-        (print-datalist-table assign-datalist-table "Assignments")
-        ;(print-datalist-table instruction-datalist-table "Instructions")   ; toggle this one - it's the wordiest (still don't know how to scroll in MIT Scheme on Windows, and 88% through the book, i ain't learning now...)
-    
-        ; denser version
-        ;(for-each
-        ;    (lambda (datalist) (newline) (display datalist))
-        ;    instruction-datalist-table) ; otherwise it's just too cluttered
+        (print-single-dataset entry-dataset "Registers used by (goto)")
+        (print-single-dataset save-dataset "Registers used by (save)")
+        (print-single-dataset restore-dataset "Registers used by (restore)")
+        (print-dataset-table assign-dataset-table "Assignments")
+        ;(print-dataset-table instruction-dataset-table "Instructions")   ; toggle this one - it's the wordiest (still don't know how to scroll in MIT Scheme on Windows, and 88% through the book, i ain't learning now...)
     )
       
-    ; single-datalist functions
-    (define (add-to-entry-datalist! register-name)
-      (add-to-datalist! register-name entry-datalist))
-    (define (add-to-save-datalist! register-name)
-      (add-to-datalist! register-name save-datalist))
-    (define (add-to-restore-datalist! register-name)
-      (add-to-datalist! register-name restore-datalist))
+    ; single dataset functions
+    (define (add-to-entry-dataset! register-name)
+      (add-to-dataset! register-name entry-dataset))
+      
+    (define (add-to-save-dataset! register-name)
+      (add-to-dataset! register-name save-dataset))
+      
+    (define (add-to-restore-dataset! register-name)
+      (add-to-dataset! register-name restore-dataset))
+      
 
-    ; datalist table functions
-    (define (add-to-assign-datalists! register-name value-exp)
-      (let ((datalist (get-datalist-from-table register-name assign-datalist-table)))
-          (add-to-datalist! value-exp datalist)
-      )
-    )      
-    (define (add-to-instruction-datalists! instruction-type expr)
-      (let ((datalist (get-datalist-from-table instruction-type instruction-datalist-table)))
-          (add-to-datalist! expr datalist)    ; oh, i had a brain fart bug here
-      )
-    )      
+    ; dataset table functions
+    (define (add-to-assign-datasets! register-name value-exp)
+      (let ((dataset (get-dataset-from-table register-name assign-dataset-table)))
+          (add-to-dataset! value-exp dataset)))      
+          
+    (define (add-to-instruction-datasets! instruction-type expr)
+      (let ((dataset (get-dataset-from-table instruction-type instruction-dataset-table)))
+          (add-to-dataset! expr dataset)))      
       
       
       
-      (define (dispatch message)
-        (cond               
-              ; one override
-              ((eq? message 'allocate-register) allocate-register-5.12)              
-              
-              ; new functions
-              ((eq? message 'print-datalists) (print-datalists))        ; <---- new messages to provide access to the new information
-              ((eq? message 'log-entry) add-to-entry-datalist!)
-              ((eq? message 'log-save) add-to-save-datalist!)
-              ((eq? message 'log-restore) add-to-restore-datalist!)
-              ((eq? message 'log-assign) add-to-assign-datalists!)
-              ((eq? message 'log-instruction) add-to-instruction-datalists!)
-              (else (machine-regsim message))))                         ; punt everything else to "base class" / delegate - INCLUDING error handling
-      dispatch))      
+    (define (dispatch message)
+      (cond               
+            ; one override
+            ((eq? message 'allocate-register) allocate-register-5.12)              
+            
+            ; new functions
+            ((eq? message 'print-datasets) (print-datasets))        ; <---- new messages to provide access to the new information
+            ((eq? message 'log-entry) add-to-entry-dataset!)
+            ((eq? message 'log-save) add-to-save-dataset!)
+            ((eq? message 'log-restore) add-to-restore-dataset!)
+            ((eq? message 'log-assign) add-to-assign-datasets!)
+            ((eq? message 'log-instruction) add-to-instruction-datasets!)
+            (else (machine-regsim message))))                         ; punt everything else to "base class" / delegate - INCLUDING error handling
+    dispatch))      
 
 (define (make-goto-5.12 inst machine labels pc)                         ; modified for case b.
     (let ((dest (goto-dest inst)))
@@ -217,7 +200,7 @@
 (test-5.6-long)
 
 ; test new functionality
-(fib-machine 'print-datalists)
+(fib-machine 'print-datasets)
 
 ; ;;; Results - cf. p. 497
 ; Registers used by goto
