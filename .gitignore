@@ -7,6 +7,7 @@ exercises/4.27-31-ch4-leval.scm
 exercises/ch4-ambeval.scm
 exercises/ch4-query.scm
 exercises/ch5-regsim.scm
+exercises/test.txt
 
 # wtf?
 .fuse_hidden*

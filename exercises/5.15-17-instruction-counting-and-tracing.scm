@@ -182,7 +182,22 @@
     ; unfortunately, i think this is CONCEPTUALLY flawed, because labels aren't initialized yet...?
     ; how about scanning the label list EVERY time
 (define (labels-for-instruction inst labels)
-    (display inst)
+
+    ; http://www.gnu.org/software/mit-scheme/documentation/mit-scheme-ref/File-Ports.html
+    (define file (open-output-file "test.txt" #t)) ; second argument is append
+
+    
+    ; good news: labels = (list (<label> (<instruction-text> . <xx>)) )
+        ; <xx> = either '(), or is initialized to an execution procedure
+        ; but either way, should be able to use pointer equality (eq?) to see if it's label printing time
+    (display (instruction-text inst) file ) 
+    ;(display (map (lambda (x) (car x)) labels) file) 
+    (if (not (null? labels)) (begin (display "\nLabel: " file) (display (car labels) file)))
+    ;(display (map (lambda (x) (cdar x)) labels)
+    (display "\n\n" file)
+    (close-all-open-files)
+    
+    
     (cond
         ((null? labels)
             '())
@@ -249,4 +264,8 @@
      insts)))
      
      
+; modify (execute)??
+; BUT there is another problem with this, and that is that the label list is only used internally and
+    ; THROWN AWAY after (assemble)
+
      
