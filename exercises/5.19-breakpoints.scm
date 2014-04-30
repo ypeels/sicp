@@ -52,12 +52,30 @@
             
         ; override - modified from regsim's (execute)
         (define (execute-5.19)
-          (let ((insts (get-contents pc)))                             
-            (if (null? insts)        
-                'done        
-                (begin                                                 
-                  ((instruction-execution-proc (car insts)))           
-                  (execute-5.19)))))  
+            (let ((insts (get-contents pc)))  
+                (cond
+                    ((null? insts)
+                        'done)
+                    ((have-breakpoint-at-location? insts) ; here's where my knowledge of the assembler's data structures should pay off
+                        (display 
+                            (label-and-offset-breakpoint 
+                                (breakpoint-at-location insts)
+                            )
+                        )
+                        (newline)
+                    )
+                    (else
+                        (begin     
+                            ((instruction-execution-proc (car insts)))           
+                            (execute-5.19)
+                        )
+                    ) 
+                )
+            )
+        )
+                      
+    
+
 
         
         
@@ -68,11 +86,11 @@
             (manipulate-breakpoint!
                 label
                 offset
-                (lambda (breakpoint) (not (have-breakpoint? breakpoint)))
-                (lambda (breakpoint)
+                (lambda (loc) (not (have-breakpoint-at-location? loc)))
+                (lambda (loc)
                     (set! 
                         the-breakpoint-list 
-                        (cons breakpoint the-breakpoint-list)
+                        (cons (make-breakpoint label offset loc) the-breakpoint-list)
                     )
                 )
                 "Duplicate breakpoint not set"
@@ -83,11 +101,14 @@
             (manipulate-breakpoint!
                 label
                 offset
-                have-breakpoint?
-                (lambda (breakpoint)
+                have-breakpoint-at-location?
+                (lambda (loc)
                     (set!
                         the-breakpoint-list
-                        (filter (lambda (x) (not (eq? x breakpoint))) the-breakpoint-list)
+                        (filter 
+                            (lambda (bp) (not (eq? loc (location-breakpoint bp))))
+                            the-breakpoint-list
+                        )
                     )
                 )
                 "Could not delete non-existent breakpoint"
@@ -98,12 +119,12 @@
         
         ; private procedures 
         (define (manipulate-breakpoint! label offset good? good-action bad-warning)
-            (let ((breakpoint (find-breakpoint-location label offset)))
+            (let ((breakpoint-location (find-breakpoint-location label offset)))
                 (cond
-                    ((null? breakpoint)
+                    ((null? breakpoint-location)
                         (error "Offset out of range" label offset))
-                    ((good? breakpoint)
-                        (good-action breakpoint))
+                    ((good? breakpoint-location)
+                        (good-action breakpoint-location))
                     (else
                         (display "WARNING - ")
                         (display bad-warning)
@@ -133,8 +154,24 @@
             (iter (lookup-label the-label-list label) offset)
         )
         
-        (define (have-breakpoint? breakpoint)
-            (memq breakpoint the-breakpoint-list))  
+        (define (make-breakpoint label offset location)
+            (list location label offset)) ; location is first entry so that (have-breakpoint?) can just use assoc
+            
+        (define (location-breakpoint breakpoint)
+            (car breakpoint))
+            
+        (define (label-and-offset-breakpoint breakpoint)
+            (list (cadr breakpoint) '+ (caddr breakpoint)))
+        
+        (define (breakpoint-at-location location)
+            (assoc location the-breakpoint-list)) ; inefficient, since it uses equal? instead of eq? - meh
+        
+        (define (have-breakpoint-at-location? location)
+            (breakpoint-at-location location))  ; exploit default value of assoc
+            
+
+            
+        
         
         
             
@@ -217,7 +254,8 @@
 ;(set-breakpoint fib-machine 'immediate-answer 0) (set-breakpoint fib-machine 'immediate-answer 0) ; warning: duplicate breakpoint not set
 ;(cancel-breakpoint fib-machine 'immediate-answer 0) ; warning: could not delete non-existent breakpoint
 (set-breakpoint fib-machine 'immediate-answer 0) ; i am here
-(cancel-breakpoint fib-machine 'immediate-answer 0)
+;(cancel-breakpoint fib-machine 'immediate-answer 0)
+
 
 
 
