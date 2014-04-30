@@ -132,6 +132,7 @@
         '(                                                
                (assign continue (label expt-done))         
              expt-loop  
+             expt-loop-extra-label
                (trace-off)                                  ; <------------ new                
                (test (op =) (reg n) (const 0))            
                (branch (label base-case))    
@@ -154,6 +155,7 @@
     (set-register-contents! recursive-expt-machine 'b 2)
     (set-register-contents! recursive-expt-machine 'n 5)
     (start recursive-expt-machine)
+    (recursive-expt-machine 'print-instruction-count)
     (display "\nAnd what is 2**5? ")
     (display (get-register-contents recursive-expt-machine 'val)) 
     ; seems to work
@@ -259,4 +261,6 @@
 )
 
 
+; meteorgan modifies the instruction data structure to add on an optional label at assembly time
+    ; this is probably more like what the textbook had in mind
      
