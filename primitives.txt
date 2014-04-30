@@ -22,6 +22,7 @@ Introduced in main text but not indicated as built-in*
 	symbol->string, string->symbol, number->string
 	footnote 81 DOES mention that these are primitives
 5.3.1 p. 534: (vector 1 2 3), say - they introduce (vector-ref) but NOT its constructor!
+	this also led me to (list-set!).
 
 *MAYBE their manuscript predates my current MIT Scheme version (9.1) by too much?
 
