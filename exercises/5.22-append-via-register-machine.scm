@@ -60,12 +60,11 @@
 
 
 ; assumes list1 is non-empty.
+    ; you could make a more robust version by also checking whether x is null, and if so, just set it to y
 (define (make-append!-machine) (make-machine
-    '(list1 list2 retval temp continue)
+    '(list1 list2 retval continue) ;temp)
     (list 
         (list 'null? null?)
-        ;(list 'cons cons)
-        ;(list 'car car)
         (list 'cdr cdr)
         (list 'set-cdr! set-cdr!)
     )
@@ -76,12 +75,16 @@
     '(
         (assign continue (label append!-done))
         (assign retval (reg list1))
-        (save list1)
-      append!-loop
-      
+        (save list1)    ; for matching pop at end of program
+        
+      append!-loop      
         ; (if (null? (cdr x))
-        (assign temp (op cdr) (reg list1))
-        (test (op null?) (reg temp))
+        ;(assign temp (op cdr) (reg list1))  ; is there a way to avoid using a trash register here??        
+        ;(test (op null?) (reg temp))
+        (save list1)
+        (assign list1 (op cdr) (reg list1))
+        (test (op null?) (reg list1))
+        (restore list1) ; ohhh just exploit the fact that only (test) and (branch) affect the flag register
         (branch (label glue-lists!))
         
         ; (last-pair (cdr x))))
@@ -92,7 +95,7 @@
         (perform (op set-cdr!) (reg list1) (reg list2))    
     
       append!-done
-        (restore list1) ; not really needed per se, but use this to check that (append!) does destroy list1.
+        (restore list1) ; not really needed per se, but used to check that (append!) does destroy list1.
     )
 ))
       
