@@ -47,38 +47,72 @@
             )
             
         ; public procedures (can be invoked directly by messages)
-        (define (set-breakpoint! label offset)
-        
-            (define (iter remaining-instructions n)
+        (define (set-breakpoint! label offset)        
+            (let ((breakpoint (find-breakpoint-location label offset)))
                 (cond
-                    ((null? remaining-instructions)
+                    ((null? breakpoint)
                         (error "Offset out of range -- SET-BREAKPOINT!" label offset))
-                    ((> n 0)
-                        (iter (cdr remaining-instructions) (- n 1)))
-                    ((memq remaining-instructions the-breakpoint-list)
-                        (display "\nWARNING: Duplicate breakpoint not set: ")
+                    ((have-breakpoint? breakpoint)
+                        (display "WARNING - Duplicate breakpoint not set: ")
                         (display label)
                         (display " + ")
-                        (display offset))
+                        (display offset)
+                        (newline))
                     (else
                         (set! 
                             the-breakpoint-list 
-                            (cons remaining-instructions the-breakpoint-list)
+                            (cons breakpoint the-breakpoint-list)
                         )
                     )
                 )
             )
-            
-            (iter (lookup-label the-label-list label) offset)
         )
         
-            
-            ;(if (can-set-breakpoint? label offset)
-            ;    (set! 
+        (define (cancel-breakpoint! label offset)
+            (let ((breakpoint (find-breakpoint-location label offset)))
+                (cond
+                    ((null? breakpoint)
+                        (error "Offset out of range -- CANCEL-BREAKPOINT!" label offset))
+                    ((have-breakpoint? breakpoint)
+                        (set! 
+                            the-breakpoint-list 
+                            (filter (lambda (x) (not (eq? x breakpoint))) the-breakpoint-list)
+                        )
+                    )
+                    (else
+                        (display "WARNING - Could not delete non-existent breakpoint: ")
+                        (display label)
+                        (display " + ")
+                        (display offset)
+                        (newline))
+                )
+            )
+        )
         
         
         
         ; private procedures 
+        
+        ; returns pointer to remaining instruction list starting at label + offset
+            ; or '() if this runs out of range
+        (define (find-breakpoint-location label offset)        
+            (define (iter remaining-instructions n)
+                (cond
+                    ((< n 0)
+                        (error "No negative offsets! -- GET-INSTRUCTIONS" label offset))
+                    ((or (null? remaining-instructions) (= n 0))
+                        remaining-instructions)
+                    (else
+                        (iter (cdr remaining-instructions) (- n 1)))
+                )
+            )
+            (iter (lookup-label the-label-list label) offset)
+        )
+        
+        (define (have-breakpoint? breakpoint)
+            (memq breakpoint the-breakpoint-list))          
+
+            
         
         
         
@@ -86,7 +120,8 @@
             
         (define (dispatch message)
             (cond
-                ; the only override
+                ; the only override 
+                ; - actually, this need not be an override, since (proceed-machine) is a SEPARATE procedure.
                 ; probably check if pc is '*unassigned*
                 ;((eq? message 'start) (error "empty stub - execute"))
                 ((eq? message 'start) (machine 'start))
@@ -104,7 +139,7 @@
                     
                 ((eq? message 'set-breakpoint) set-breakpoint!)
                     
-                ((eq? message 'cancel-breakpoint) (error "empty stub - cancel"))
+                ((eq? message 'cancel-breakpoint) cancel-breakpoint!)
                 
                 
                 ; punt to base class
@@ -120,7 +155,11 @@
 (define (set-breakpoint machine label offset)
     ((machine 'set-breakpoint) label offset))
     
+(define (cancel-breakpoint machine label offset)
+    ((machine 'cancel-breakpoint) label offset))
     
+(define (cancel-all-breakpoints machine)
+    (machine 'cancel-all-breakpoints))
     
     
     
@@ -143,4 +182,8 @@
 ;(set-breakpoint fib-machine 'nonexistent-label 0) ; error: label does not exist
 ;(set-breakpoint fib-machine 'immediate-answer 2) ; error: offset out of range
 ;(set-breakpoint fib-machine 'immediate-answer 0) (set-breakpoint fib-machine 'immediate-answer 0) ; warning: duplicate breakpoint not set
+;(cancel-breakpoint fib-machine 'immediate-answer 0) ; warning: could not delete non-existent breakpoint
 (set-breakpoint fib-machine 'immediate-answer 0) ; i am here
+(cancel-breakpoint fib-machine 'immediate-answer 0)
+
+
