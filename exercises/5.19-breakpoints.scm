@@ -41,10 +41,27 @@
     ; simplest and least efficient implementation would scan the entire breakpoint list at the start of (execute)
     
 (define (make-new-machine-5.19)
-    (let (  (machine (make-new-machine-regsim))
+    (let* ( (machine (make-new-machine-regsim))
             (the-label-list '())
             (the-breakpoint-list '())
+            (local-instruction-sequence '())
+            (pc ((machine 'get-register) 'pc))
             )
+            
+        
+            
+        ; override - modified from regsim's (execute)
+        (define (execute-5.19)
+          (let ((insts (get-contents pc)))                             
+            (if (null? insts)        
+                'done        
+                (begin                                                 
+                  ((instruction-execution-proc (car insts)))           
+                  (execute-5.19)))))  
+
+        
+        
+                  
             
         ; public procedures (can be invoked directly by messages)
         (define (set-breakpoint! label offset)
@@ -77,6 +94,8 @@
             )
         )
         
+        
+        
         ; private procedures 
         (define (manipulate-breakpoint! label offset good? good-action bad-warning)
             (let ((breakpoint (find-breakpoint-location label offset)))
@@ -98,8 +117,6 @@
             )
         )
         
-        
-        
         ; returns pointer to remaining instruction list starting at label + offset
             ; or '() if this runs out of range
         (define (find-breakpoint-location label offset)        
@@ -117,21 +134,33 @@
         )
         
         (define (have-breakpoint? breakpoint)
-            (memq breakpoint the-breakpoint-list))          
-
-            
-        
+            (memq breakpoint the-breakpoint-list))  
         
         
             
-            
+        ; expose public API    
         (define (dispatch message)
             (cond
-                ; the only override 
-                ; - actually, this need not be an override, since (proceed-machine) is a SEPARATE procedure.
-                ; probably check if pc is '*unassigned*
-                ;((eq? message 'start) (error "empty stub - execute"))
-                ((eq? message 'start) (machine 'start))
+                ; this MUST be overridden, since base class's (execute) does NOT support breakpoints!
+                ((eq? message 'start) 
+                    (set-contents! pc local-instruction-sequence)
+                    (dispatch 'proceed)) ;(execute-5.19))
+                
+                ; override because 'start needs a pointer to the instruction sequence initialize pc
+                ((eq? message 'install-instruction-sequence)
+                    (lambda (seq)
+                        (set! local-instruction-sequence seq)
+                        ((machine 'install-instruction-sequence) seq)
+                    )
+                )
+                
+                
+                ; alyssa's requested API                 
+                ((eq? message 'set-breakpoint) set-breakpoint!)                    
+                ((eq? message 'cancel-breakpoint) cancel-breakpoint!)  
+                ((eq? message 'cancel-all-breakpoints)
+                    (set! the-breakpoint-list '())) ; easy!   
+                ((eq? message 'proceed) (execute-5.19))
                     
                 
                 ; required by (make-machine-5.19)
@@ -141,12 +170,7 @@
                 ((eq? message 'install-label-list) 
                     (lambda (labels) (set! the-label-list labels)))
                     
-                ((eq? message 'cancel-all-breakpoints)
-                    (set! the-breakpoint-list '())) ; easy!
-                    
-                ((eq? message 'set-breakpoint) set-breakpoint!)
-                    
-                ((eq? message 'cancel-breakpoint) cancel-breakpoint!)
+
                 
                 
                 ; punt to base class
@@ -156,6 +180,8 @@
         dispatch
     )
 )
+
+; ok, all that's left now is to actually implement the breakpoints' functionality...
 
     
 ; alyssa's requested syntactic sugar
