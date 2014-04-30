@@ -26,8 +26,8 @@
   (list
    ;;primitive Scheme operations
    (list 'read read)
-
-   ;;operations in syntax.scm
+                                                                        ; "To clarify the presentation... include as primitive[s]...
+   ;;operations in syntax.scm                                           ; "the syntax procedures given in section 4.1.2...
    (list 'self-evaluating? self-evaluating?)
    (list 'quoted? quoted?)
    (list 'text-of-quotation text-of-quotation)
@@ -57,9 +57,9 @@
    (list 'first-operand first-operand)
    (list 'rest-operands rest-operands)
 
-   ;;operations in eceval-support.scm
-   (list 'true? true?)
-   (list 'make-procedure make-procedure)
+   ;;operations in eceval-support.scm                                   ; "and the procedures for representing environments and other
+   (list 'true? true?)                                                  ; "run-time data given in sections 4.1.3 and 4.1.4"
+   (list 'make-procedure make-procedure)                                ; [i.e., a full "assembly-code" implementation would be thousands of lines long...]
    (list 'compound-procedure? compound-procedure?)
    (list 'procedure-parameters procedure-parameters)
    (list 'procedure-body procedure-body)
