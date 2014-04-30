@@ -25,7 +25,7 @@
 (define eceval-operations
   (list
    ;;primitive Scheme operations
-   (list 'read read)
+   (list 'read read)                                                ; 5.4: Operations
                                                                         ; "To clarify the presentation... include as primitive[s]...
    ;;operations in syntax.scm                                           ; "the syntax procedures given in section 4.1.2...
    (list 'self-evaluating? self-evaluating?)
@@ -80,12 +80,12 @@
    (list 'get-global-environment get-global-environment))
    )
 
-(define eceval
-  (make-machine
-   '(expr env val proc argl continue unev)
-   eceval-operations
-  '(
-;;SECTION 5.4.4
+(define eceval                                                      ; 5.4: Registers
+  (make-machine                                                         ; the eceval register machine includes a stack and 7 registers.
+   '(expr env val proc argl continue unev)                              ; expr = expression to be evaluated; env = environment for evaluation
+   eceval-operations                                                    ; val = value resulting from evaluating expr in env
+  '(                                                                    ; continue is used to implement recursion (remember 5.1.4?) - to evaluate subexpressions
+;;SECTION 5.4.4                                                         ; proc, argl, and unev are used in evaluating combinations.
 read-eval-print-loop
   (perform (op initialize-stack))
   (perform
