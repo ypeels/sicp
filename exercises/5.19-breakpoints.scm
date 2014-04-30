@@ -47,51 +47,58 @@
             )
             
         ; public procedures (can be invoked directly by messages)
-        (define (set-breakpoint! label offset)        
-            (let ((breakpoint (find-breakpoint-location label offset)))
-                (cond
-                    ((null? breakpoint)
-                        (error "Offset out of range -- SET-BREAKPOINT!" label offset))
-                    ((have-breakpoint? breakpoint)
-                        (display "WARNING - Duplicate breakpoint not set: ")
-                        (display label)
-                        (display " + ")
-                        (display offset)
-                        (newline))
-                    (else
-                        (set! 
-                            the-breakpoint-list 
-                            (cons breakpoint the-breakpoint-list)
-                        )
+        (define (set-breakpoint! label offset)
+            (manipulate-breakpoint!
+                label
+                offset
+                (lambda (breakpoint) (not (have-breakpoint? breakpoint)))
+                (lambda (breakpoint)
+                    (set! 
+                        the-breakpoint-list 
+                        (cons breakpoint the-breakpoint-list)
                     )
                 )
+                "Duplicate breakpoint not set"
             )
         )
         
         (define (cancel-breakpoint! label offset)
+            (manipulate-breakpoint!
+                label
+                offset
+                have-breakpoint?
+                (lambda (breakpoint)
+                    (set!
+                        the-breakpoint-list
+                        (filter (lambda (x) (not (eq? x breakpoint))) the-breakpoint-list)
+                    )
+                )
+                "Could not delete non-existent breakpoint"
+            )
+        )
+        
+        ; private procedures 
+        (define (manipulate-breakpoint! label offset good? good-action bad-warning)
             (let ((breakpoint (find-breakpoint-location label offset)))
                 (cond
                     ((null? breakpoint)
-                        (error "Offset out of range -- CANCEL-BREAKPOINT!" label offset))
-                    ((have-breakpoint? breakpoint)
-                        (set! 
-                            the-breakpoint-list 
-                            (filter (lambda (x) (not (eq? x breakpoint))) the-breakpoint-list)
-                        )
-                    )
+                        (error "Offset out of range" label offset))
+                    ((good? breakpoint)
+                        (good-action breakpoint))
                     (else
-                        (display "WARNING - Could not delete non-existent breakpoint: ")
+                        (display "WARNING - ")
+                        (display bad-warning)
+                        (display ": ")
                         (display label)
                         (display " + ")
                         (display offset)
-                        (newline))
+                        (newline)
+                    )
                 )
             )
         )
         
         
-        
-        ; private procedures 
         
         ; returns pointer to remaining instruction list starting at label + offset
             ; or '() if this runs out of range
@@ -185,5 +192,6 @@
 ;(cancel-breakpoint fib-machine 'immediate-answer 0) ; warning: could not delete non-existent breakpoint
 (set-breakpoint fib-machine 'immediate-answer 0) ; i am here
 (cancel-breakpoint fib-machine 'immediate-answer 0)
+
 
 
