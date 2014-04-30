@@ -47,22 +47,26 @@
       
       
       aftercount-car                ; upon return, count contains count(car)
-        (restore tree)
-        (restore continue)
+        (restore tree)              ; CANNOT be optimized out, since the restored value of tree is USED
+        ;(restore continue)
         
         ;; set up to compute (count-leaves (cdr))
-        (save continue)             ; can be optimized out (as in Exercise 5.6)
-        (save tree)                 ; CANNOT be optimized out, since the restored value of tree is USED
+        ;(save continue)             ; can be optimized out (as in Exercise 5.6) - annihilates with the preceding (restore)
+        ;(save tree)                 
         (save count)
         (assign tree (op cdr) (reg tree))
         (assign continue (label aftercount-cdr))        
         (goto (label count-loop))   ; perform second recursive call  
       
-      aftercount-cdr                ; upon return, count contains count(cdr)
-        (assign temp (reg count))
-        (restore count)
-        (restore tree)              ; unnecessary? get rid of the matching push in aftercount-car?
+      aftercount-cdr                ; upon return, count contains count(cdr)    
+      
+        ;(assign temp (reg count))   ; optimized as in exercise 5.11a, since count is going to be erased soon anyway
+        ;(restore count)
+        (restore temp)
+        
+        ;(restore tree)              ; unnecessary? get rid of the matching push in aftercount-car?
         (restore continue)
+        
         (assign count (op +) (reg count) (reg temp))
         (goto (reg continue))
       
@@ -95,7 +99,7 @@
   (count-iter tree 0))
 
 (define (make-count-machine-5.21b) (make-machine
-    '(tree n continue retval) ; the extra register "regval" is probably a luxury...
+    '(tree n continue); retval) ; the extra register "retval" is probably a luxury...
     (list 
         (list 'null? null?)
         (list 'pair? pair?)
@@ -127,7 +131,7 @@
         (goto (label count-loop))
         
         
-      afteriter-car         ; upon return, retval contains (count-iter (car tree) n)
+      afteriter-car         ; upon return, n contains (count-iter (car tree) n)
         (restore continue)
         (restore tree)
         
@@ -135,14 +139,15 @@
         ;(save tree)
         ;(save continue)
         (assign tree (op cdr) (reg tree))
-        (assign n (reg retval))
+        ;(assign n (reg retval))
         (goto (label count-loop))
         
       return-n
-        (assign retval (reg n))
+        ;(assign retval (reg n))
         (goto (reg continue))
       return-n+1
-        (assign retval (op +) (reg n) (const 1))
+        ;(assign retval (op +) (reg n) (const 1))
+        (assign n (op +) (reg n) (const 1))
         (goto (reg continue))
         
       count-done
@@ -172,7 +177,7 @@
         (set-register-contents! machine-b 'tree tree)
         (start machine-b)
         (display "\nExplicit simulation: ")
-        (display (get-register-contents machine-b 'retval))
+        (display (get-register-contents machine-b 'n))
         (display "\nScheme: ")
         (display (count-leaves-explicit tree))
         (newline)
