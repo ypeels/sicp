@@ -63,6 +63,8 @@
                             )
                         )
                         (newline)
+                        (label-and-offset-breakpoint 
+                            (breakpoint-at-location insts))                        
                     )
                     (else
                         (begin     
@@ -136,6 +138,7 @@
                     )
                 )
             )
+            'done
         )
         
         ; returns pointer to remaining instruction list starting at label + offset
@@ -196,7 +199,8 @@
                 ((eq? message 'set-breakpoint) set-breakpoint!)                    
                 ((eq? message 'cancel-breakpoint) cancel-breakpoint!)  
                 ((eq? message 'cancel-all-breakpoints)
-                    (set! the-breakpoint-list '())) ; easy!   
+                    (set! the-breakpoint-list '()) ; easy!   
+                    'done) 
                 ((eq? message 'proceed) (execute-5.19))
                     
                 
@@ -231,11 +235,15 @@
 (define (cancel-all-breakpoints machine)
     (machine 'cancel-all-breakpoints))
     
+(define (proceed-machine machine)
+    (machine 'proceed)
+    'done
+)
+
     
     
     
-    
-    
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     
 ; overrides
 (load "ch5-regsim.scm")
@@ -243,19 +251,97 @@
 (define make-machine make-machine-5.19)
 (define make-new-machine-regsim make-new-machine) (define make-new-machine make-new-machine-5.19)
 
-; regression test
-(load "5.06-fibonacci-extra-push-pop.scm")
-(test-5.6-long)
 
-; "unit testing"
-(define fib-machine (make-fib-machine-5.6))
-;(set-breakpoint fib-machine 'nonexistent-label 0) ; error: label does not exist
-;(set-breakpoint fib-machine 'immediate-answer 2) ; error: offset out of range
-;(set-breakpoint fib-machine 'immediate-answer 0) (set-breakpoint fib-machine 'immediate-answer 0) ; warning: duplicate breakpoint not set
-;(cancel-breakpoint fib-machine 'immediate-answer 0) ; warning: could not delete non-existent breakpoint
-(set-breakpoint fib-machine 'immediate-answer 0) ; i am here
-;(cancel-breakpoint fib-machine 'immediate-answer 0)
 
+(define (regression-test-5.19)
+    (load "5.06-fibonacci-extra-push-pop.scm")
+    (test-5.6-long)
+)
+
+(define (unit-test-5.19)
+
+    (define fib-machine (make-fib-machine-5.6))
+    ;(set-breakpoint fib-machine 'nonexistent-label 0) ; error: label does not exist
+    ;(set-breakpoint fib-machine 'immediate-answer 2) ; error: offset out of range
+    ;(set-breakpoint fib-machine 'immediate-answer 0) (set-breakpoint fib-machine 'immediate-answer 0) ; warning: duplicate breakpoint not set
+    ;(cancel-breakpoint fib-machine 'immediate-answer 0) ; warning: could not delete non-existent breakpoint
+    ;(set-breakpoint fib-machine 'immediate-answer 0) ; ok for testing, but boring
+    ;(cancel-breakpoint fib-machine 'immediate-answer 0)
+    (set-breakpoint fib-machine 'afterfib-n-2 4)
+    (set-register-contents! fib-machine 'n 7)
+    (fib-machine 'start)
+)
+
+; from 5.11c; kept at global scope so you can continue to probe it
+(define recursive-expt-machine-5.19 (make-machine          
+                                                      
+    '(b n val continue)                               
+    (list
+        (list '= =)
+        (list '- -)
+        (list '* *)
+    )
+    '(                                                
+           (assign continue (label expt-done))         
+         expt-loop  
+         expt-loop-extra-label
+           (test (op =) (reg n) (const 0))            
+           (branch (label base-case))    
+           (save continue)                                
+           (assign n (op -) (reg n) (const 1))    
+           (assign continue (label after-expt))    
+           (goto (label expt-loop))    
+         after-expt    
+           (restore continue)                
+           (assign val (op *) (reg b) (reg val))                   
+           (goto (reg continue))                       
+         base-case    
+           (assign val (const 1))                      
+           (goto (reg continue))                       
+         expt-done    
+    )    
+))
+
+
+(define (test-5.19)
+
+    (display "Let's step through 2**5...\n")
+    (set-register-contents! recursive-expt-machine-5.19 'b 2)
+    (set-register-contents! recursive-expt-machine-5.19 'n 5)
+    (set-breakpoint recursive-expt-machine-5.19 'after-expt 2)
+    
+    (start recursive-expt-machine-5.19)
+    
+    (define (iter)    
+        (display "val = ") (display (get-register-contents recursive-expt-machine-5.19 'val)) (newline)
+        (display "n left = ") (display (get-register-contents recursive-expt-machine-5.19 'n)) (newline)
+        (proceed-machine recursive-expt-machine-5.19)
+    )
+    
+    (iter)
+    (iter)
+    (iter)
+    (iter)
+    (iter)
+    (iter)
+    (iter)
+    
+    
+)
+    
+(define (test)
+    (proceed-machine fib-machine)
+    (display "val = ") (display (get-register-contents fib-machine 'val)) (newline)  
+    'ok    
+)
+
+(define t test)
+
+
+
+
+(regression-test-5.19)
+(test-5.19)
 
 
 
