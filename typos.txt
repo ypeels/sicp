@@ -28,6 +28,8 @@ Section 5.1.4 p. 511 Figure 5.11: there should be no data line from n to val.
 - there's NO THIRD ASSIGN statement for val, let alone one directly from n!
 - "copy/paste" error from the preceding gcd diagrams?
 
+Section 5.3.2 p. 540 Footnote 13: "3 x 10^13, microseconds" [comma should be deleted]
+
 -------------------
 
 Exercise 2.52a p. 141 - finally, a spacing error (2 spaces between "exercise" and "2.49")
