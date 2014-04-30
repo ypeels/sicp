@@ -79,6 +79,76 @@
 
 ))
 
+
+
+
+; this one is going to be trickier, because i can't just copy fib's logic...
+
+; i don't think this version was in the book previously
+; it's just a minor variation...
+(define (count-leaves-explicit tree)
+  (define (count-iter tree n)
+    (cond ((null? tree) n)
+          ((not (pair? tree)) (+ n 1))
+          (else (count-iter (cdr tree)
+                            (count-iter (car tree) n)))))
+  (count-iter tree 0))
+
+(define (make-count-machine-5.21b) (make-machine
+    '(tree n continue retval) ; the extra register "regval" is probably a luxury...
+    (list 
+        (list 'null? null?)
+        (list 'pair? pair?)
+        (list '+ +)
+        (list 'cdr cdr)
+        (list 'car car)
+    )
+    '(
+        (assign continue (label count-done))
+        
+        ; (count-iter tree 0)
+        (assign n (const 0))
+      count-loop
+        ; ((null? tree) n)
+        (test (op null?) (reg tree))
+        (branch (label return-n))
+        
+        ; ((not (pair? tree)) (+ n 1))
+        (test (op pair?) (reg tree))
+        (branch (label recurse))
+        (goto (label return-n+1))
+        
+      recurse        
+        ; (count-iter (car tree n))
+        (save tree)
+        (save continue)
+        (assign tree (op car) (reg tree))
+        (assign continue (label afteriter-car))
+        (goto (label count-loop))
+        
+        
+      afteriter-car         ; upon return, retval contains (count-iter (car tree) n)
+        (restore continue)
+        (restore tree)
+        
+        ; (count-iter (cdr tree) retval)
+        ;(save tree)
+        ;(save continue)
+        (assign tree (op cdr) (reg tree))
+        (assign n (reg retval))
+        (goto (label count-loop))
+        
+      return-n
+        (assign retval (reg n))
+        (goto (reg continue))
+      return-n+1
+        (assign retval (op +) (reg n) (const 1))
+        (goto (reg continue))
+        
+      count-done
+    )
+))
+
                  
                  
 ; BUT i don't really feel like making any test data...
@@ -87,15 +157,25 @@
 (define (test-5.21)
     (load "ch5-regsim.scm")
     
-    (let (  (machine (make-count-machine-5.21a))
+    (let (  (machine-a (make-count-machine-5.21a))
+            (machine-b (make-count-machine-5.21b))
             (tree '(a (b c (d)) (e f) g)) ; meteorgan's test data
             )
-        (set-register-contents! machine 'tree tree)
-        (start machine)
+        (set-register-contents! machine-a 'tree tree)
+        (start machine-a)
         (display "\nRecursive simulation: ")
-        (display (get-register-contents machine 'count))
+        (display (get-register-contents machine-a 'count))
         (display "\nScheme: ")
         (display (count-leaves tree))
+        (newline)
+        
+        (set-register-contents! machine-b 'tree tree)
+        (start machine-b)
+        (display "\nExplicit simulation: ")
+        (display (get-register-contents machine-b 'retval))
+        (display "\nScheme: ")
+        (display (count-leaves-explicit tree))
+        (newline)
     )
 )
 (test-5.21)
