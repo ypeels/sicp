@@ -98,8 +98,8 @@
             
                 (if (machine 'trace?)
                     (begin 
-                        (newline)
                         (display inst)
+                        (newline)
                     )
                 )   
 
@@ -181,64 +181,76 @@
 ; "inverse" of (lookup-label), at the same level of abstraction (i.e., raw table manipulation...)
     ; unfortunately, i think this is CONCEPTUALLY flawed, because labels aren't initialized yet...?
     ; how about scanning the label list EVERY time
-(define (labels-for-instruction inst labels)
+(define (labels-for-instruction insts labels)
 
     ; http://www.gnu.org/software/mit-scheme/documentation/mit-scheme-ref/File-Ports.html
-    (define file (open-output-file "test.txt" #t)) ; second argument is append
-
+    ;(define file (open-output-file "test.txt" #t)) ; second argument is append
+    
     
     ; good news: labels = (list (<label> (<instruction-text> . <xx>)) )
         ; <xx> = either '(), or is initialized to an execution procedure
         ; but either way, should be able to use pointer equality (eq?) to see if it's label printing time
-    (display (instruction-text inst) file ) 
-    ;(display (map (lambda (x) (car x)) labels) file) 
-    (if (not (null? labels)) (begin (display "\nLabel: " file) (display (car labels) file)))
-    ;(display (map (lambda (x) (cdar x)) labels)
-    (display "\n\n" file)
-    (close-all-open-files)
+    ;(display (car insts) file ) 
+    ;;(display (map (lambda (x) (car x)) labels) file) 
+    ;(if (not (null? labels)) (begin (display "\nLabel: " file) (display (car labels) file)))
+    ;;(display (map (lambda (x) (cdar x)) labels)
+    ;(display "\n\n" file)
+    ;(close-all-open-files)
     
     
     (cond
         ((null? labels)
             '())
-        ((eq? inst (cdar labels)) ; damn you scheme (impenetrable error message for cadr)
-            (display "\nfound label: ") (display (caar labels))
-            (cons (caar labels) (labels-for-instruction inst (cdr labels))))
+        ((eq? insts (cdar labels)) ; damn you scheme (impenetrable error message for cadr)
+            ;(display "\nfound label: ") (display (caar labels))
+            (cons (caar labels) (labels-for-instruction insts (cdr labels))))
         (else
-            (labels-for-instruction inst (cdr labels)))
+            (labels-for-instruction insts (cdr labels)))
+    )
+)
+
+
+(define (print-all-labels label-list)
+    
+    (if (null? label-list)
+        'done
+        (begin
+            (newline)
+            (display "Label: ")
+            (display (car label-list))
+            (newline)
+            (print-all-labels (cdr label-list))
+        )
     )
 )
             
         
         
-; this approach doesn't work DIRECTLY
-    ; the "inst" input into (make-execution-procedure) is JUST the text...
-    ; have to modify (update-insts!)!
+
 (define (make-make-execution-procedure-5.17 old-proc)
 
-    (define (print-all-labels label-list)
-        (if (null? label-list)
-            'done
-            (begin
-                (display "Label: ")
-                (display (car label-list))
-                (newline)
-                (print-all-labels (cdr label-list))
-            )
-        )
-    )
-
-    (lambda (inst-and-exec-proc labels machine pc flag stack ops)
+    ; try as you might, you're NOT gonna be able to match inst with labels at assembly time
+    ; that's because it's a (for-each) in (update-insts!), and instructions get fed in INDIVIDUALLY, without position information
+    (lambda (inst labels machine pc flag stack ops)
         (let (  
                 ; no new special forms, so just call (old-proc) unconditionally...
                 (proc (old-proc 
-                    (instruction-text inst-and-exec-proc)                   ; but this argument processes differently
+                    ;(instruction-text inst-and-exec-proc)                   ; but this argument processes differently
+                    inst
                     labels machine pc flag stack ops))     
-                (inst-labels (labels-for-instruction inst-and-exec-proc labels)); but scan the label list at assembly time
+                ;(inst-labels (labels-for-instruction inst-and-exec-proc labels)); but scan the label list at assembly time
                 )                                                               ; inefficient! scans the ENTIRE list each time...
 
             (lambda ()            
-                (print-all-labels inst-labels)
+            
+                ; oh duh, my first instinct was "do it at run time with pc"
+                    ; but then my little voice said "no, that's too inefficient! do it at assembly time!"
+                    ; the CONTENTS of the register pc are a pointer to the current instruction, IN THE INSTRUCTION LIST
+                ;(print-all-labels inst-labels)                
+                (if (machine 'trace?)
+                    (print-all-labels (labels-for-instruction (pc 'get) labels))
+                )
+                    
                 (proc)            
             )        
         )
@@ -246,26 +258,5 @@
     )
 )
 
-
-
-(define (update-insts-5.17! insts labels machine)        
-  (let ((pc (get-register machine 'pc))             
-        (flag (get-register machine 'flag))
-        (stack (machine 'stack))
-        (ops (machine 'operations)))
-    (for-each                                       
-     (lambda (inst)
-       (set-instruction-execution-proc!             
-        inst
-        (make-execution-procedure                
-         ;(instruction-text inst) labels machine
-         inst labels machine                                                ; requires (make-make-execution-procedure-5.17)!
-         pc flag stack ops)))
-     insts)))
-     
-     
-; modify (execute)??
-; BUT there is another problem with this, and that is that the label list is only used internally and
-    ; THROWN AWAY after (assemble)
 
      
