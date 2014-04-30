@@ -48,15 +48,30 @@
             
         ; public procedures (can be invoked directly by messages)
         (define (set-breakpoint! label offset)
-            (let ((origin (assoc label the-label-list)))
+        
+            (define (iter remaining-instructions n)
                 (cond
-                    ((not origin)
-                        (error "Label not found -- SET-BREAKPOINT!" label))
+                    ((null? remaining-instructions)
+                        (error "Offset out of range -- SET-BREAKPOINT!" label offset))
+                    ((> n 0)
+                        (iter (cdr remaining-instructions) (- n 1)))
+                    ((memq remaining-instructions the-breakpoint-list)
+                        (display "\nWARNING: Duplicate breakpoint not set: ")
+                        (display label)
+                        (display " + ")
+                        (display offset))
                     (else
-                        (error "empty stub -- SET-BREAKPOINT!"))
+                        (set! 
+                            the-breakpoint-list 
+                            (cons remaining-instructions the-breakpoint-list)
+                        )
+                    )
                 )
             )
+            
+            (iter (lookup-label the-label-list label) offset)
         )
+        
             
             ;(if (can-set-breakpoint? label offset)
             ;    (set! 
@@ -125,5 +140,7 @@
 
 ; "unit testing"
 (define fib-machine (make-fib-machine-5.6))
-;(set-breakpoint fib-machine 'nonexistent-label 0) ; "label does not exist"
-(set-breakpoint fib-machine 'fib-loop 0) ; i am here
+;(set-breakpoint fib-machine 'nonexistent-label 0) ; error: label does not exist
+;(set-breakpoint fib-machine 'immediate-answer 2) ; error: offset out of range
+;(set-breakpoint fib-machine 'immediate-answer 0) (set-breakpoint fib-machine 'immediate-answer 0) ; warning: duplicate breakpoint not set
+(set-breakpoint fib-machine 'immediate-answer 0) ; i am here
