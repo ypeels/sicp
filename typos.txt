@@ -11,6 +11,12 @@ Section 2.3.2 p. 147 "...many ways to use list structure [sic] to..."
 
 I GUESS it's intentional...
 
+BUT what about 
+Section 5.3.2 p. 541 Footnote 15: 
+"some structure is more volatile and other structure is more permanent"
+
+-------------------
+
 Section 3.1 p. 218: a run on sentence? "each of which has" - shouldn't this be "each of which having"
 
 Section 3.1.3 p. 232: -15 not italicized, and "expresssion" [sic]. both fixed in web version...
