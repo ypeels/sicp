@@ -1,0 +1,77 @@
+From ch5.scm
+
+This code isn't implemented anywhere
+Just taking notes on it from the main text as I read...
+Descriptive overview pp. 540-543.
+
+Broken heart:
+a fairly "clever" (i.e., low-level...) use of old memory after it has been moved...
+
+I think this assumes that all pointers reside in list structure (not in free registers)...?
+
+
+begin-garbage-collection
+  (assign free (const 0))
+  (assign scan (const 0))
+  (assign old (reg root))
+  (assign relocate-continue (label reassign-root))
+  (goto (label relocate-old-result-in-new))                     ; (relocate-old-result-in-new root) - (reg old) is its argument.
+reassign-root                                                       ; result: new = relocated root
+  (assign root (reg new))                                       
+  (goto (label gc-loop))
+
+gc-loop                                                         ; main loop of garbage collector
+  (test (op =) (reg scan) (reg free))                               ; if scan has caught up with free... 
+  (branch (label gc-flip))                                          ; then there are no more objects to scan...
+  (assign old (op vector-ref) (reg new-cars) (reg scan))            ; else  we call the relocate subroutine to relocate the car of the next pair
+  (assign relocate-continue (label update-car))                     
+  (goto (label relocate-old-result-in-new))                         ; (relocate-old-result-in-new (vector-ref new-cars scan))
+
+update-car                                                              ; result: new = relocated car
+  (perform
+   (op vector-set!) (reg new-cars) (reg scan) (reg new))                ; modify the car pointer of the pair being scanned
+  (assign old (op vector-ref) (reg new-cdrs) (reg scan))                ; then proceed to relocate the cdr of the pair
+  (assign relocate-continue (label update-cdr))
+  (goto (label relocate-old-result-in-new))                         ; (relocate-old-result-in-new (vector-ref new-cdrs scan))
+
+update-cdr                                                              ; result: new = relocated cdr
+  (perform
+   (op vector-set!) (reg new-cdrs) (reg scan) (reg new))                ; update the cdr pointer
+  (assign scan (op +) (reg scan) (const 1))                             ; done scanning this pair!
+  (goto (label gc-loop))                                                ; continue with the main loop.
+
+relocate-old-result-in-new                                      ; <---- main subroutine: relocates old, increments free, and sets new = pointer to relocated object
+  (test (op pointer-to-pair?) (reg old))                            ; if the object to be relocated [*old] is not a pair...
+  (branch (label pair))
+  (assign new (reg old))                                            ; then it does not need to be relocated at all! (p. 545)
+  (goto (reg relocate-continue))                                    ; return from subroutine.
+pair                                                                ; Otherwise, we must perform the relocation.
+  (assign oldcr (op vector-ref) (reg the-cars) (reg old))               ; if the car of the [old] pair pair to be relocated...
+  (test (op broken-heart?) (reg oldcr))                                 ; contains a broken-heart tag...
+  (branch (label already-moved))                                        ; then the pair has already been moved.
+  (assign new (reg free)) ;new location for pair                            ; Otherwise, it's relocation time... 
+  ;; update free pointer                                                    ; move the pair to the first free cell in new memory
+  (assign free (op +) (reg free) (const 1))                                     ; bookkeeping - the free cell is about to be occupied
+  ;; Copy the car and cdr to new memory.                                        ; <----------
+  (perform (op vector-set!)
+           (reg new-cars) (reg new) (reg oldcr))
+  (assign oldcr (op vector-ref) (reg the-cdrs) (reg old))                       ; using oldcr as a trash register (since the assembler can't read addresses directly)
+  (perform (op vector-set!)                                                         ; i guess it's "oldc_r"?
+           (reg new-cdrs) (reg new) (reg oldcr))
+  ;; Construct the broken heart.
+  (perform (op vector-set!)                                                     
+           (reg the-cars) (reg old) (const broken-heart))                       ; store a broken-heart tag...
+  (perform
+   (op vector-set!) (reg the-cdrs) (reg old) (reg new))                         ; and forwarding address at the old location
+  (goto (reg relocate-continue))
+already-moved
+  (assign new (op vector-ref) (reg the-cdrs) (reg old))             ; return value [new] = forwarding address (from cdr of broken heart)
+  (goto (reg relocate-continue))                                    ; return from subroutine.
+
+gc-flip                                                         ; <---- cleans things up (end of garbage collection)
+  (assign temp (reg the-cdrs))
+  (assign the-cdrs (reg new-cdrs))
+  (assign new-cdrs (reg temp))                                      ; interchange the role of old and new memories
+  (assign temp (reg the-cars))
+  (assign the-cars (reg new-cars))
+  (assign new-cars (reg temp))                                      ; remember, pair memory consists of TWO vectors: the-cars and the-cdrs
