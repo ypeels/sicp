@@ -16,7 +16,7 @@
                     (newline)
                 )
             )
-            ((register 'set) value)
+            ((register 'set) value) ; but still use base class's procedure
         )
     
         (define (dispatch message)
@@ -28,7 +28,7 @@
                 ((eq? message 'trace-on) (set! trace true))
                 ((eq? message 'trace-off) (set! trace false))
                 
-                ; punt to delegate (actually, all that's left is 'get...
+                ; punt to delegate (actually, all that's left is 'get)...
                 (else (register message))
             )
         )
