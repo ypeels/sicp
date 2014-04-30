@@ -22,10 +22,10 @@
 ;; print-result in the machine controller below
 ;;**Also choose the desired make-stack version in regsim.scm
 
-(define eceval-operations
+(define eceval-operations                                           ; <==== 5.4: The Explicit-Control Evaluator
   (list
    ;;primitive Scheme operations
-   (list 'read read)                                                ; 5.4: Operations
+   (list 'read read)                                                ; Operations
                                                                         ; "To clarify the presentation... include as primitive[s]...
    ;;operations in syntax.scm                                           ; "the syntax procedures given in section 4.1.2...
    (list 'self-evaluating? self-evaluating?)
@@ -80,7 +80,7 @@
    (list 'get-global-environment get-global-environment))
    )
 
-(define eceval                                                      ; 5.4: Registers
+(define eceval                                                      ; Registers
   (make-machine                                                         ; the eceval register machine includes a stack and 7 registers.
    '(expr env val proc argl continue unev)                              ; expr = expression to be evaluated; env = environment for evaluation
    eceval-operations                                                    ; val = value resulting from evaluating expr in env
@@ -115,14 +115,14 @@ signal-error
   (perform (op user-print) (reg val))
   (goto (label read-eval-print-loop))
 
-;;SECTION 5.4.1
-eval-dispatch
-  (test (op self-evaluating?) (reg expr))
-  (branch (label ev-self-eval))
-  (test (op variable?) (reg expr))
-  (branch (label ev-variable))
-  (test (op quoted?) (reg expr))
-  (branch (label ev-quoted))
+;;SECTION 5.4.1                                                     ; <==== 5.4.1 The Core of the Explicit-Control Evaluator
+eval-dispatch                                                           ; corresponds to (eval) in ch4-mceval.scm (p. 365)
+  (test (op self-evaluating?) (reg expr))                                   ; evaluate:
+  (branch (label ev-self-eval))                                             ; the expression specified by expr,
+  (test (op variable?) (reg expr))                                          ; in the environment specified by env
+  (branch (label ev-variable))                                              
+  (test (op quoted?) (reg expr))                                            ; result: val = value of the expression,
+  (branch (label ev-quoted))                                                ; and the controller will go to the entry point stored in continue
   (test (op assignment?) (reg expr))
   (branch (label ev-assignment))
   (test (op definition?) (reg expr))
@@ -135,9 +135,9 @@ eval-dispatch
   (branch (label ev-begin))
   (test (op application?) (reg expr))
   (branch (label ev-application))
-  (goto (label unknown-expression-type))
-
-ev-self-eval
+  (goto (label unknown-expression-type))                                ; Footnote 20 p. 549 - a Lisp ASIC (shudder) would implement 
+                                                                            ; a more efficient (dispatch-on-type) assembly instruction
+ev-self-eval                                                        ; Evaluating simple expressions
   (assign val (reg expr))
   (goto (reg continue))
 ev-variable
