@@ -18,6 +18,8 @@
     '(
         (assign continue (label append-done))
       append-loop
+      
+        ; (if (null? list1)
         (test (op null?) (reg list1))
         (branch (label base-case))
         
@@ -57,28 +59,70 @@
 
 
 
-
+; assumes list1 is non-empty.
+(define (make-append!-machine) (make-machine
+    '(list1 list2 retval temp continue)
+    (list 
+        (list 'null? null?)
+        ;(list 'cons cons)
+        ;(list 'car car)
+        (list 'cdr cdr)
+        (list 'set-cdr! set-cdr!)
+    )
+    
+    ; the flow of control is a little easier
+        ; just cdr down list1 until you get to the end
+        ; then use set-cdr! to chain the lists together
+    '(
+        (assign continue (label append!-done))
+        (assign retval (reg list1))
+        (save list1)
+      append!-loop
+      
+        ; (if (null? (cdr x))
+        (assign temp (op cdr) (reg list1))
+        (test (op null?) (reg temp))
+        (branch (label glue-lists!))
+        
+        ; (last-pair (cdr x))))
+        (assign list1 (op cdr) (reg list1))
+        (goto (label append!-loop))
+        
+      glue-lists!
+        (perform (op set-cdr!) (reg list1) (reg list2))    
+    
+      append!-done
+        (restore list1) ; not really needed per se, but use this to check that (append!) does destroy list1.
+    )
+))
       
       
 (define (test-5.22)
     (load "ch5-regsim.scm")
+    
+    (define (test machine title)
+        (let (  (list1 '(1 2 3))
+                (list2 '(4 5 6 7))
+                )
+            (set-register-contents! machine 'list1 list1)
+            (set-register-contents! machine 'list2 list2)
+            (start machine)
+            (display title)
+            (display "(list1 list2) = ") 
+            (display (get-register-contents machine 'retval))
+            (newline)
+            (display "with list1 = ")
+            (display (get-register-contents machine 'list1))
+            (newline)
+            (newline)
+        )
+    )
 
-    (let (  (machine (make-append-machine))
-            (machine! (make-append!-machine))
-            (a '(1 2 3))
-            (b '(4 5 6 7))
+    (let (  (m (make-append-machine))
+            (m! (make-append!-machine))
             )
-        
-        (set-register-contents! machine 'list1 a)
-        (set-register-contents! machine 'list2 b)
-        (start machine)
-        (display "(append a b) = ") 
-        (display (get-register-contents machine 'retval))
-        (newline)
-        (display "with a = ")
-        (display (get-register-contents machine 'list1))
-        (newline)
-        (newline)
+        (test m "append")
+        (test m! "append!")
     )
 )
 (test-5.22)
