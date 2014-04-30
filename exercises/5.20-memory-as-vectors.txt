@@ -1,0 +1,35 @@
+Follow Figure 5.14 op. 534.
+
+Box-and-pointer
+---------------
+x: ( 1 . 2 )
+   p1
+
+y: [ x, -]--> [ x, -]-> '()
+   p3         p2
+
+   
+Memory-vector
+-------------
+free = p1 initially.
+
+
+(define x (cons 1 2))
+            0   1   2
+the-cars = [_, n1, ...]
+the-cdrs = [_, n2, ...]
+free = p2
+x = p1
+
+
+(define y (list x x))
+So let's assume this is built up as on p. 100 - from right to left.
+
+(list x x) = (cons x (cons x '()))
+
+            0   1   2   3
+the-cars = [_, n1, p1, p1, ...]
+the-cdrs = [_, n2, e0, p2, ...]
+free = p4
+x = p1 (unchanged)
+y = p3
