@@ -50,6 +50,12 @@
         ; if you're using a sugared function, who KNOWS what operation you're doing, exactly
             ; when done explicitly, it's clear you're calling a "member function"
 
+; here's the stupid syntactic sugar, but i refuse to use it...
+;(define (trace-on-register machine register-name)
+;    ((get-register machine register-name) 'trace-on))
+;(define (trace-off-register machine register-name)
+;    ((get-register machine register-name) 'trace-off))
+
 
 
 
