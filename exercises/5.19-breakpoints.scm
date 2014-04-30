@@ -40,6 +40,10 @@
         ; (append!) and (remove!) ?
     ; simplest and least efficient implementation would scan the entire breakpoint list at the start of (execute)
     
+; meteorgan instead maintains "current label" and "current line" 
+    ; definitely more efficient in time? (don't have to do an assoc on each line)
+    ; probably more efficient in storage? (although i'm just storing POINTERS)
+    
 (define (make-new-machine-5.19)
     (let* ( (machine (make-new-machine-regsim))
             (the-label-list '())
