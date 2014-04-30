@@ -82,7 +82,7 @@
 
 (define eceval
   (make-machine
-   '(exp env val proc argl continue unev)
+   '(expr env val proc argl continue unev)
    eceval-operations
   '(
 ;;SECTION 5.4.4
@@ -90,7 +90,7 @@ read-eval-print-loop
   (perform (op initialize-stack))
   (perform
    (op prompt-for-input) (const ";;; EC-Eval input:"))
-  (assign exp (op read))
+  (assign expr (op read))
   (assign env (op get-global-environment))
   (assign continue (label print-result))
   (goto (label eval-dispatch))
@@ -117,48 +117,48 @@ signal-error
 
 ;;SECTION 5.4.1
 eval-dispatch
-  (test (op self-evaluating?) (reg exp))
+  (test (op self-evaluating?) (reg expr))
   (branch (label ev-self-eval))
-  (test (op variable?) (reg exp))
+  (test (op variable?) (reg expr))
   (branch (label ev-variable))
-  (test (op quoted?) (reg exp))
+  (test (op quoted?) (reg expr))
   (branch (label ev-quoted))
-  (test (op assignment?) (reg exp))
+  (test (op assignment?) (reg expr))
   (branch (label ev-assignment))
-  (test (op definition?) (reg exp))
+  (test (op definition?) (reg expr))
   (branch (label ev-definition))
-  (test (op if?) (reg exp))
+  (test (op if?) (reg expr))
   (branch (label ev-if))
-  (test (op lambda?) (reg exp))
+  (test (op lambda?) (reg expr))
   (branch (label ev-lambda))
-  (test (op begin?) (reg exp))
+  (test (op begin?) (reg expr))
   (branch (label ev-begin))
-  (test (op application?) (reg exp))
+  (test (op application?) (reg expr))
   (branch (label ev-application))
   (goto (label unknown-expression-type))
 
 ev-self-eval
-  (assign val (reg exp))
+  (assign val (reg expr))
   (goto (reg continue))
 ev-variable
-  (assign val (op lookup-variable-value) (reg exp) (reg env))
+  (assign val (op lookup-variable-value) (reg expr) (reg env))
   (goto (reg continue))
 ev-quoted
-  (assign val (op text-of-quotation) (reg exp))
+  (assign val (op text-of-quotation) (reg expr))
   (goto (reg continue))
 ev-lambda
-  (assign unev (op lambda-parameters) (reg exp))
-  (assign exp (op lambda-body) (reg exp))
+  (assign unev (op lambda-parameters) (reg expr))
+  (assign expr (op lambda-body) (reg expr))
   (assign val (op make-procedure)
-              (reg unev) (reg exp) (reg env))
+              (reg unev) (reg expr) (reg env))
   (goto (reg continue))
 
 ev-application
   (save continue)
   (save env)
-  (assign unev (op operands) (reg exp))
+  (assign unev (op operands) (reg expr))
   (save unev)
-  (assign exp (op operator) (reg exp))
+  (assign expr (op operator) (reg expr))
   (assign continue (label ev-appl-did-operator))
   (goto (label eval-dispatch))
 ev-appl-did-operator
@@ -171,7 +171,7 @@ ev-appl-did-operator
   (save proc)
 ev-appl-operand-loop
   (save argl)
-  (assign exp (op first-operand) (reg unev))
+  (assign expr (op first-operand) (reg unev))
   (test (op last-operand?) (reg unev))
   (branch (label ev-appl-last-arg))
   (save env)
@@ -217,12 +217,12 @@ compound-apply
 
 ;;;SECTION 5.4.2
 ev-begin
-  (assign unev (op begin-actions) (reg exp))
+  (assign unev (op begin-actions) (reg expr))
   (save continue)
   (goto (label ev-sequence))
 
 ev-sequence
-  (assign exp (op first-exp) (reg unev))
+  (assign expr (op first-exp) (reg unev))
   (test (op last-exp?) (reg unev))
   (branch (label ev-sequence-last-exp))
   (save unev)
@@ -241,29 +241,29 @@ ev-sequence-last-exp
 ;;;SECTION 5.4.3
 
 ev-if
-  (save exp)
+  (save expr)
   (save env)
   (save continue)
   (assign continue (label ev-if-decide))
-  (assign exp (op if-predicate) (reg exp))
+  (assign expr (op if-predicate) (reg expr))
   (goto (label eval-dispatch))
 ev-if-decide
   (restore continue)
   (restore env)
-  (restore exp)
+  (restore expr)
   (test (op true?) (reg val))
   (branch (label ev-if-consequent))
 ev-if-alternative
-  (assign exp (op if-alternative) (reg exp))
+  (assign expr (op if-alternative) (reg expr))
   (goto (label eval-dispatch))
 ev-if-consequent
-  (assign exp (op if-consequent) (reg exp))
+  (assign expr (op if-consequent) (reg expr))
   (goto (label eval-dispatch))
 
 ev-assignment
-  (assign unev (op assignment-variable) (reg exp))
+  (assign unev (op assignment-variable) (reg expr))
   (save unev)
-  (assign exp (op assignment-value) (reg exp))
+  (assign expr (op assignment-value) (reg expr))
   (save env)
   (save continue)
   (assign continue (label ev-assignment-1))
@@ -278,9 +278,9 @@ ev-assignment-1
   (goto (reg continue))
 
 ev-definition
-  (assign unev (op definition-variable) (reg exp))
+  (assign unev (op definition-variable) (reg expr))
   (save unev)
-  (assign exp (op definition-value) (reg exp))
+  (assign expr (op definition-value) (reg expr))
   (save env)
   (save continue)
   (assign continue (label ev-definition-1))
