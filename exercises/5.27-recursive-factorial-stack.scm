@@ -1,5 +1,6 @@
 (load "5.26-29-eceval-batch.scm")
 
+; modified from problem statement
 (define (eceval-prebatch-command-recursive-5.27) 
     '(define (f n)
       (if (= n 1)

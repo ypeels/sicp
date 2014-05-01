@@ -1,5 +1,6 @@
 (load "5.26-29-eceval-batch.scm")
 
+; modified from problem statement
 (define (eceval-prebatch-command-iterative-5.26) 
     '(define (f n) ;(factorial n)
       (define (iter product counter)
