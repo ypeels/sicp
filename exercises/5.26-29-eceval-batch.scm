@@ -22,7 +22,7 @@
 eceval-prebatch-output
     (perform (op announce-output) (const ";;; Output from eceval-prebatch-command:"))
     (perform (op user-print) (reg val))
-    ;(goto (label read-eval-print-loop)    
+    (goto (label read-eval-print-loop))    
 
 ))
 

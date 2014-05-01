@@ -1,6 +1,6 @@
 (load "5.26-29-eceval-batch.scm")
 
-(define (eceval-prebatch-command) 
+(define (eceval-prebatch-command-recursive-5.27) 
     '(define (f n)
       (if (= n 1)
           1
@@ -18,8 +18,9 @@
 
 
 
-;(run-eceval)
-(define eceval-prebatch-command eceval-prebatch-command-with-nested-call) (run-eceval)
+
+;(define eceval-prebatch-command eceval-prebatch-command-recursive-5.27) (run-eceval)
+;(define eceval-prebatch-command eceval-prebatch-command-with-nested-call) (run-eceval)
 
 
 

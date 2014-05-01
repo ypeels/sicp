@@ -1,6 +1,6 @@
 (load "5.26-29-eceval-batch.scm")
 
-(define (eceval-prebatch-command) 
+(define (eceval-prebatch-command-iterative-5.26) 
     '(define (f n) ;(factorial n)
       (define (iter product counter)
         (if (> counter n)
@@ -10,7 +10,7 @@
       (iter 1 1))
 )
 
-(run-eceval)
+;(define eceval-prebatch-command eceval-prebatch-command-iterative-5.26) (run-eceval)
 
 ; a. You will find that the maximum depth required to evaluate n! is independent of n. What is that depth?
 ; n maximum-depth
