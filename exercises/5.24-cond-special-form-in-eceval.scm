@@ -14,16 +14,24 @@
 (define eceval-cond-text-5.24 '(
     
     ; based on ev-if and ev-begin
+    ; (eval expr=(cond ...) env)
 ev-cond
     (save continue)
     (assign unev (op cond-clauses) (reg expr))
     ;(goto (label ev-cond-clause-loop)) ; glen george style
     
 ev-cond-clause-loop
+
+    ; just in case there is no else clause - pointed out by meteorgan
+    (test (op null?) (reg unev))
+    (branch (label ev-cond-no-else-clause-found))
+
+    ; are we at an else clause?
     (assign expr (op first-exp) (reg unev))                     ; meh, not gonna bother creating (cond-first-clause), etc.
     (test (op cond-else-clause?) (reg expr))
     (branch (label ev-cond-perform-action))
     
+    ; handle non-else clause
     ; val = (eval (cond-predicate first-clause) env)
     (save unev)
     (save env)
@@ -54,6 +62,11 @@ ev-cond-perform-action
     
     (restore continue)
     (goto (label eval-dispatch))
+    
+ev-cond-no-else-clause-found    ; doesn't reproduce the error for an empty (cond). oh well.
+    (restore continue)
+    (goto (reg continue))
+    
 ))
 
 (define (test-5.24)
@@ -66,6 +79,7 @@ ev-cond-perform-action
             (list 'cond-predicate cond-predicate)
             (list 'cond-actions cond-actions)
             (list 'sequence->exp sequence->exp)
+            (list 'null? null?)
         )
     )
     
