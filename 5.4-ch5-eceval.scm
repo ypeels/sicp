@@ -211,7 +211,7 @@ compound-apply                                                                  
   (assign unev (op procedure-parameters) (reg proc))                            ; unev = (parameters proc) [trash register]
   (assign env (op procedure-environment) (reg proc))                            ; env = current environment
   (assign env (op extend-environment)                                           ; env = (extend-environment unev=params argl=values env)
-              (reg unev) (reg argl) (reg env))                                      ; <===== the only place where env is ever assigned a new value
+              (reg unev) (reg argl) (reg env))                                      ; <===== the only place where env [as a REGISTER] is ever assigned a new value - the environment itself is modified by ev-assignment and ev-definition
   (assign unev (op procedure-body) (reg proc))                                  ; unev = (body proc)
   (goto (label ev-sequence))                                                    ; val = (eval-sequence unev env)
 
@@ -240,7 +240,7 @@ ev-sequence-last-exp                                                        ; la
                                                                                 ; nothing saved! THEREFORE TAIL-RECURSIVE!! See also Footnote 26 and alternative code p. 557
 ;;;SECTION 5.4.3                                                    ; <==== 5.4.3: Conditionals, Assignments, and Definitions
 
-ev-if                                                                   ; evaluate predicate and then EITHER consequent or alternative
+ev-if                                                                   ; (eval-if expr env): evaluate EITHER consequent or alternative, based on predicate
   (save expr)                                                               ; save expression to extract consequent or alternative later
   (save env)                                                                ; save env in which to evaluate consequent or alternative
   (save continue)                                                           ; save return point for after (if)
@@ -260,24 +260,24 @@ ev-if-consequent
   (assign expr (op if-consequent) (reg expr))
   (goto (label eval-dispatch))                                                  ; (eval expr=consequent env)
 
-ev-assignment
-  (assign unev (op assignment-variable) (reg expr))
+ev-assignment                                                           ; (eval-assignment expr env)
+  (assign unev (op assignment-variable) (reg expr))                         ; alternative: save expr
   (save unev)
-  (assign expr (op assignment-value) (reg expr))
+  (assign expr (op assignment-value) (reg expr))                            ; first, need the value to be assigned
   (save env)
   (save continue)
   (assign continue (label ev-assignment-1))
-  (goto (label eval-dispatch))
-ev-assignment-1
+  (goto (label eval-dispatch))                                              ; (eval expr=value-expr env)
+ev-assignment-1                                                                 ; result: val=value
   (restore continue)
   (restore env)
   (restore unev)
   (perform
-   (op set-variable-value!) (reg unev) (reg val) (reg env))
-  (assign val (const ok))
+   (op set-variable-value!) (reg unev) (reg val) (reg env))                     ; (set! unev=variable val=value env)
+  (assign val (const ok))                                                       ; faithfully porting (eval-assignment)
   (goto (reg continue))
 
-ev-definition
+ev-definition                                                           ; (eval-definition expr env) - similarly.
   (assign unev (op definition-variable) (reg expr))
   (save unev)
   (assign expr (op definition-value) (reg expr))
@@ -290,8 +290,8 @@ ev-definition-1
   (restore env)
   (restore unev)
   (perform
-   (op define-variable!) (reg unev) (reg val) (reg env))
-  (assign val (const ok))
+   (op define-variable!) (reg unev) (reg val) (reg env))                    ; <--- the only difference with ev-assignment
+  (assign val (const ok))                                                       ; just like ch4-mceval.scm
   (goto (reg continue))
    )))
 
