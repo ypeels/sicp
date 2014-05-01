@@ -1,0 +1,5 @@
+(load "load-eceval.scm")
+(define (test-5.23)
+    (start eceval)
+)
+(define the-global-environment (setup-environment)) (test-5.23)
