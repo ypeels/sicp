@@ -56,6 +56,9 @@
    (list 'no-operands? no-operands?)
    (list 'first-operand first-operand)
    (list 'rest-operands rest-operands)
+   
+   ; added for Exercises 5.23-24 (needs to be hard coded, else default eceval can't instantiate)
+   (list 'cond? cond?)
 
    ;;operations in eceval-support.scm                                   ; "and the procedures for representing environments and other
    (list 'true? true?)                                                  ; "run-time data given in sections 4.1.3 and 4.1.4"
@@ -80,12 +83,24 @@
    (list 'get-global-environment get-global-environment))
    )
 
-(define eceval                                                      ; Registers
-  (make-machine                                                         ; the eceval register machine includes a stack and 7 registers.
-   '(expr env val proc argl continue unev)                              ; expr = expression to be evaluated; env = environment for evaluation
-   eceval-operations                                                    ; val = value resulting from evaluating expr in env
-  '(                                                                    ; continue is used to implement recursion (remember 5.1.4?) - to evaluate subexpressions
-;;SECTION 5.4.4                                                         ; proc, argl, and unev are used in evaluating combinations.
+   
+   
+(define (make-eceval                                                ; Registers
+            main-controller-text                                        ; the eceval register machine includes a stack and 7 registers.
+            eval-cond-text)                                             ; expr = expression to be evaluated; env = environment for evaluation                           
+  (make-machine                                                         ; val = value resulting from evaluating expr in env
+   '(expr env val proc argl continue unev)                              ; continue is used to implement recursion (remember 5.1.4?) - to evaluate subexpressions
+   eceval-operations                                                    ; proc, argl, and unev are used in evaluating combinations.
+   (append                                                                                                         
+    main-controller-text 
+    eval-cond-text)))                                                
+                                                                    
+                                                                        
+                                                                        
+                                                                        
+(define eceval-main-controller-text                                 ; Original controller text (possibly refactored...)
+  '(                                                                    
+;;SECTION 5.4.4                                                         
 read-eval-print-loop
   (perform (op initialize-stack))
   (perform
@@ -133,6 +148,10 @@ eval-dispatch                                                           ; corres
   (branch (label ev-lambda))
   (test (op begin?) (reg expr))
   (branch (label ev-begin))
+  
+  (test (op cond?) (reg expr))                                          ; added for Exercises 5.23-24
+  (branch (label ev-cond))
+  
   (test (op application?) (reg expr))
   (branch (label ev-application))
   (goto (label unknown-expression-type))                                ; Footnote 20 p. 549 - a Lisp ASIC (shudder) would implement 
@@ -293,6 +312,19 @@ ev-definition-1
    (op define-variable!) (reg unev) (reg val) (reg env))                    ; <--- the only difference with ev-assignment
   (assign val (const ok))                                                       ; just like ch4-mceval.scm
   (goto (reg continue))
-   )))
+   ))
+   
+   
+(define eceval-cond-text '(
+ev-cond
+  (goto (label unknown-expression-type))
+    ))
+    
+(define eceval ; default evaluator for backwards compatibility, fwiw
+    (make-eceval
+        eceval-main-controller-text
+        eceval-cond-text))
 
-'(EXPLICIT CONTROL EVALUATOR LOADED)
+
+;'(EXPLICIT CONTROL EVALUATOR LOADED)
+'ch5-eceval-loaded
