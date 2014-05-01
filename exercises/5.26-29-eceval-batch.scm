@@ -29,12 +29,6 @@ eceval-prebatch-output
 (define (run-eceval)
     (append! eceval-operations 
         (list 
-            ;(list 'cond-clauses cond-clauses)
-            ;(list 'cond-else-clause? cond-else-clause?)  ; p. 373
-            ;(list 'cond-predicate cond-predicate)
-            ;(list 'cond-actions cond-actions)
-            ;(list 'sequence->exp sequence->exp)
-            ;(list 'null? null?)
             (list 'eceval-prebatch-command eceval-prebatch-command)
         )
     )
