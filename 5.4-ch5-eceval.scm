@@ -237,7 +237,7 @@ ev-sequence-continue                                                            
 ev-sequence-last-exp                                                        ; last loop iteration - unev and env unneeded after this
   (restore continue)                                                            ; end of (eval-sequence), so return after (eval)
   (goto (label eval-dispatch))                                                  ; (eval expr=last-exp env)
-
+                                                                                ; nothing saved! THEREFORE TAIL-RECURSIVE!! See also Footnote 26 and alternative code p. 557
 ;;;SECTION 5.4.3
 
 ev-if
