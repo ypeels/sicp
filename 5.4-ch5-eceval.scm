@@ -154,7 +154,7 @@ ev-lambda
   (goto (reg continue))
 
 ev-application                                                      ; Evaluating procedure applications - the (application?) clause in (eval)
-  (save continue)                                                       ; save continue for end of subroutine
+  (save continue)                                                       ; save continue for end of the eval-apply cycle
   (save env)                                                            ; save env for evaluating operands later
   (assign unev (op operands) (reg expr))                                ; parse operands and 
   (save unev)                                                           ; SAVE operands (expr is getting trashed, and maybe unev too)
@@ -192,28 +192,28 @@ ev-appl-accum-last-arg                                                          
   (restore argl)                                                                    ; in case it was trashed by eval?    
   (assign argl (op adjoin-arg) (reg val) (reg argl))                                ; accumulate result to complete ARGument List
   (restore proc)                                                                    ; restore proc = operator from ev-appl-did-operator
-  (goto (label apply-dispatch))                                             ; (apply (operator expr) (operands expr)) can finally be executed
-apply-dispatch
-  (test (op primitive-procedure?) (reg proc))
+  (goto (label apply-dispatch))                                             ; (apply proc=operator argl=operands) finally
+apply-dispatch                                                                  ; primitive and compound cases, 
+  (test (op primitive-procedure?) (reg proc))                                   ; just like (apply) in mceval [well, it's not a coincidence... this IS just an asm translation of PARTS of mceval...]
   (branch (label primitive-apply))
   (test (op compound-procedure?) (reg proc))  
   (branch (label compound-apply))
   (goto (label unknown-procedure-type))
 
-primitive-apply
-  (assign val (op apply-primitive-procedure)
-              (reg proc)
+primitive-apply                                                                 ; val = (apply-primitive-procedure
+  (assign val (op apply-primitive-procedure)                                        ; proc=operator argl=arguments)
+              (reg proc)                                                            ; punts to apply-in-underlying-scheme
               (reg argl))
-  (restore continue)
-  (goto (reg continue))
+  (restore continue)                                                            ; saved all the way back at ev-application
+  (goto (reg continue))                                                         ; return val; done with current eval-apply cycle! (of course, MIGHT have been nested from a compound procedure...)
 
-compound-apply
-  (assign unev (op procedure-parameters) (reg proc))
-  (assign env (op procedure-environment) (reg proc))
-  (assign env (op extend-environment)
-              (reg unev) (reg argl) (reg env))
-  (assign unev (op procedure-body) (reg proc))
-  (goto (label ev-sequence))
+compound-apply                                                                  ; [text is a little too descriptive - it's the (extend-environment) "primitive" that's gonna create a new frame, etc.]
+  (assign unev (op procedure-parameters) (reg proc))                            ; unev = (parameters proc) [trash register]
+  (assign env (op procedure-environment) (reg proc))                            ; env = current environment
+  (assign env (op extend-environment)                                           ; env = (extend-environment unev=params argl=values env)
+              (reg unev) (reg argl) (reg env))                                      ; <===== the only place where env is ever assigned a new value
+  (assign unev (op procedure-body) (reg proc))                                  ; unev = (body proc)
+  (goto (label ev-sequence))                                                    ; val = (eval-sequence unev env)
 
 ;;;SECTION 5.4.2
 ev-begin
