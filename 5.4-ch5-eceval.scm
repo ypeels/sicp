@@ -238,27 +238,27 @@ ev-sequence-last-exp                                                        ; la
   (restore continue)                                                            ; end of (eval-sequence), so return after (eval)
   (goto (label eval-dispatch))                                                  ; (eval expr=last-exp env)
                                                                                 ; nothing saved! THEREFORE TAIL-RECURSIVE!! See also Footnote 26 and alternative code p. 557
-;;;SECTION 5.4.3
+;;;SECTION 5.4.3                                                    ; <==== 5.4.3: Conditionals, Assignments, and Definitions
 
-ev-if
-  (save expr)
-  (save env)
-  (save continue)
+ev-if                                                                   ; evaluate predicate and then EITHER consequent or alternative
+  (save expr)                                                               ; save expression to extract consequent or alternative later
+  (save env)                                                                ; save env in which to evaluate consequent or alternative
+  (save continue)                                                           ; save return point for after (if)
   (assign continue (label ev-if-decide))
   (assign expr (op if-predicate) (reg expr))
-  (goto (label eval-dispatch))
-ev-if-decide
-  (restore continue)
+  (goto (label eval-dispatch))                                              ; (eval expr=predicate env)
+ev-if-decide                                                                    ; result: val = true or false.
+  (restore continue)                                                            ; set up for upcoming (eval)
   (restore env)
   (restore expr)
   (test (op true?) (reg val))
   (branch (label ev-if-consequent))
 ev-if-alternative
   (assign expr (op if-alternative) (reg expr))
-  (goto (label eval-dispatch))
+  (goto (label eval-dispatch))                                                  ; (eval expr=alternative env)
 ev-if-consequent
   (assign expr (op if-consequent) (reg expr))
-  (goto (label eval-dispatch))
+  (goto (label eval-dispatch))                                                  ; (eval expr=consequent env)
 
 ev-assignment
   (assign unev (op assignment-variable) (reg expr))
