@@ -172,7 +172,7 @@ ev-appl-did-operator                                                        ; re
 ev-appl-operand-loop                                                        ; iterations of (list-of-values)
   (save argl)                                                                   ; save the arguments accumulated so far
   (assign expr (op first-operand) (reg unev))                                   ; expr = next operand
-  (test (op last-operand?) (reg unev))
+  (test (op last-operand?) (reg unev))                                              ; (first-operand) and (rest-operands) determine left-to-right evaluation order (cf. Exercises 3.8, 4.1)
   (branch (label ev-appl-last-arg))                                             ; last operand is handled as a special case
   (save env)
   (save unev)                                                                   ; save the remaining operands to be evaluated
@@ -185,14 +185,14 @@ ev-appl-accumulate-arg                                                          
   (assign argl (op adjoin-arg) (reg val) (reg argl))                                ; accumulate operand value into running list
   (assign unev (op rest-operands) (reg unev))                                       ; remove from list of unevaluated operands
   (goto (label ev-appl-operand-loop))                                               ; done with this iteration!
-ev-appl-last-arg                                                            ; final iteration of (list-of-values)    
+ev-appl-last-arg                                                            ; final iteration of (list-of-values) - Footnote 23 - evlis tail recursion optimization   
   (assign continue (label ev-appl-accum-last-arg))                              ; no need to save env or unev - unneeded after evaluating the last operand
   (goto (label eval-dispatch))                                                  ; (eval last-operand env)
 ev-appl-accum-last-arg                                                              ; result: val = (eval last-operand env)
   (restore argl)                                                                    ; in case it was trashed by eval?    
   (assign argl (op adjoin-arg) (reg val) (reg argl))                                ; accumulate result to complete ARGument List
   (restore proc)                                                                    ; restore proc = operator from ev-appl-did-operator
-  (goto (label apply-dispatch))                                    ; Footnote 23: I AM HERE.
+  (goto (label apply-dispatch))                                             ; (apply (operator expr) (operands expr)) can finally be executed
 apply-dispatch
   (test (op primitive-procedure?) (reg proc))
   (branch (label primitive-apply))
