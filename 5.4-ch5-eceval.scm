@@ -76,11 +76,11 @@
    (list 'prompt-for-input prompt-for-input)
    (list 'announce-output announce-output)
    (list 'user-print user-print)
-   (list 'empty-arglist empty-arglist)
+   (list 'empty-arglist empty-arglist)                                  ; 3 NEW procedures! ch5-eceval-support.scm: 5.4.1 Footnote 22 p. 551
    (list 'adjoin-arg adjoin-arg)
    (list 'last-operand? last-operand?)
-   (list 'no-more-exps? no-more-exps?)	;for non-tail-recursive machine
-   (list 'get-global-environment get-global-environment))
+   (list 'no-more-exps? no-more-exps?)	;for non-tail-recursive machine ; NEW! ch5-eceval-support.scm: 5.4.2 Footnote 26 p. 557
+   (list 'get-global-environment get-global-environment))               ; NEW! ch5-eceval-support.scm: 5.4.4 Footnote 29 p. 561    
    )
 
    
@@ -99,35 +99,7 @@
                                                                         
                                                                         
 (define eceval-main-controller-text                                 ; Original controller text (possibly refactored...)
-  '(                                                                    
-;;SECTION 5.4.4                                                         
-read-eval-print-loop
-  (perform (op initialize-stack))
-  (perform
-   (op prompt-for-input) (const ";;; EC-Eval input:"))
-  (assign expr (op read))
-  (assign env (op get-global-environment))
-  (assign continue (label print-result))
-  (goto (label eval-dispatch))
-print-result
-;;**following instruction optional -- if use it, need monitored stack
-  (perform (op print-stack-statistics))
-  (perform
-   (op announce-output) (const ";;; EC-Eval value:"))
-  (perform (op user-print) (reg val))
-  (goto (label read-eval-print-loop))
-
-unknown-expression-type
-  (assign val (const unknown-expression-type-error))
-  (goto (label signal-error))
-
-unknown-procedure-type
-  (restore continue)
-  (assign val (const unknown-procedure-type-error))
-  (goto (label signal-error))
-
-signal-error
-  (perform (op user-print) (reg val))
+  '(               
   (goto (label read-eval-print-loop))
                                                                     ; what follows is basically an ASSEMBLY PORT of mceval (selected portions)
 ;;SECTION 5.4.1                                                     ; <==== 5.4.1 The Core of the Explicit-Control Evaluator
@@ -312,6 +284,37 @@ ev-definition-1
    (op define-variable!) (reg unev) (reg val) (reg env))                    ; <--- the only difference with ev-assignment
   (assign val (const ok))                                                       ; just like ch4-mceval.scm
   (goto (reg continue))
+  
+;;SECTION 5.4.4                                                     ; <==== 5.4.4: Running the Evaluator
+read-eval-print-loop                                                    ; (driver-loop) from mceval p. 383 - right down to the test code (p. 384)
+  (perform (op initialize-stack))                                           ; cleans up garbage from any crash, AND resets stack statistics
+  (perform
+   (op prompt-for-input) (const ";;; EC-Eval input:"))
+  (assign expr (op read))
+  (assign env (op get-global-environment))
+  (assign continue (label print-result))
+  (goto (label eval-dispatch))
+print-result
+;;**following instruction optional -- if use it, need monitored stack
+  (perform (op print-stack-statistics))
+  (perform
+   (op announce-output) (const ";;; EC-Eval value:"))
+  (perform (op user-print) (reg val))
+  (goto (label read-eval-print-loop))
+
+unknown-expression-type
+  (assign val (const unknown-expression-type-error))
+  (goto (label signal-error))
+
+unknown-procedure-type
+  (restore continue)
+  (assign val (const unknown-procedure-type-error))
+  (goto (label signal-error))
+
+signal-error
+  (perform (op user-print) (reg val))
+  (goto (label read-eval-print-loop))
+  
    ))
    
    
