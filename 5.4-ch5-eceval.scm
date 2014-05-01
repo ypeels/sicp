@@ -215,28 +215,28 @@ compound-apply                                                                  
   (assign unev (op procedure-body) (reg proc))                                  ; unev = (body proc)
   (goto (label ev-sequence))                                                    ; val = (eval-sequence unev env)
 
-;;;SECTION 5.4.2
+;;;SECTION 5.4.2                                                    ; <==== 5.4.2: Sequence Evaluation and Tail Recursion
 ev-begin
-  (assign unev (op begin-actions) (reg expr))
+  (assign unev (op begin-actions) (reg expr))                           ; unev = sequence of expressions to be evaluated
   (save continue)
   (goto (label ev-sequence))
 
-ev-sequence
+ev-sequence                                                             ; (eval-sequence unev=exps env) - loop over unev
   (assign expr (op first-exp) (reg unev))
-  (test (op last-exp?) (reg unev))
+  (test (op last-exp?) (reg unev))                                          ; if there additional expressions...
   (branch (label ev-sequence-last-exp))
-  (save unev)
+  (save unev)                                                               ; process them later...
   (save env)
   (assign continue (label ev-sequence-continue))
-  (goto (label eval-dispatch))
-ev-sequence-continue
+  (goto (label eval-dispatch))                                              ; (eval expr=first-exp env)
+ev-sequence-continue                                                            ; result (unused?): val = value of first-exp 
   (restore env)
   (restore unev)
-  (assign unev (op rest-exps) (reg unev))
-  (goto (label ev-sequence))
-ev-sequence-last-exp
-  (restore continue)
-  (goto (label eval-dispatch))
+  (assign unev (op rest-exps) (reg unev))                                   ; get next expression (could have done this in ev-sequence)
+  (goto (label ev-sequence))                                                ; next loop iteration
+ev-sequence-last-exp                                                        ; last loop iteration - unev and env unneeded after this
+  (restore continue)                                                            ; end of (eval-sequence), so return after (eval)
+  (goto (label eval-dispatch))                                                  ; (eval expr=last-exp env)
 
 ;;;SECTION 5.4.3
 
