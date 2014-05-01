@@ -7,12 +7,8 @@
     
     ev-cond
     
-        ; (eval (let->combination exp) env)
 
-        (save val)
         (assign val (const "hello world\n"))
-        (perform (op user-print) (reg val))
-        (restore val)
         (goto (label signal-error))
         
 ))
