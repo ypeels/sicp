@@ -1,0 +1,33 @@
+Well, how long did this take that trooper l0stman?
+https://github.com/l0stman/sicp/blob/master/5.25.tex
+~200 lines of "assembler"
+
+By comparison, his amb-query.scm for Exercise 4.78 was 339 lines of SCHEME
+
+Do I really want to slog through what is basically just an assembly translation of ch4-leval.scm?
+
+I mean, it is more straightforward than 4.78, and l0stman's solution shows that it is shorter...
+
+But I'm not really sure I'd learn anything from it... other than how much I detest Scheme AND assembly
+	that's a lesson I really don't feel like repeating...
+
+Let's just compare his solution with ch5-eceval.scm
+- new procedures for (actual-value), (force-it), (delay-it)
+    - hmm, he implements (actual-value) and (force-it) in assembly...
+    - but uses (delay-it) from leval as a "primitive". why is THAT allowed??
+- minor changes to ev-application, as in ch4-leval.scm
+    - operator evaluation is unchanged
+    - don't pre-evaluate operands (postpone (list-of-values), as in ch4-leval.scm
+- changes to primitive-apply
+    - NOW need to call (list-of-arg-values)
+- changes to compound-apply
+    - use (list-of-delayed-args) to extend env, instead of (evaluated) argl
+
+- new procedure EV-APPL-OPERANDS
+    - expr = (label ACTUAL-VALUE) or (label DELAY-IT)
+        - in other words, he is passing in a function as an argument to consolidate code
+    - but then he pushes expr and pops it back onto proc. why not just pass it as proc??
+    - ohhhhh this is just a shared subroutine for (list-of-arg-values) + (list-of-delayed-args)
+
+- minor change to ev-if
+- minor changes to "driver-loop"
