@@ -114,7 +114,7 @@ unknown-procedure-type
 signal-error
   (perform (op user-print) (reg val))
   (goto (label read-eval-print-loop))
-
+                                                                    ; what follows is basically an ASSEMBLY PORT of mceval (selected portions)
 ;;SECTION 5.4.1                                                     ; <==== 5.4.1 The Core of the Explicit-Control Evaluator
 eval-dispatch                                                           ; corresponds to (eval) in ch4-mceval.scm (p. 365)
   (test (op self-evaluating?) (reg expr))                                   ; evaluate:
@@ -137,62 +137,62 @@ eval-dispatch                                                           ; corres
   (branch (label ev-application))
   (goto (label unknown-expression-type))                                ; Footnote 20 p. 549 - a Lisp ASIC (shudder) would implement 
                                                                             ; a more efficient (dispatch-on-type) assembly instruction
-ev-self-eval                                                        ; Evaluating simple expressions
-  (assign val (reg expr))
-  (goto (reg continue))
-ev-variable
+ev-self-eval                                                        ; Evaluating simple expressions: no subexpressions to be evaluated
+  (assign val (reg expr))                                               ; simply place the correct value in the val register...
+  (goto (reg continue))                                                 ; and continue execution at the entry point specified by continue
+ev-variable                                                             ; cf. classification in 4.3.3 pp. 429ff
   (assign val (op lookup-variable-value) (reg expr) (reg env))
   (goto (reg continue))
 ev-quoted
   (assign val (op text-of-quotation) (reg expr))
   (goto (reg continue))
 ev-lambda
-  (assign unev (op lambda-parameters) (reg expr))
-  (assign expr (op lambda-body) (reg expr))
-  (assign val (op make-procedure)
+  (assign unev (op lambda-parameters) (reg expr))                       ; unev = parameters
+  (assign expr (op lambda-body) (reg expr))                             ; expr = body (trashed the old contents)
+  (assign val (op make-procedure)                                       ; (make-procedure parameters body env)
               (reg unev) (reg expr) (reg env))
   (goto (reg continue))
 
-ev-application
-  (save continue)
-  (save env)
-  (assign unev (op operands) (reg expr))
-  (save unev)
+ev-application                                                      ; Evaluating procedure applications - the (application?) clause in (eval)
+  (save continue)                                                       ; save continue for end of subroutine
+  (save env)                                                            ; save env for evaluating operands later
+  (assign unev (op operands) (reg expr))                                ; parse operands and 
+  (save unev)                                                           ; SAVE operands (expr is getting trashed, and maybe unev too)
   (assign expr (op operator) (reg expr))
   (assign continue (label ev-appl-did-operator))
-  (goto (label eval-dispatch))
-ev-appl-did-operator
-  (restore unev)
-  (restore env)
-  (assign argl (op empty-arglist))
-  (assign proc (reg val))
-  (test (op no-operands?) (reg unev))
-  (branch (label apply-dispatch))
-  (save proc)
-ev-appl-operand-loop
-  (save argl)
-  (assign expr (op first-operand) (reg unev))
+  (goto (label eval-dispatch))                                          ; (eval operator env)
+ev-appl-did-operator                                                        ; result: val = (eval operator env) = procedure to be applied to operands
+  (restore unev)                                                            ; restore UNEValuated operands
+  (restore env)                                                             ; restore env (reuse for operands)
+  (assign argl (op empty-arglist))                                      ; (list-of-values operands env)
+  (assign proc (reg val))                                                   ; proc = result of (eval operator), ready to apply
+  (test (op no-operands?) (reg unev))                                       ; if there are no operands,
+  (branch (label apply-dispatch))                                           ; then apply the procedure directly
+  (save proc)                                                               ; otherwise, save proc (getting trashed?)
+ev-appl-operand-loop                                                        ; iterations of (list-of-values)
+  (save argl)                                                                   ; save the arguments accumulated so far
+  (assign expr (op first-operand) (reg unev))                                   ; expr = next operand
   (test (op last-operand?) (reg unev))
-  (branch (label ev-appl-last-arg))
+  (branch (label ev-appl-last-arg))                                             ; last operand is handled as a special case
   (save env)
-  (save unev)
+  (save unev)                                                                   ; save the remaining operands to be evaluated
   (assign continue (label ev-appl-accumulate-arg))
-  (goto (label eval-dispatch))
-ev-appl-accumulate-arg
+  (goto (label eval-dispatch))                                                  ; (eval next-operand env)
+ev-appl-accumulate-arg                                                              ; result: val = (eval next-operand env)
   (restore unev)
-  (restore env)
+  (restore env)                                                                     ; paranoid or necessary? who knows...
   (restore argl)
-  (assign argl (op adjoin-arg) (reg val) (reg argl))
-  (assign unev (op rest-operands) (reg unev))
-  (goto (label ev-appl-operand-loop))
-ev-appl-last-arg
-  (assign continue (label ev-appl-accum-last-arg))
-  (goto (label eval-dispatch))
-ev-appl-accum-last-arg
-  (restore argl)
-  (assign argl (op adjoin-arg) (reg val) (reg argl))
-  (restore proc)
-  (goto (label apply-dispatch))
+  (assign argl (op adjoin-arg) (reg val) (reg argl))                                ; accumulate operand value into running list
+  (assign unev (op rest-operands) (reg unev))                                       ; remove from list of unevaluated operands
+  (goto (label ev-appl-operand-loop))                                               ; done with this iteration!
+ev-appl-last-arg                                                            ; final iteration of (list-of-values)    
+  (assign continue (label ev-appl-accum-last-arg))                              ; no need to save env or unev - unneeded after evaluating the last operand
+  (goto (label eval-dispatch))                                                  ; (eval last-operand env)
+ev-appl-accum-last-arg                                                              ; result: val = (eval last-operand env)
+  (restore argl)                                                                    ; in case it was trashed by eval?    
+  (assign argl (op adjoin-arg) (reg val) (reg argl))                                ; accumulate result to complete ARGument List
+  (restore proc)                                                                    ; restore proc = operator from ev-appl-did-operator
+  (goto (label apply-dispatch))                                    ; Footnote 23: I AM HERE.
 apply-dispatch
   (test (op primitive-procedure?) (reg proc))
   (branch (label primitive-apply))
