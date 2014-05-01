@@ -1,4 +1,4 @@
-(load "load-eceval.scm")
+(load "5.23-24-cond-in-eval-dispatch.scm")
 
 
 (define eceval-cond-text-5.23 '(
@@ -21,12 +21,14 @@ ev-cond
     ; no, this had to be hard coded into ch5-eceval.scm, to allow "backwards compatibility" with the default eceval object
     ;(append! eceval-operations (list (list 'cond? cond?))))
     (append! eceval-operations (list (list 'cond->if cond->if)))
+    (append! eceval-main-controller-text eceval-cond-text-5.23)
+    (run-eceval-5.23-24)
 
-    (define eceval-5.23
-        (make-eceval 
-            eceval-main-controller-text
-            eceval-cond-text-5.23))
-    (start eceval-5.23)
+    ;(define eceval-5.23
+    ;    (make-eceval (append
+    ;        eceval-main-controller-text
+    ;        eceval-cond-text-5.23)))
+    ;(start eceval-5.23)
 )
 (define the-global-environment (setup-environment)) (test-5.23)
 

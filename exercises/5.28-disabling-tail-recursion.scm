@@ -28,7 +28,7 @@
 )
 
 
-;(define eceval-prebatch-command eceval-prebatch-command-iterative-5.26) (run-eceval)
+(define eceval-prebatch-command eceval-prebatch-command-iterative-5.26) (run-eceval)
 ; n   total   max
 ; <1  33      14
 ; 1   70      17

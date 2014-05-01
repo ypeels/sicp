@@ -1,4 +1,4 @@
-(load "load-eceval.scm")
+(load "5.23-24-cond-in-eval-dispatch.scm")
 
 
 
@@ -82,13 +82,15 @@ ev-cond-no-else-clause-found    ; doesn't reproduce the error for an empty (cond
             (list 'null? null?)
         )
     )
-    
 
-    (define eceval-5.24
-        (make-eceval 
-            eceval-main-controller-text
-            eceval-cond-text-5.24))
-    (start eceval-5.24)
+    (append! eceval-main-controller-text eceval-cond-text-5.24)
+    (run-eceval-5.23-24)
+
+    ;(define eceval-5.24
+    ;    (make-eceval 
+    ;        eceval-main-controller-text
+    ;        eceval-cond-text-5.24))
+    ;(start eceval-5.24)
 )
 (define the-global-environment (setup-environment)) (test-5.24)
 

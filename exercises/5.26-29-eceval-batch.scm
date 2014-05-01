@@ -36,7 +36,8 @@ eceval-prebatch-output
     (define eceval
         (make-eceval 
             (append eceval-prebatch-text-5.26-29 eceval-main-controller-text)
-            eceval-cond-text))
+        )
+    )
             
     (start eceval)
 )
