@@ -4,9 +4,6 @@ In evaluating a procedure application, the explicit-control evaluator always
     (3) saves and restores argl around the evaluation of each operand [including final one, but not zero-operand case], and 
     (4) saves and restores proc around the evaluation of the operand sequence [but not in zero-operand case].
 
-Remarks
-
-
 
 Annotated from ch5-eceval.scm:
 
@@ -56,3 +53,50 @@ apply-dispatch
   (test (op compound-procedure?) (reg proc))  
   (branch (label compound-apply))
   (goto (label unknown-procedure-type))
+  
+  
+a. (f 'x 'y)
+    operator = variable 
+    argument = quotes
+    
+b. ((f) 'x 'y)
+    operator = application with NO ARGUMENTS
+    argument = quotes
+    
+c. (f (g 'x) y)
+    operator = variable
+    argument = application(quote) + variable
+    
+d. (f (g 'x) 'y)
+    operator = variable
+    argument = application(quote) + quote
+    
+So the question becomes: do the following evaluators trash env, argl, or proc?
+    ev-variable
+    ev-quoted
+    ev-application (no args)
+    ev-application (1 arg)
+    
+    
+ev-variable                                                    
+  (assign val (op lookup-variable-value) (reg expr) (reg env))    
+  (goto (reg continue))
+    ; since lookup-variable-value is a "primitive", ONLY register val gets trashed.
+    
+ev-quoted
+  (assign val (op text-of-quotation) (reg expr))
+  (goto (reg continue))
+    ; since text-of-quotation is a "primitive", ONLY register val gets trashed.
+    
+-----------------------------    
+Answer to a: ALL save/restore pairs are superfluous and can be eliminated.
+-----------------------------
+
+
+(f) and (g 'x)
+- well, couldn't these possibly have nested calls?? 
+- who KNOWS what those nested calls do!
+- i'm gonna say 
+-----------------------------    
+Answer to b-d: NONE of the save/restore pairs are superfluous
+-----------------------------
