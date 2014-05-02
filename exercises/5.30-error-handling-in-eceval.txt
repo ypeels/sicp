@@ -1,0 +1,35 @@
+Too much work even for l0stman?
+
+Not sure meteorgan's (part a only) solution is complete...
+- it's only a short modification to lookup-variable-value, and like 7 assembly lines
+
+"This is lots of work."
+
+ohhhhhh i see now...?
+
+a. All (error) statements that might result from (eval)?
+
+
+b. NEVER fall out of the EC-Eval prompt.
+This involves error-checking EVERY primitive used in primitive-procedures (mceval).
+But aren't the operations in eceval-operations treated essentially the same way? 
+
+No!!!
+- eceval-operations can be invoked in ASSEMBLY, but NOT at the EC-Eval prompt
+- primitive-procedures can be invoked at the EC-Eval prompt, but NOT in assembly!
+
+
+From their examples:
+I think they are drawing a distinction between COMPILED primitives built into MIT Scheme in b.,
+and any of our "primitive" functions in eceval-operations.
+
+(What about checking for such errors in regsim code?? Probably assume it's "bug-free"...)
+
+
+So I think the question is asking you to at LEAST:
+a. Handle the 4 error statements in ch5-eceval-support.scm and 1 in ch5-syntax.scm
+b. Write error-handling versions of all procedures in primitive-procedures
+- that should definitely be [understatedly] all for b. 
+    - What else can you call from primitive-apply?
+
+Is that ALL for a, though??
