@@ -1,0 +1,7 @@
+. ch4-mceval.scm 4.1.4-ch4-mceval.scm
+exercises ch4-mceval.scm ../4.1.4-ch4-mceval.scm
+exercises 4.22-24-ch4-analyzingmceval.scm ../4.1.7-ch4-analyzingmceval.scm
+exercises 4.27-31-ch4-leval.scm ../4.2.2-ch4-leval.scm
+exercises ch4-ambeval.scm ../4.3.3-ch4-ambeval.scm
+exercises ch4-query.scm ../4.4.4-ch4-query.scm
+exercises ch5-regsim.scm ../5.2.4-ch5-regsim.scm

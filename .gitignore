@@ -1,5 +1,6 @@
 *~
 *.gz
+ch4-mceval.scm
 allcode/
 sicp-solutions/
 exercises/ch4-mceval.scm
