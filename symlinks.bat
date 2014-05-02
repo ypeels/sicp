@@ -29,7 +29,7 @@ exit /b
     if not exist %1 (
         mklink %1 %2
     ) else (
-        echo Skipping %CD%\%1 - already exists! 
+        rem echo Skipping %CD%\%1 - already exists! 
     )
     rem echo "Want to create link %1 ==> %2"
 exit /b
