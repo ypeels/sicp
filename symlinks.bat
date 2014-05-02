@@ -19,7 +19,6 @@ for /f "tokens=1-3" %%i in (%TARGETS%) do (
     popd
 )
 
-echo Goodbye world
 pause
 exit /b
 
