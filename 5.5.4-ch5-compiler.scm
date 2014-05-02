@@ -195,50 +195,50 @@
      (compile-sequence (lambda-body expr) 'val 'return))))              ; the procedure body
                                                                         ; always end with return(val).
 
-;;;SECTION 5.5.3
+;;;SECTION 5.5.3                                            ; <==== 5.5.3: Compiling Combinations [i.e., procedure applications - p. 6!]       
 
 ;;;combinations
 
-(define (compile-application expr target linkage)
-  (let ((proc-code (compile (operator expr) 'proc 'next))
+(define (compile-application expr target linkage)               ; "The essence of the compilation process is the compilation of procedure applications."
+  (let ((proc-code (compile (operator expr) 'proc 'next))           ; <---- the only place where target != val in the compiler
         (operand-codes
          (map (lambda (operand) (compile operand 'val 'next))
               (operands expr))))
-    (preserving '(env continue)
-     proc-code
-     (preserving '(proc continue)
-      (construct-arglist operand-codes)
-      (compile-procedure-call target linkage)))))
+    (preserving '(env continue)                                         ; env needed for operands, continue for final linkage
+     proc-code                                                      ; <compilation of operator, target proc, linkage next>
+     (preserving '(proc continue)                                       ; proc needed for final application, continue for final linkage
+      (construct-arglist operand-codes)                             ; <evaluate operands and construct argument list in argl>
+      (compile-procedure-call target linkage)))))                   ; <compilation of procedure call with given target and linkage>
 
-(define (construct-arglist operand-codes)
-  (let ((operand-codes (reverse operand-codes)))
-    (if (null? operand-codes)
-        (make-instruction-sequence '() '(argl)
-         '((assign argl (const ()))))
+(define (construct-arglist operand-codes)                       ; ONLY invoked from (compile-application)
+  (let ((operand-codes (reverse operand-codes)))                    ; build up argl using cons, so start with the last arg
+    (if (null? operand-codes)                                       ; operand-codes = (reversed) list of compiled operands
+        (make-instruction-sequence '() '(argl)                      
+         '((assign argl (const ()))))                               ; no arguments, so argl = '(). handled as a special case, "rather than [always] waste an an instruction by initializing argl to the empty list"
         (let ((code-to-get-last-arg
-               (append-instruction-sequences
-                (car operand-codes)
+               (append-instruction-sequences                        ; argl construction skeleton p. 582
+                (car operand-codes)                                     ; <compilation of last operand, targeted to val>
                 (make-instruction-sequence '(val) '(argl)
-                 '((assign argl (op list) (reg val)))))))
+                 '((assign argl (op list) (reg val)))))))               ; (assign argl (op list) (reg val))
           (if (null? (cdr operand-codes))
               code-to-get-last-arg
-              (preserving '(env)
+              (preserving '(env)                                            ; preserve env for subsequent operand evaluations
                code-to-get-last-arg
-               (code-to-get-rest-args
-                (cdr operand-codes))))))))
-
-(define (code-to-get-rest-args operand-codes)
+               (code-to-get-rest-args                                   ; *<compilation of next operand, targeted to val>
+                (cdr operand-codes))))))))                              ; **(assign argl (op cons) (reg val) (reg argl)) below
+                                                                        ; etc. from (code-to-get-rest-args)
+(define (code-to-get-rest-args operand-codes)                   ; ONLY invoked from (construct-arglist)
   (let ((code-for-next-arg
-         (preserving '(argl)
-          (car operand-codes)
+         (preserving '(argl)                                        ; operand code might trash argl!
+          (car operand-codes)                                       ; * above
           (make-instruction-sequence '(val argl) '(argl)
-           '((assign argl
+           '((assign argl                                           ; ** above
               (op cons) (reg val) (reg argl)))))))
-    (if (null? (cdr operand-codes))
-        code-for-next-arg
-        (preserving '(env)
+    (if (null? (cdr operand-codes))                                 ; if this is the last arg (in the reversed list)
+        code-for-next-arg                                               ; then we are done!
+        (preserving '(env)                                              ; otherwise, save the env...
          code-for-next-arg
-         (code-to-get-rest-args (cdr operand-codes))))))
+         (code-to-get-rest-args (cdr operand-codes))))))                ; for evaluating the next operand.
 
 ;;;applying procedures
 
