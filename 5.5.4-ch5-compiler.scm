@@ -28,7 +28,7 @@
         ((definition? expr)                                                 ; <label>: jump to a named entry point
          (compile-definition expr target linkage))
         ((if? expr) (compile-if expr target linkage))
-        ((lambda? expr) (compile-lambda expr target linkage))
+        ((lambda? expr) (compile-lambda expr target linkage))       ; "code generators"
         ((begin? expr)
          (compile-sequence (begin-actions expr)
                            target
@@ -40,11 +40,11 @@
          (error "Unknown exprression type -- COMPILE" expr))))
 
 
-(define (make-instruction-sequence needs modifies statements)
-  (list needs modifies statements))
-
-(define (empty-instruction-sequence)
-  (make-instruction-sequence '() '() '()))
+(define (make-instruction-sequence needs modifies statements)       ; p. 573: An instruction sequence will contain three pieces of information:
+  (list needs modifies statements))                                     ; needs: registers that must be initialized before instructions are executed
+                                                                        ; modifies: registers whose values are modified by instructions
+(define (empty-instruction-sequence)                                    ; statements: the actual instructions
+  (make-instruction-sequence '() '() '()))                              ; the first 2 are used by (append-instruction-sequences) and (preserving) - 5.5.4 code below
 
 
 ;;;SECTION 5.5.2
@@ -318,9 +318,9 @@
   (memq reg (registers-modified seq)))
 
 
-(define (append-instruction-sequences . seqs)
+(define (append-instruction-sequences . seqs)                       ; previewed in 5.5.1 on p. 572: append all, with register analysis to simplify (preserving)
   (define (append-2-sequences seq1 seq2)
-    (make-instruction-sequence
+    (make-instruction-sequence                                          ; overview of register metadata: p. 573
      (list-union (registers-needed seq1)
                  (list-difference (registers-needed seq2)
                                   (registers-modified seq1)))
@@ -345,8 +345,8 @@
         (else (cons (car s1)
                     (list-difference (cdr s1) s2)))))
 
-(define (preserving regs seq1 seq2)
-  (if (null? regs)
+(define (preserving regs seq1 seq2)                                 ; previewed in 5.5.1 on p. 572: smart push/pop wrapped around seq1
+  (if (null? regs)                                                      ; ALL push/pops generated here! code generators don't worry about it.
       (append-instruction-sequences seq1 seq2)
       (let ((first-reg (car regs)))
         (if (and (needs-register? seq2 first-reg)
