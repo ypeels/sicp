@@ -15,10 +15,10 @@
 (load "ch5-syntax.scm")			;section 4.1.2 syntax procedures
 
 
-;;;SECTION 5.5.1                                               
-
-(define (compile expr target linkage)                           
-  (cond ((self-evaluating? expr)                                
+;;;SECTION 5.5.1                                               ; <==== 5.5.1: Structure of the Compiler
+                                                               
+(define (compile expr target linkage)                              ; top-level dispatch, corresponding to (eval), (analyze), and eval-dispatch 
+  (cond ((self-evaluating? expr)                                       ; again uses expression-syntax procedures from 4.1.2 
          (compile-self-evaluating expr target linkage))
         ((quoted? expr) (compile-quoted expr target linkage))
         ((variable? expr)
