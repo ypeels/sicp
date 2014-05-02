@@ -210,7 +210,7 @@
       (construct-arglist operand-codes)                             ; <evaluate operands and construct argument list in argl>
       (compile-procedure-call target linkage)))))                   ; <compilation of procedure call with given target and linkage>
 
-(define (construct-arglist operand-codes)                       ; ONLY invoked from (compile-application)
+(define (construct-arglist operand-codes)                       ; ONLY invoked from (compile-application). "tricky, because of the special treatment of the first operand to be evaluated"
   (let ((operand-codes (reverse operand-codes)))                    ; build up argl using cons, so start with the last arg
     (if (null? operand-codes)                                       ; operand-codes = (reversed) list of compiled operands
         (make-instruction-sequence '() '(argl)                      
@@ -226,7 +226,7 @@
                code-to-get-last-arg
                (code-to-get-rest-args                                   ; *<compilation of next operand, targeted to val>
                 (cdr operand-codes))))))))                              ; **(assign argl (op cons) (reg val) (reg argl)) below
-                                                                        ; etc. from (code-to-get-rest-args)
+
 (define (code-to-get-rest-args operand-codes)                   ; ONLY invoked from (construct-arglist)
   (let ((code-for-next-arg
          (preserving '(argl)                                        ; operand code might trash argl!
@@ -240,32 +240,32 @@
          code-for-next-arg
          (code-to-get-rest-args (cdr operand-codes))))))                ; for evaluating the next operand.
 
-;;;applying procedures
-
+;;;applying procedures                                          ; Applying procedures - cf. (apply) from 4.1.1 p. 366 or apply-dispatch from 5.4.1 p. 553
+                                                                    ; precondition: proc = operator value, argl = operand values
 (define (compile-procedure-call target linkage)
   (let ((primitive-branch (make-label 'primitive-branch))
         (compiled-branch (make-label 'compiled-branch))
         (after-call (make-label 'after-call)))
-    (let ((compiled-linkage
+    (let ((compiled-linkage                                         ; cf. linkage for true-branch for compile-if
            (if (eq? linkage 'next) after-call linkage)))
       (append-instruction-sequences
-       (make-instruction-sequence '(proc) '()
-        `((test (op primitive-procedure?) (reg proc))
-          (branch (label ,primitive-branch))))
-       (parallel-instruction-sequences
+       (make-instruction-sequence '(proc) '()                       ; skeleton p. 584
+        `((test (op primitive-procedure?) (reg proc))               ; (test (op primitive-procedure?) (reg proc))
+          (branch (label ,primitive-branch))))                      ; (branch (label ,primitive-branch))
+       (parallel-instruction-sequences                                  ; special combiner like with if
         (append-instruction-sequences
-         compiled-branch
-         (compile-proc-appl target compiled-linkage))
+         compiled-branch                                            ; compiled-branch [next-linkage skips primitive-branch]
+         (compile-proc-appl target compiled-linkage))               ; <code to apply compiled procedure with given target and appropriate linkage>
         (append-instruction-sequences
-         primitive-branch
+         primitive-branch                                           ; primitive-branch
          (end-with-linkage linkage
           (make-instruction-sequence '(proc argl)
                                      (list target)
-           `((assign ,target
+           `((assign ,target                                        ; (assign <target> (op apply-primitive-procedure) (reg proc) (reg argl))
                      (op apply-primitive-procedure)
                      (reg proc)
-                     (reg argl)))))))
-       after-call))))
+                     (reg argl)))))))                               ; <linkage> [argument - from (end-with-linkage)]
+       after-call))))                                               ; after-call
 
 ;;;applying compiled procedures
 
