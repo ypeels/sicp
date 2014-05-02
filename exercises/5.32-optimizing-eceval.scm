@@ -59,3 +59,4 @@
 ; b. 
 ; If you add too much "optimization" logic, the parser will get bogged down!
 ; If you optimize an "analyzing evaluator" that parses only once, aren't you just implementing a compiler??
+; l0stman: the advantage of an interpreter is low overhead when starting a program.
