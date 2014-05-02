@@ -15,17 +15,17 @@
 (load "ch5-syntax.scm")			;section 4.1.2 syntax procedures
 
 
-;;;SECTION 5.5.1                                               ; <==== 5.5.1: Structure of the Compiler
+;;;SECTION 5.5.1                                                ; <==== 5.5.1: Structure of the Compiler
                                                                
-(define (compile expr target linkage)                              ; top-level dispatch, corresponding to (eval), (analyze), and eval-dispatch 
-  (cond ((self-evaluating? expr)                                       ; again uses expression-syntax procedures from 4.1.2 
+(define (compile expr target linkage)                               ; top-level dispatch, corresponding to (eval), (analyze), and eval-dispatch 
+  (cond ((self-evaluating? expr)                                        ; again uses expression-syntax procedures from 4.1.2 
          (compile-self-evaluating expr target linkage))
-        ((quoted? expr) (compile-quoted expr target linkage))
-        ((variable? expr)
-         (compile-variable expr target linkage))
-        ((assignment? expr)
-         (compile-assignment expr target linkage))
-        ((definition? expr)
+        ((quoted? expr) (compile-quoted expr target linkage))       ; Targets and linkages, p. 571    
+        ((variable? expr)                                               ; target = register in which compiled code returns value of expression
+         (compile-variable expr target linkage))                        ; linkage = describes how to proceed after compiled code has executed
+        ((assignment? expr)                                                 ; "next": continue at next instruction in sequence
+         (compile-assignment expr target linkage))                          ; "return": return from procedure being compiled
+        ((definition? expr)                                                 ; <label>: jump to a named entry point
          (compile-definition expr target linkage))
         ((if? expr) (compile-if expr target linkage))
         ((lambda? expr) (compile-lambda expr target linkage))
