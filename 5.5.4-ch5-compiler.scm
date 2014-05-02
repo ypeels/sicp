@@ -41,8 +41,8 @@
 
 
 (define (make-instruction-sequence needs modifies statements)       ; p. 573: An instruction sequence will contain three pieces of information:
-  (list needs modifies statements))                                     ; needs: registers that must be initialized before instructions are executed
-                                                                        ; modifies: registers whose values are modified by instructions
+  (list needs modifies statements))                                     ; needs: registers [to be READ] that must be initialized before instructions are executed
+                                                                        ; modifies: registers [to be WRITTEN] whose values are modified by instructions
 (define (empty-instruction-sequence)                                    ; statements: the actual instructions
   (make-instruction-sequence '() '() '()))                              ; the first 2 are used by (append-instruction-sequences) and (preserving) - 5.5.4 code below
 
@@ -67,39 +67,39 @@
    (compile-linkage linkage)))                                          ; the linkage code needs it (return linkage)
 
 
-;;;simple exprressions
+;;;simple exprressions                                          ; Compiling simple expressions
 
 (define (compile-self-evaluating expr target linkage)
   (end-with-linkage linkage
-   (make-instruction-sequence '() (list target)
-    `((assign ,target (const ,expr))))))
+   (make-instruction-sequence '() (list target)                     ; Assign the required value to the target register [argument]...
+    `((assign ,target (const ,expr))))))                                ; [don't want a literal "target" INSIDE the quote!]
 
 (define (compile-quoted expr target linkage)
-  (end-with-linkage linkage
-   (make-instruction-sequence '() (list target)
-    `((assign ,target (const ,(text-of-quotation expr)))))))
+  (end-with-linkage linkage                                         ; and then proceed as specified by the linkage descriptor [argument].
+   (make-instruction-sequence '() (list target)                     ; All these instructions will modify the target register...
+    `((assign ,target (const ,(text-of-quotation expr)))))))            ; [the compiler can bake in quotation text instead of using reg val!]
 
 (define (compile-variable expr target linkage)
   (end-with-linkage linkage
-   (make-instruction-sequence '(env) (list target)
+   (make-instruction-sequence '(env) (list target)                  ; and the one that looks up a variable needs the env register.
     `((assign ,target
               (op lookup-variable-value)
-              (const ,expr)
+              (const ,expr)                                             ; [the compiler can bake in variable names instead of using reg val!]
               (reg env))))))
 
-(define (compile-assignment expr target linkage)
+(define (compile-assignment expr target linkage)                    ; Assignments and definitions are handled much as they are in the interpreter.
   (let ((var (assignment-variable expr))
-        (get-value-code
-         (compile (assignment-value expr) 'val 'next)))
+        (get-value-code                                                 ; generate code that computes the value to be assigned to the variable,
+         (compile (assignment-value expr) 'val 'next)))                     ; [with target val and linkage next for appending]
     (end-with-linkage linkage
-     (preserving '(env)
-      get-value-code
-      (make-instruction-sequence '(env val) (list target)
-       `((perform (op set-variable-value!)
+     (preserving '(env)                                                     ; [save env for set! to modify - since get-value-code might trash it]
+      get-value-code                                                    ; and append to it...
+      (make-instruction-sequence '(env val) (list target)               ; a two-instruction sequence...
+       `((perform (op set-variable-value!)                              ; that actually sets/defines the variable...
                   (const ,var)
-                  (reg val)
+                  (reg val)                                                 ; [using the result val from get-value-code]
                   (reg env))
-         (assign ,target (const ok))))))))
+         (assign ,target (const ok))))))))                              ; and returns 'ok in the target register.
 
 (define (compile-definition expr target linkage)
   (let ((var (definition-variable expr))
@@ -109,7 +109,7 @@
      (preserving '(env)
       get-value-code
       (make-instruction-sequence '(env val) (list target)
-       `((perform (op define-variable!)
+       `((perform (op define-variable!)                                 ; <--- the only difference with (compile-assignment).        
                   (const ,var)
                   (reg val)
                   (reg env))
