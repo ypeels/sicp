@@ -116,40 +116,40 @@
          (assign ,target (const ok))))))))
 
 
-;;;conditional exprressions
-
-;;;labels (from footnote)
-(define label-counter 0)
-
-(define (new-label-number)
-  (set! label-counter (+ 1 label-counter))
-  label-counter)
-
-(define (make-label name)
-  (string->symbol
-    (string-append (symbol->string name)
-                   (number->string (new-label-number)))))
+;;;conditional exprressions                                     ; Compiling conditional expressions
+                                                                    
+;;;labels (from footnote)                                           ; Footnote 37 p. 578: generate labels that are unique within the object code
+(define label-counter 0)                                                ; cf. unique query variable names - pp. 477, 486 Secs 4.4.4.4 and 4.4.4.7
+                                                                    ; code skeleton p. 577
+(define (new-label-number)                                          ;  <compiled predicate, target val, linkage next>
+  (set! label-counter (+ 1 label-counter))                          ;  (test (op false?) (reg val))
+  label-counter)                                                    ;  (branch (label false-branch))
+                                                                    ; true-branch
+(define (make-label name)                                           ;  <compiled consequent with given target and given linkage or after-if> [need after-if if given linkage = next]
+  (string->symbol                                                   ; false-branch
+    (string-append (symbol->string name)                            ;  <compilation of alternative with given target and linkage>
+                   (number->string (new-label-number)))))           ; after-if
 ;; end of footnote
 
 (define (compile-if expr target linkage)
   (let ((t-branch (make-label 'true-branch))
         (f-branch (make-label 'false-branch))                    
         (after-if (make-label 'after-if)))
-    (let ((consequent-linkage
-           (if (eq? linkage 'next) after-if linkage)))
-      (let ((p-code (compile (if-predicate expr) 'val 'next))
+    (let ((consequent-linkage                                       ; if linkage = return or label, true uses it directly
+           (if (eq? linkage 'next) after-if linkage)))                  ; but for linkage = next, jump around false code to after-if
+      (let ((p-code (compile (if-predicate expr) 'val 'next))       ; compile the predicate, consequent, and alternative
             (c-code
              (compile
               (if-consequent expr) target consequent-linkage))
             (a-code
              (compile (if-alternative expr) target linkage)))
-        (preserving '(env continue)
+        (preserving '(env continue)                                 ; env might be needed by c-code/a-code, continue by linkage
          p-code
          (append-instruction-sequences
           (make-instruction-sequence '(val) '()
-           `((test (op false?) (reg val))
+           `((test (op false?) (reg val))                           ; test the predicate result, with newly-inserted labels
              (branch (label ,f-branch))))
-          (parallel-instruction-sequences
+          (parallel-instruction-sequences                           ; special combiner from 5.5.4
            (append-instruction-sequences t-branch c-code)
            (append-instruction-sequences f-branch a-code))
           after-if))))))
