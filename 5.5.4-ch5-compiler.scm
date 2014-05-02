@@ -47,9 +47,9 @@
   (make-instruction-sequence '() '() '()))                              ; the first 2 are used by (append-instruction-sequences) and (preserving) - 5.5.4 code below
 
 
-;;;SECTION 5.5.2                                                ; <==== 5.5.2: Compiling Expressions
+;;;SECTION 5.5.2                                            ; <==== 5.5.2: Compiling Expressions
 
-;;;linkage code
+;;;linkage code                                                 ; Compiling linkage code
 
 (define (compile-linkage linkage)                                   ; "In general, the output of each code generator will end" with this.
   (cond ((eq? linkage 'return)

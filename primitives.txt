@@ -17,12 +17,13 @@ Introduced in main text but not indicated as built-in*
 	of all these, only cons-stream and force are special forms
 3.5.3 p. 340: stream-append (needs to read entire first argument first)
 4.1.1 pp. 365-6: eval and apply (I've used apply in exercises before)
-4.3.2 p. 418 FOOTNOTE: member ("like memq except that it uses equal? instead of eq?")
+4.3.2 p. 418 FOOTNOTE 48: member ("like memq except that it uses equal? instead of eq?")
 4.4.4.7 pp. 485-6: string=?, substring, string-length, string-append,
 	symbol->string, string->symbol, number->string
 	footnote 81 DOES mention that these are primitives
 5.3.1 p. 534: (vector 1 2 3), say - they introduce (vector-ref) but NOT its constructor!
 	this also led me to (list-set!).
+5.5.2 p. 575 Footnote 36: backquote/quasiquote ` and ,
 
 *MAYBE their manuscript predates my current MIT Scheme version (9.1) by too much?
 
