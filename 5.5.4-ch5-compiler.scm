@@ -47,24 +47,24 @@
   (make-instruction-sequence '() '() '()))                              ; the first 2 are used by (append-instruction-sequences) and (preserving) - 5.5.4 code below
 
 
-;;;SECTION 5.5.2
+;;;SECTION 5.5.2                                                ; <==== 5.5.2: Compiling Expressions
 
 ;;;linkage code
 
-(define (compile-linkage linkage)
+(define (compile-linkage linkage)                                   ; "In general, the output of each code generator will end" with this.
   (cond ((eq? linkage 'return)
-         (make-instruction-sequence '(continue) '()
+         (make-instruction-sequence '(continue) '()                     ; return: needs continue, modifies none.
           '((goto (reg continue)))))
         ((eq? linkage 'next)
-         (empty-instruction-sequence))
+         (empty-instruction-sequence))                                  ; next: do nothing!
         (else
          (make-instruction-sequence '() '()
-          `((goto (label ,linkage)))))))
+          `((goto (label ,linkage)))))))                                ; else: goto linkage. for backquote syntax, see Footnote 36.
 
-(define (end-with-linkage linkage instruction-sequence)
-  (preserving '(continue)
-   instruction-sequence
-   (compile-linkage linkage)))
+(define (end-with-linkage linkage instruction-sequence)             ; append linkage to an instruction sequence (not ALWAYS done! see below)
+  (preserving '(continue)                                               ; preserve continue, if ...
+   instruction-sequence                                                 ; the given instruction sequence modifies it and...
+   (compile-linkage linkage)))                                          ; the linkage code needs it (return linkage)
 
 
 ;;;simple exprressions
@@ -345,8 +345,8 @@
         (else (cons (car s1)
                     (list-difference (cdr s1) s2)))))
 
-(define (preserving regs seq1 seq2)                                 ; previewed in 5.5.1 on p. 572: smart push/pop wrapped around seq1
-  (if (null? regs)                                                      ; ALL push/pops generated here! code generators don't worry about it.
+(define (preserving regs seq1 seq2)                                 ; previewed in 5.5.1 on p. 572: returns ((wrap seq1) seq2), where 
+  (if (null? regs)                                                      ; (wrap seq1) INTELLIGENTLY wraps seq1 with push/pop pairs for regs 
       (append-instruction-sequences seq1 seq2)
       (let ((first-reg (car regs)))
         (if (and (needs-register? seq2 first-reg)
@@ -357,8 +357,8 @@
                           (registers-needed seq1))
               (list-difference (registers-modified seq1)
                                (list first-reg))
-              (append `((save ,first-reg))
-                      (statements seq1)
+              (append `((save ,first-reg))                              ; ALL push/pops generated here! code generators don't worry about it.
+                      (statements seq1)                                 
                       `((restore ,first-reg))))
              seq2)
             (preserving (cdr regs) seq1 seq2)))))
