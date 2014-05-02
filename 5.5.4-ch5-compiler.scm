@@ -149,8 +149,8 @@
           (make-instruction-sequence '(val) '()
            `((test (op false?) (reg val))                           ; test the predicate result, with newly-inserted labels
              (branch (label ,f-branch))))
-          (parallel-instruction-sequences                           ; special combiner from 5.5.4
-           (append-instruction-sequences t-branch c-code)
+          (parallel-instruction-sequences                           ; special combiner from 5.5.4: instructions in parallel
+           (append-instruction-sequences t-branch c-code)               ; (no need for preserving between them)
            (append-instruction-sequences f-branch a-code))
           after-if))))))
 
@@ -163,37 +163,37 @@
        (compile (first-exp seq) target 'next)                           ; other expressions with linkage next (to rest of sequence)
        (compile-sequence (rest-exps seq) target linkage))))
 
-;;;lambda exprressions
+;;;lambda exprressions                                          ; Compiling lambda expressions
 
-(define (compile-lambda expr target linkage)
-  (let ((proc-entry (make-label 'entry))
-        (after-lambda (make-label 'after-lambda)))
-    (let ((lambda-linkage
-           (if (eq? linkage 'next) after-lambda linkage)))
-      (append-instruction-sequences
-       (tack-on-instruction-sequence
-        (end-with-linkage lambda-linkage
-         (make-instruction-sequence '(env) (list target)
-          `((assign ,target
-                    (op make-compiled-procedure)
-                    (label ,proc-entry)
-                    (reg env)))))
-        (compile-lambda-body expr proc-entry))
-       after-lambda))))
+(define (compile-lambda expr target linkage)                        ; code to construct procedure object; followed by code for procedure body    
+  (let ((proc-entry (make-label 'entry))                                
+        (after-lambda (make-label 'after-lambda)))                      ; hmm, generates label before it knows it's necessary...
+    (let ((lambda-linkage                                               
+           (if (eq? linkage 'next) after-lambda linkage)))              ; need to skip body if linkage is next (return or goto proceeds normally)
+      (append-instruction-sequences                                     
+       (tack-on-instruction-sequence                                    ; special combiner from 5.5.4 (2nd seq not executed)
+        (end-with-linkage lambda-linkage                                
+         (make-instruction-sequence '(env) (list target)                
+          `((assign ,target                                             ; <construct procedure object and assign it to target register>
+                    (op make-compiled-procedure)                            ; new op - Footnote 38 p. 580
+                    (label ,proc-entry)                                     ; proc body entry point + current env (SAVED from point of definition) - p. 580
+                    (reg env)))))                                       ; <lambda-linkage> - from (end-with-linkage)
+        (compile-lambda-body expr proc-entry))                          ; <compiled body> - from (tack-on-instruction-sequence)
+       after-lambda))))                                                 ; label after-lambda - from (append-instruction-sequences)
 
-(define (compile-lambda-body expr proc-entry)
-  (let ((formals (lambda-parameters expr)))
+(define (compile-lambda-body expr proc-entry)                       ; code for body [since we're already here]
+  (let ((formals (lambda-parameters expr)))                             ; ONLY invoked from (compile-lambda).
     (append-instruction-sequences
      (make-instruction-sequence '(env proc argl) '(env)
-      `(,proc-entry
-        (assign env (op compiled-procedure-env) (reg proc))
+      `(,proc-entry                                                     ; label for entry point (for application)
+        (assign env (op compiled-procedure-env) (reg proc))             ; the definition env of the procedure...
         (assign env
-                (op extend-environment)
+                (op extend-environment)                                     ; extended to include bindings of arguments
                 (const ,formals)
                 (reg argl)
                 (reg env))))
-     (compile-sequence (lambda-body expr) 'val 'return))))
-
+     (compile-sequence (lambda-body expr) 'val 'return))))              ; the procedure body
+                                                                        ; always end with return(val).
 
 ;;;SECTION 5.5.3
 
