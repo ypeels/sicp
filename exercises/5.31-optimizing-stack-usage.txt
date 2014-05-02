@@ -47,12 +47,6 @@ ev-appl-accum-last-arg
   (assign argl (op adjoin-arg) (reg val) (reg argl))          
   (restore proc)                                        ; (4) pop
   (goto (label apply-dispatch))                               
-apply-dispatch                                                
-  (test (op primitive-procedure?) (reg proc))                 
-  (branch (label primitive-apply))
-  (test (op compound-procedure?) (reg proc))  
-  (branch (label compound-apply))
-  (goto (label unknown-procedure-type))
   
   
 a. (f 'x 'y)
@@ -87,10 +81,13 @@ ev-quoted
   (assign val (op text-of-quotation) (reg expr))
   (goto (reg continue))
     ; since text-of-quotation is a "primitive", ONLY register val gets trashed.
-    
+    ; AND, there is no dependency on env.
+        
 -----------------------------    
 Answer to a: ALL save/restore pairs are superfluous and can be eliminated.
 -----------------------------
+
+Also, doesn't this mean that the answer to c. and d. will be identical?
 
 
 (f) and (g 'x)
@@ -100,3 +97,81 @@ Answer to a: ALL save/restore pairs are superfluous and can be eliminated.
 -----------------------------    
 Answer to b-d: NONE of the save/restore pairs are superfluous
 -----------------------------
+
+Unfortunately, solutions all seem to assume that f and g don't contain any nested calls
+http://community.schemewiki.org/?sicp-ex-5.31
+https://github.com/l0stman/sicp/blob/master/5.31.tex
+
+So let's redo the analysis for b-d with this assumption.
+
+
+(f), assuming there are no nested calls
+- will (eval f) affect env? possibly... (1) is not superfluous!
+- skip (2)-(4) to apply-dispatch... where env almost certainly gets trashed!
+
+apply-dispatch                                            
+  (test (op primitive-procedure?) (reg proc))             
+  (branch (label primitive-apply))
+  (test (op compound-procedure?) (reg proc))  
+  (branch (label compound-apply))
+  (goto (label unknown-procedure-type))
+
+primitive-apply                                           
+  (assign val (op apply-primitive-procedure)              
+              (reg proc)                                  
+              (reg argl))
+  (restore continue)                                      
+  (goto (reg continue))                                   
+
+compound-apply                                            
+  (assign unev (op procedure-parameters) (reg proc))      
+  (assign env (op procedure-environment) (reg proc))
+  (assign env (op extend-environment)                     
+              (reg unev) (reg argl) (reg env))              
+  (assign unev (op procedure-body) (reg proc))            
+  (goto (label ev-sequence))        
+
+
+Therefore, push/pop pair (1) is required for b.
+Pairs (2)-(4) are irrelevant to (f), and they are irrelevant to quoted arguments.
+
+-----------------------------  
+Assuming no nested calls in (f)  
+Answer to b: All of the save restore pairs except (1) are superfluous.
+
+Sols: I am WRONG! Even though env gets trashed, you don't need it to evaluate quotes.
+[it's ok to return with trashed env - it is presumed trashed at the end of ev-appl-last-arg anyway]
+----------------------------- 
+
+ 
+(g 'x), assuming there are no nested calls.
+The operator here and the operator in the enclosing (f) are both simple variables.
+(1) is definitely superfluous.
+
+(g 'x) has only one operand - a final one.
+- (2) is never REACHED in (g 'x)
+- (2) WILL be reached in the enclosing (f)
+    d. for 'y, you don't need env to evaluate a quote, so (2) is completely superfluous
+    c. for y, you need env to evaluate a variable, so you need (2)...right?
+
+(g 'x) 
+- ev-appl-accum-last-arg will trash argl to ('x). you don't want to use that in the enclosing (f)!
+- (3) is absolutely required!
+
+(g 'x)
+- ev-appl-did-operator will trash proc to g. you don't want to use that in the enclosing (f)!
+- (4) is absolutely required!
+
+
+-----------------------------  
+Assuming no nested calls in (f)  
+Answers to 
+c. (f (g 'x) y)
+d. (f (g 'x) 'y)
+(1) [env push/pop for operator] is superfluous for both c and d
+(2) [env push/pop for operand] is superfluous for d but NOT for c.
+(3) [argl push/pop] is required for both.
+(4) [proc push/pop] is required for both.
+-----------------------------  
+
+Wow, who would have thought: l0stman's solutions are the most wrong? In the end, I agree with Perry.
