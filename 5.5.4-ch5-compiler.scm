@@ -192,8 +192,8 @@
                 (const ,formals)
                 (reg argl)
                 (reg env))))
-     (compile-sequence (lambda-body expr) 'val 'return))))              ; the procedure body
-                                                                        ; always end with return(val).
+     (compile-sequence (lambda-body expr) 'val 'return))))              ; The procedure body.
+                                                                        ; Always end with return(val).
 
 ;;;SECTION 5.5.3                                            ; <==== 5.5.3: Compiling Combinations [i.e., procedure applications - p. 6!]       
 
@@ -242,7 +242,7 @@
 
 ;;;applying procedures                                          ; Applying procedures - cf. (apply) from 4.1.1 p. 366 or apply-dispatch from 5.4.1 p. 553
                                                                     ; precondition: proc = operator value, argl = operand values
-(define (compile-procedure-call target linkage)
+(define (compile-procedure-call target linkage)                     ; ONLY invoked from (compile-application)
   (let ((primitive-branch (make-label 'primitive-branch))
         (compiled-branch (make-label 'compiled-branch))
         (after-call (make-label 'after-call)))
@@ -267,37 +267,37 @@
                      (reg argl)))))))                               ; <linkage> [argument - from (end-with-linkage)]
        after-call))))                                               ; after-call
 
-;;;applying compiled procedures
-
-(define (compile-proc-appl target linkage)
-  (cond ((and (eq? target 'val) (not (eq? linkage 'return)))
-         (make-instruction-sequence '(proc) all-regs
-           `((assign continue (label ,linkage))
-             (assign val (op compiled-procedure-entry)
+;;;applying compiled procedures                                 ; Applying compiled procedures
+                                                                    ; "the most subtle part of the compiler"
+(define (compile-proc-appl target linkage)                          ; ONLY invoked from (compile-procedure-call)
+  (cond ((and (eq? target 'val) (not (eq? linkage 'return)))        ; linkage can ONLY be 'return or <label> - 'next was overridden by 'after-call in (compile-procedure-call)
+         (make-instruction-sequence '(proc) all-regs                ; case 1 of 4: target=val, linkage=<label> - p. 586
+           `((assign continue (label ,linkage))                         ; continue = (label <linkage>)
+             (assign val (op compiled-procedure-entry)                  ; val = (entry-point proc) [trash register]
                          (reg proc))
-             (goto (reg val)))))
-        ((and (not (eq? target 'val))
-              (not (eq? linkage 'return)))
+             (goto (reg val)))))                                        ; goto (entry-point proc)
+        ((and (not (eq? target 'val))                               ; case 2 of 4: target!=val, linkage=<label> - p. 585
+              (not (eq? linkage 'return)))                              ; the least efficient case - need to return here and transfer result from val to target
          (let ((proc-return (make-label 'proc-return)))
-           (make-instruction-sequence '(proc) all-regs
-            `((assign continue (label ,proc-return))
-              (assign val (op compiled-procedure-entry)
+           (make-instruction-sequence '(proc) all-regs                      ; p. 587: a procedure body could trash ANY registers!
+            `((assign continue (label ,proc-return))                    ; continue = proc-return
+              (assign val (op compiled-procedure-entry)                 ; val = (entry-point proc) [trash register]
                           (reg proc))
-              (goto (reg val))
-              ,proc-return
-              (assign ,target (reg val))
-              (goto (label ,linkage))))))
-        ((and (eq? target 'val) (eq? linkage 'return))
-         (make-instruction-sequence '(proc continue) all-regs
-          '((assign val (op compiled-procedure-entry)
-                        (reg proc))
-            (goto (reg val)))))
-        ((and (not (eq? target 'val)) (eq? linkage 'return))
-         (error "return linkage, target not val -- COMPILE"
-                target))))
-
-;; footnote
-(define all-regs '(env proc val argl continue))
+              (goto (reg val))                                          ; goto (entry-point proc)
+              ,proc-return                                              ; proc-return
+              (assign ,target (reg val))                                ; target = val [result of proc]
+              (goto (label ,linkage))))))                               ; goto (label <linkage>)
+        ((and (eq? target 'val) (eq? linkage 'return))              ; case 3 of 4: target=val, linkage=return - p. 586
+         (make-instruction-sequence '(proc continue) all-regs           ; NEEDS continue implicitly, for the procedure's return point
+          '((assign val (op compiled-procedure-entry)                   ; then continue is already ready! not coming back here ever again
+                        (reg proc))                                     ; val = (entry-point proc) [trash register]
+            (goto (reg val)))))                                         ; goto (entry-point proc)
+        ((and (not (eq? target 'val)) (eq? linkage 'return))        ; case 4 of 4: target!=val, linkage=return - p. 585 Footnote 39; see also 
+         (error "return linkage, target not val -- COMPILE"         ; this case is IMPOSSIBLE by the convention in (compile-lambda-body)
+                target))))                                          ; p. 586: since case 3 is the only viable return linkage for procedure applications,
+                                                                        ; the compiler is TAIL-RECURSIVE!! (why is this implemented here instead of compile-sequence, like eceval?)
+;; footnote                                                             ; alternatively, case 4 would destroy tail recursion (because you MUST come back here to transfer val, which means you MUST save continue)
+(define all-regs '(env proc val argl continue))                     ; Footnote 41, p. 587
 
 
 ;;;SECTION 5.5.4
