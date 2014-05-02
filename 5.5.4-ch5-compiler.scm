@@ -6,7 +6,7 @@
 ;;;;This file can be loaded into Scheme as a whole.
 ;;;;**NOTE**This file loads the metacircular evaluator's syntax procedures
 ;;;;  from section 4.1.2
-;;;;  You may need to change the (load ...) expression to work in your
+;;;;  You may need to change the (load ...) exprression to work in your
 ;;;;  version of Scheme.
 
 ;;;;Then you can compile Scheme programs as shown in section 5.5.5
@@ -15,29 +15,29 @@
 (load "ch5-syntax.scm")			;section 4.1.2 syntax procedures
 
 
-;;;SECTION 5.5.1
+;;;SECTION 5.5.1                                               
 
-(define (compile exp target linkage)
-  (cond ((self-evaluating? exp)
-         (compile-self-evaluating exp target linkage))
-        ((quoted? exp) (compile-quoted exp target linkage))
-        ((variable? exp)
-         (compile-variable exp target linkage))
-        ((assignment? exp)
-         (compile-assignment exp target linkage))
-        ((definition? exp)
-         (compile-definition exp target linkage))
-        ((if? exp) (compile-if exp target linkage))
-        ((lambda? exp) (compile-lambda exp target linkage))
-        ((begin? exp)
-         (compile-sequence (begin-actions exp)
+(define (compile expr target linkage)                           
+  (cond ((self-evaluating? expr)                                
+         (compile-self-evaluating expr target linkage))
+        ((quoted? expr) (compile-quoted expr target linkage))
+        ((variable? expr)
+         (compile-variable expr target linkage))
+        ((assignment? expr)
+         (compile-assignment expr target linkage))
+        ((definition? expr)
+         (compile-definition expr target linkage))
+        ((if? expr) (compile-if expr target linkage))
+        ((lambda? expr) (compile-lambda expr target linkage))
+        ((begin? expr)
+         (compile-sequence (begin-actions expr)
                            target
                            linkage))
-        ((cond? exp) (compile (cond->if exp) target linkage))
-        ((application? exp)
-         (compile-application exp target linkage))
+        ((cond? expr) (compile (cond->if expr) target linkage))
+        ((application? expr)
+         (compile-application expr target linkage))
         (else
-         (error "Unknown expression type -- COMPILE" exp))))
+         (error "Unknown exprression type -- COMPILE" expr))))
 
 
 (define (make-instruction-sequence needs modifies statements)
@@ -67,30 +67,30 @@
    (compile-linkage linkage)))
 
 
-;;;simple expressions
+;;;simple exprressions
 
-(define (compile-self-evaluating exp target linkage)
+(define (compile-self-evaluating expr target linkage)
   (end-with-linkage linkage
    (make-instruction-sequence '() (list target)
-    `((assign ,target (const ,exp))))))
+    `((assign ,target (const ,expr))))))
 
-(define (compile-quoted exp target linkage)
+(define (compile-quoted expr target linkage)
   (end-with-linkage linkage
    (make-instruction-sequence '() (list target)
-    `((assign ,target (const ,(text-of-quotation exp)))))))
+    `((assign ,target (const ,(text-of-quotation expr)))))))
 
-(define (compile-variable exp target linkage)
+(define (compile-variable expr target linkage)
   (end-with-linkage linkage
    (make-instruction-sequence '(env) (list target)
     `((assign ,target
               (op lookup-variable-value)
-              (const ,exp)
+              (const ,expr)
               (reg env))))))
 
-(define (compile-assignment exp target linkage)
-  (let ((var (assignment-variable exp))
+(define (compile-assignment expr target linkage)
+  (let ((var (assignment-variable expr))
         (get-value-code
-         (compile (assignment-value exp) 'val 'next)))
+         (compile (assignment-value expr) 'val 'next)))
     (end-with-linkage linkage
      (preserving '(env)
       get-value-code
@@ -101,10 +101,10 @@
                   (reg env))
          (assign ,target (const ok))))))))
 
-(define (compile-definition exp target linkage)
-  (let ((var (definition-variable exp))
+(define (compile-definition expr target linkage)
+  (let ((var (definition-variable expr))
         (get-value-code
-         (compile (definition-value exp) 'val 'next)))
+         (compile (definition-value expr) 'val 'next)))
     (end-with-linkage linkage
      (preserving '(env)
       get-value-code
@@ -116,7 +116,7 @@
          (assign ,target (const ok))))))))
 
 
-;;;conditional expressions
+;;;conditional exprressions
 
 ;;;labels (from footnote)
 (define label-counter 0)
@@ -131,18 +131,18 @@
                    (number->string (new-label-number)))))
 ;; end of footnote
 
-(define (compile-if exp target linkage)
+(define (compile-if expr target linkage)
   (let ((t-branch (make-label 'true-branch))
         (f-branch (make-label 'false-branch))                    
         (after-if (make-label 'after-if)))
     (let ((consequent-linkage
            (if (eq? linkage 'next) after-if linkage)))
-      (let ((p-code (compile (if-predicate exp) 'val 'next))
+      (let ((p-code (compile (if-predicate expr) 'val 'next))
             (c-code
              (compile
-              (if-consequent exp) target consequent-linkage))
+              (if-consequent expr) target consequent-linkage))
             (a-code
-             (compile (if-alternative exp) target linkage)))
+             (compile (if-alternative expr) target linkage)))
         (preserving '(env continue)
          p-code
          (append-instruction-sequences
@@ -163,9 +163,9 @@
        (compile (first-exp seq) target 'next)
        (compile-sequence (rest-exps seq) target linkage))))
 
-;;;lambda expressions
+;;;lambda exprressions
 
-(define (compile-lambda exp target linkage)
+(define (compile-lambda expr target linkage)
   (let ((proc-entry (make-label 'entry))
         (after-lambda (make-label 'after-lambda)))
     (let ((lambda-linkage
@@ -178,11 +178,11 @@
                     (op make-compiled-procedure)
                     (label ,proc-entry)
                     (reg env)))))
-        (compile-lambda-body exp proc-entry))
+        (compile-lambda-body expr proc-entry))
        after-lambda))))
 
-(define (compile-lambda-body exp proc-entry)
-  (let ((formals (lambda-parameters exp)))
+(define (compile-lambda-body expr proc-entry)
+  (let ((formals (lambda-parameters expr)))
     (append-instruction-sequences
      (make-instruction-sequence '(env proc argl) '(env)
       `(,proc-entry
@@ -192,18 +192,18 @@
                 (const ,formals)
                 (reg argl)
                 (reg env))))
-     (compile-sequence (lambda-body exp) 'val 'return))))
+     (compile-sequence (lambda-body expr) 'val 'return))))
 
 
 ;;;SECTION 5.5.3
 
 ;;;combinations
 
-(define (compile-application exp target linkage)
-  (let ((proc-code (compile (operator exp) 'proc 'next))
+(define (compile-application expr target linkage)
+  (let ((proc-code (compile (operator expr) 'proc 'next))
         (operand-codes
          (map (lambda (operand) (compile operand 'val 'next))
-              (operands exp))))
+              (operands expr))))
     (preserving '(env continue)
      proc-code
      (preserving '(proc continue)
