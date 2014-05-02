@@ -24,6 +24,7 @@ Introduced in main text but not indicated as built-in*
 5.3.1 p. 534: (vector 1 2 3), say - they introduce (vector-ref) but NOT its constructor!
 	this also led me to (list-set!).
 5.5.2 p. 575 Footnote 36: backquote/quasiquote ` and ,
+5.5.4 p. 590 Footnote 42: append can take an arbitrary number of arguments.
 
 *MAYBE their manuscript predates my current MIT Scheme version (9.1) by too much?
 

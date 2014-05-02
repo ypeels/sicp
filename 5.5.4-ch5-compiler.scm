@@ -300,81 +300,81 @@
 (define all-regs '(env proc val argl continue))                     ; Footnote 41, p. 587
 
 
-;;;SECTION 5.5.4
+;;;SECTION 5.5.4                                            ; <==== 5.5.4: Combining Instruction Sequences [and misc. syntax procedures]
+                                                                ; instruction sequence = (needed modified instructions)
+(define (registers-needed s)                                        ; ONLY invoked below (but used implicitly above)
+  (if (symbol? s) '() (car s)))                                         ; (registers-needed label) = '() - "degenerate instruction"
 
-(define (registers-needed s)
-  (if (symbol? s) '() (car s)))
+(define (registers-modified s)                                      ; ONLY invoked below
+  (if (symbol? s) '() (cadr s)))                                        ; (registers-needed label) = '()
 
-(define (registers-modified s)
-  (if (symbol? s) '() (cadr s)))
+(define (statements s)                                              ; ONLY invoked below
+  (if (symbol? s) (list s) (caddr s)))                                  ; (instructions label) = (label)
 
-(define (statements s)
-  (if (symbol? s) (list s) (caddr s)))
+(define (needs-register? seq reg)                                   ; ONLY invoked in (preserving)
+  (memq reg (registers-needed seq)))                                    ; these determine whether a sequence needs/modifies a given register
 
-(define (needs-register? seq reg)
-  (memq reg (registers-needed seq)))
-
-(define (modifies-register? seq reg)
+(define (modifies-register? seq reg)                                ; ONLY invoked in (preserving)
   (memq reg (registers-modified seq)))
 
 
-(define (append-instruction-sequences . seqs)                       ; previewed in 5.5.1 on p. 572: append all, with register analysis to simplify (preserving)
+(define (append-instruction-sequences . seqs)                   ; the basic combiner, previewed in 5.5.1 on p. 572: append all, with register analysis to simplify (preserving)
   (define (append-2-sequences seq1 seq2)
-    (make-instruction-sequence                                          ; overview of register metadata: p. 573
-     (list-union (registers-needed seq1)
-                 (list-difference (registers-needed seq2)
-                                  (registers-modified seq1)))
-     (list-union (registers-modified seq1)
+    (make-instruction-sequence                                      ; overview of register metadata: p. 573
+     (list-union (registers-needed seq1)                            ; all inputs = inputs of seq1, and...
+                 (list-difference (registers-needed seq2)               ; inputs of seq2...
+                                  (registers-modified seq1)))           ; that are not outputs of seq1
+     (list-union (registers-modified seq1)                          ; all outputs = outputs of seq 1 + outputs of seq2.
                  (registers-modified seq2))
      (append (statements seq1) (statements seq2))))
   (define (append-seq-list seqs)
     (if (null? seqs)
         (empty-instruction-sequence)
-        (append-2-sequences (car seqs)
+        (append-2-sequences (car seqs)                              ; append sequences two at a time
                             (append-seq-list (cdr seqs)))))
   (append-seq-list seqs))
 
-(define (list-union s1 s2)
+(define (list-union s1 s2)                                      ; cf. unordered sets from 2.3.3
   (cond ((null? s1) s2)
         ((memq (car s1) s2) (list-union (cdr s1) s2))
         (else (cons (car s1) (list-union (cdr s1) s2)))))
 
 (define (list-difference s1 s2)
   (cond ((null? s1) '())
-        ((memq (car s1) s2) (list-difference (cdr s1) s2))
+        ((memq (car s1) s2) (list-difference (cdr s1) s2))          ; scans for each member of s1 in s2, instead of removing s2 from s1
         (else (cons (car s1)
                     (list-difference (cdr s1) s2)))))
 
-(define (preserving regs seq1 seq2)                                 ; previewed in 5.5.1 on p. 572: returns ((wrap seq1) seq2), where 
-  (if (null? regs)                                                      ; (wrap seq1) INTELLIGENTLY wraps seq1 with push/pop pairs for regs 
+(define (preserving regs seq1 seq2)                             ; the push/pop combiner, previewed in 5.5.1 on p. 572: returns ((wrap seq1) seq2), where 
+  (if (null? regs)                                                  ; (wrap seq1) INTELLIGENTLY wraps seq1 with push/pop pairs for regs 
       (append-instruction-sequences seq1 seq2)
       (let ((first-reg (car regs)))
-        (if (and (needs-register? seq2 first-reg)
-                 (modifies-register? seq1 first-reg))
-            (preserving (cdr regs)
-             (make-instruction-sequence
-              (list-union (list first-reg)
+        (if (and (needs-register? seq2 first-reg)                   ; if seq2 READS reg...
+                 (modifies-register? seq1 first-reg))               ; but seq1 WRITES (trashes) it...
+            (preserving (cdr regs)                                  ; THEN
+             (make-instruction-sequence                                 
+              (list-union (list first-reg)                              ; (wrap seq1) now needs to read reg (to push it)
                           (registers-needed seq1))
-              (list-difference (registers-modified seq1)
-                               (list first-reg))
-              (append `((save ,first-reg))                              ; ALL push/pops generated here! code generators don't worry about it.
-                      (statements seq1)                                 
-                      `((restore ,first-reg))))
+              (list-difference (registers-modified seq1)                ; (wrap seq1) by CONSTRUCTION no longer trashes reg
+                               (list first-reg))                        
+              (append `((save ,first-reg))                              ; (wrap seq1) = (push reg) (seq1) (pop reg)
+                      (statements seq1)                             ; ALL push/pops generated here! code generators don't worry about it.    
+                      `((restore ,first-reg))))                     ; Footnote 42 p. 590: n-argument append is standard in Scheme.
              seq2)
-            (preserving (cdr regs) seq1 seq2)))))
+            (preserving (cdr regs) seq1 seq2)))))                   ; walk down the list of registers to be preserved
 
-(define (tack-on-instruction-sequence seq body-seq)
-  (make-instruction-sequence
-   (registers-needed seq)
-   (registers-modified seq)
+(define (tack-on-instruction-sequence seq body-seq)             ; ONLY invoked by (compile-lambda)
+  (make-instruction-sequence                                        ; appends body-seq to another sequence seq
+   (registers-needed seq)                                           ; body-seq is NOT executed after seq
+   (registers-modified seq)                                         ; so ONLY seq's register use matters.
    (append (statements seq) (statements body-seq))))
 
-(define (parallel-instruction-sequences seq1 seq2)
-  (make-instruction-sequence
+(define (parallel-instruction-sequences seq1 seq2)              ; ONLY invoked by (compile-if) and (compile-procedure-call)
+  (make-instruction-sequence                                        ; append 2 alternative branches that follow a test.
    (list-union (registers-needed seq1)
-               (registers-needed seq2))
-   (list-union (registers-modified seq1)
-               (registers-modified seq2))
+               (registers-needed seq2))                             ; <--- the only difference with the 2-seq case of (append-instruction-sequences)
+   (list-union (registers-modified seq1)                                ; this is because the outputs of seq1 do NOT feed into inputs of seq2!
+               (registers-modified seq2))                           ; i feel like this could be optimized further...meh
    (append (statements seq1) (statements seq2))))
 
 '(COMPILER LOADED)
