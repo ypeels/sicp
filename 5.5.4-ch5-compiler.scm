@@ -154,13 +154,13 @@
            (append-instruction-sequences f-branch a-code))
           after-if))))))
 
-;;; sequences
+;;; sequences                                                   ; Compiling sequences
 
-(define (compile-sequence seq target linkage)
-  (if (last-exp? seq)
-      (compile (first-exp seq) target linkage)
-      (preserving '(env continue)
-       (compile (first-exp seq) target 'next)
+(define (compile-sequence seq target linkage)                       ; parallels ev-sequence
+  (if (last-exp? seq)                                                   
+      (compile (first-exp seq) target linkage)                          ; last expression with (final) linkage for the sequence
+      (preserving '(env continue)                                           ; env needed for rest of seq, continue (possibly) for final linkage
+       (compile (first-exp seq) target 'next)                           ; other expressions with linkage next (to rest of sequence)
        (compile-sequence (rest-exps seq) target linkage))))
 
 ;;;lambda exprressions
