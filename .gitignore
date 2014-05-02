@@ -3,6 +3,7 @@
 ch4-mceval.scm
 allcode/
 sicp-solutions/
+exercises/test.txt
 exercises/ch4-mceval.scm
 exercises/4.22-24-ch4-analyzingmceval.scm
 exercises/4.27-31-ch4-leval.scm
@@ -10,7 +11,8 @@ exercises/ch4-ambeval.scm
 exercises/ch4-query.scm
 exercises/ch5-regsim.scm
 exercises/ch5-eceval.scm
-exercises/test.txt
+exercises/ch5-compiler.scm
+
 
 # wtf?
 .fuse_hidden*
