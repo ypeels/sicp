@@ -2,8 +2,17 @@
 
 rem mklink requires Administrator privileges, but then cmd starts in C:\Windows\system32
 set SICP_ROOT=F:\Users\Jonathan\Documents\Qt\Projects-vc2008\sicp
-call :checkExists "%SICP_ROOT%"
-cd /d "%SICP_ROOT%"
+set SICP_ROOT_HOME=D:\Users\Jonathan\Documents\Qt\projs-2008\sicp
+
+if exist "%SICP_ROOT%" (
+    cd /d "%SICP_ROOT%"
+) else if exist "%SICP_ROOT_HOME%" (
+    cd /d "%SICP_ROOT_HOME%"
+) else (
+    echo SICP directory not found
+    pause
+    exit /b
+)
 
 set TARGETS=symlink-targets.txt
 call :checkExists "%TARGETS%"
