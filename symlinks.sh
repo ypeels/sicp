@@ -22,7 +22,7 @@ cat $targets | tr -d $'\r' | while read destDir destFile sourcePath; do
     
         checkExists $sourcePath    
         if [ -e $destFile ]; then
-            echo asdf > /dev/null # echo Skipping $(pwd)/$destFile - already exists
+            echo Skipping $(pwd)/$destFile - already exists
         else
             #echo Want to link $sourcePath to $destFile
             ln -sv $sourcePath $destFile        
