@@ -5,6 +5,12 @@
 ; to modify this, you would override/rewrite construct-arglist p. 583 and its helper
     ; aha, you could just remove the "reverse" on p. 583. that's what makes things go right to left!
     ; i suppose if the (reverse) is expensive, efficiency would be improved.
+        ; wait, that'd be COMPILE-TIME efficiency, since that's where the (reverse) is performed
+            ; efficiency of the object code wouldn't be impacted at all...?
+            ; not TOTALLY sure about that - and I don't feel like analyzing beyond Exercises 5.33-34
+                ; those exercises seem kinda like special cases - 2 args, only 1 of which is a combination
+            ; also, notice how easy it is to get confused between source and compiler languages
+                ; the fact that this is a METACIRCULAR compiler doesn't help...
         ; meteorgan doesn't talk about efficiency at all: http://community.schemewiki.org/?sicp-ex-5.36
         ; wow, l0stman REALLY overthought things: https://github.com/l0stman/sicp/blob/master/5.36.tex
 
@@ -30,3 +36,6 @@
                code-to-get-last-arg
                (code-to-get-rest-args
                 (cdr operand-codes)))))));)
+                
+                
+    
