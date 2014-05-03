@@ -175,3 +175,8 @@ d. (f (g 'x) 'y)
 -----------------------------  
 
 Wow, who would have thought: l0stman's solutions are the most wrong? In the end, I agree with Perry.
+
+
+WAIT A GOSHDARN MINUTE
+My answer to a. implicitly assumed there were no nested calls to f!
+If there were, then you couldn't say anything was superfluous for a. either!!
