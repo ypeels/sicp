@@ -1,5 +1,9 @@
 ; my answer: (define (f x) (+ x (g (+ x 2))))
+; should i also specify the target and linkage? might as well - cf. p. 594
+    ; target = val, linkage = next
+
 ; how do i run the compiler to check?
+
 
 ; from ch5.scm
 
@@ -60,6 +64,6 @@ primitive-branch25
 after-call23
 after-lambda15
   (perform (op define-variable!) (const f) (reg val) (reg env))
-  (assign val (const ok))
-;;end of exercise
+  (assign val (const ok))                                                   ; target = val
+;;end of exercise                                                           ; no goto means linkage = next
 
