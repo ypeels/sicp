@@ -129,13 +129,18 @@
    (list 'compiled-procedure-entry compiled-procedure-entry)
    (list 'compiled-procedure-env compiled-procedure-env)
    ))
+   
 
-(define eceval
-  (make-machine
-   '(exp env val proc argl continue unev
+
+   
+(define eceval-compiler-register-list 
+   '(expr env val proc argl continue unev
 	 compapp			;*for compiled to call interpreted
 	 )
-   eceval-operations
+)
+
+   
+(define eceval-compiler-main-controller-text
   '(
 ;;SECTION 5.4.4, as modified in 5.5.7
 ;;*for compiled to call interpreted (from exercise 5.47)
@@ -365,6 +370,13 @@ ev-definition-1
    (op define-variable!) (reg unev) (reg val) (reg env))
   (assign val (const ok))
   (goto (reg continue))
-   )))
+   ))
 
+; default evaluator
+(define eceval
+  (make-machine
+   eceval-compiler-register-list
+   eceval-operations
+   eceval-compiler-main-controller-text))
+   
 '(EXPLICIT CONTROL EVALUATOR FOR COMPILER LOADED)

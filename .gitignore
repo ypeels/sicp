@@ -12,6 +12,7 @@ exercises/ch4-query.scm
 exercises/ch5-regsim.scm
 exercises/ch5-eceval.scm
 exercises/ch5-compiler.scm
+exercises/ch5-eceval-compiler.scm
 
 
 # wtf?

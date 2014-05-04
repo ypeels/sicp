@@ -1,7 +1,8 @@
-(load "5.33-38-compiling-to-file.scm") ; and override below
+;(load "5.33-38-compiling-to-file.scm") ; and override below
 
 ; for (compile-and-go) testing
-(load "ch5-compiler.scm")(load "load-eceval-compiler.scm")
+;(load "ch5-compiler.scm")(load "load-eceval-compiler.scm")
+
 
 ; Spread-arguments should take an operand list and compile the given operands targeted 
 ; to successive argument registers.
@@ -154,7 +155,8 @@
 
 
 
-(define (test-5.38)
+(define (test-5.38c)
+
     ;(compile-to-file
     ;    '(+ (+ 1 2) (+ 3 4));'(+ 1 2)
     ;    'val
@@ -177,30 +179,49 @@
     
     
     
-    ; used for testing, but you have to modify ch5-eceval-compiler.scm
-    ;(compile-and-go 
-    ;    '(define (f n)
-    ;      (if (= n 1)
-    ;          1
-    ;          (* (f (- n 1)) n)))
-    ;)
-    
+    ; run compiled code to check that it actually WORKS
     ;(compile-and-go '(+ (+ 1 2) (+ 3 4)))
-    
+    (compile-and-go 
+        '(begin
+            (define (f n)
+              (if (= n 1)
+                  1
+                  (* (f (- n 1)) n)))
+            "Factorial defined as (f n)"
+        )
+    )
+)
+
+(define (test-5.38d)
     ; for part d.
     ;(compile-and-go '(+ 1 2 3 4))
-    ;(compile-and-go 
-    ;    '(define (f n) 
-    ;        (define (factorial n)
-    ;         (if (= n 1)    
-    ;             1        
-    ;             (* (factorial (- n 1)) n)))    
-    ;        (+ (factorial n) (factorial (+ n 1)) (factorial (+ n 2)))
-    ;    )
-    ;)
+    (compile-and-go 
+        '(begin
+            (define (f n) 
+                (define (factorial n)
+                 (if (= n 1)    
+                     1        
+                     (* (factorial (- n 1)) n)))    
+                (+ (factorial n) (factorial (+ n 1)) (factorial (+ n 2)))
+            )
+            "(f n) = (+ (factorial n) (factorial (+ n 1)) (factorial (+ n 2)))"
+        )
+    )
     ; (f 1) = 9 = 1! + 2! + 3!
     ; (f 2) = 32 =  2! + 3! + 4!
     ; looks like it works! maybe bugged for nested procedures with >2 arguments? meh
 )
-(define compile-compiler compile) (define compile compile-5.38) (test-5.38)
-;(test-5.38)
+
+; load
+(load "5.33-38-compiling-to-file.scm")
+(load "load-eceval-compiler.scm") ; for (compile-and-go) testing
+
+; override and run
+(define eceval (make-machine 
+    (append eceval-compiler-register-list '(arg1 arg2))
+    (append eceval-operations (list (list '+ +) (list '- -) (list '* *) (list '= =)))
+    eceval-compiler-main-controller-text
+))
+(define compile-compiler compile) (define compile compile-5.38) 
+(test-5.38c)
+;(test-5.38d)
