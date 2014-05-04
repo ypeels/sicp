@@ -6,7 +6,7 @@
 ;;;;This file can be loaded into Scheme as a whole.
 ;;;;**NOTE**This file loads the metacircular evaluator's syntax procedures
 ;;;;  from section 4.1.2
-;;;;  You may need to change the (load ...) exprression to work in your
+;;;;  You may need to change the (load ...) expression to work in your
 ;;;;  version of Scheme.
 
 ;;;;Then you can compile Scheme programs as shown in section 5.5.5
@@ -37,7 +37,7 @@
         ((application? expr)
          (compile-application expr target linkage))
         (else
-         (error "Unknown exprression type -- COMPILE" expr))))
+         (error "Unknown expression type -- COMPILE" expr))))
 
 
 (define (make-instruction-sequence needs modifies statements)       ; p. 573: An instruction sequence will contain three pieces of information:
@@ -67,7 +67,7 @@
    (compile-linkage linkage)))                                          ; the linkage code needs it (return linkage)
 
 
-;;;simple exprressions                                          ; Compiling simple expressions
+;;;simple expressions                                          ; Compiling simple expressions
 
 (define (compile-self-evaluating expr target linkage)
   (end-with-linkage linkage
@@ -116,7 +116,7 @@
          (assign ,target (const ok))))))))
 
 
-;;;conditional exprressions                                     ; Compiling conditional expressions
+;;;conditional expressions                                     ; Compiling conditional expressions
                                                                     
 ;;;labels (from footnote)                                           ; Footnote 37 p. 578: generate labels that are unique within the object code
 (define label-counter 0)                                                ; cf. unique query variable names - pp. 477, 486 Secs 4.4.4.4 and 4.4.4.7
@@ -163,7 +163,7 @@
        (compile (first-exp seq) target 'next)                           ; other expressions with linkage next (to rest of sequence)
        (compile-sequence (rest-exps seq) target linkage))))
 
-;;;lambda exprressions                                          ; Compiling lambda expressions
+;;;lambda expressions                                          ; Compiling lambda expressions
 
 (define (compile-lambda expr target linkage)                        ; code to construct procedure object; followed by code for procedure body    
   (let ((proc-entry (make-label 'entry))                                

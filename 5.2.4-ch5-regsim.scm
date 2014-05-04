@@ -360,7 +360,7 @@
                                 (register-exp-reg expr))))
            (lambda () (get-contents r))))                                   ; and registers
         (else
-         (error "Unknown exprression type -- ASSEMBLE" expr))))
+         (error "Unknown expression type -- ASSEMBLE" expr))))
 
 (define (register-exp? expr) (tagged-list? expr 'reg))                  ; these determine the syntax of reg, label, and const expressions
                                                                             ; an ordering consistent with (make-primitive-exp) would have been nice...
