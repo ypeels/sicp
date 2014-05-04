@@ -58,7 +58,7 @@
                 
                     ; and produces code to spread the arguments into the registers [arg1 and arg2]
                     (spread-arguments arguments)
-
+            
                     ; and then perform the operation targeted to the given target with the given linkage
                     (make-instruction-sequence
                         '(arg1 arg2); needs
@@ -85,12 +85,48 @@
                     )
                 )
             )
+            
+            ;(end-with-linkage linkage
+            ;
+            ;    (append-instruction-sequences
+            ;
+            ;        (preserving '(env)
+            ;            (compile (first-operand arguments) 'arg1 'next) ; hmm, this kinda throws away (spread-arguments)...meh.
+            ;            
+            ;            (append-instruction-sequences
+            ;            
+            ;                (make-instruction-sequence '(arg1) '() '((save arg1)))
+            ;                (compile (first-operand (rest-operands arguments)) 'arg2 'next)
+            ;                (make-instruction-sequence '() '(arg1) '((restore arg1)))
+            ;            )
+            ;        )
+            ;        
+            ;            (make-instruction-sequence
+            ;                '(arg1 arg2)
+            ;                (list target)
+            ;                `((assign ,target (op ,operation) (reg arg1) (reg arg2)))
+            ;            )
+            ;        
+            ;        
+            ;        ; didn't work? although it should have...
+            ;        ;(preserving '(arg1) ; exploitative - needed ABOVE, not below
+            ;        
+            ;            
+            ;            
+            ;            
+            ;        
+            ;
+            ;            
+            ;
+            ;        
+            ;    )
+            ;)
         
         )
         
         ; Extend your code generators for + and * so that they can handle expressions with arbitrary numbers of operands.
         ;  An expression with more than two operands will have to be compiled into a sequence of operations, each with only two inputs. 
-        ((and (> 2 (length arguments)) (memq operation '(+ *)))
+        ((and (> (length arguments) 2) (memq operation '(+ *)))
         
             ; sounds like they want us to fix this at the COMPILE level?
             ; l0stman used the PARSE level, but that seems like a cheap cop-out...
@@ -105,13 +141,29 @@
             
             
             ;`((assign ,target (op ,operation) arg1 arg2))
-            ; want arg2 to be a recursive result - so 
-                ; (compile-open-code (cons (operator target linkage operation null-value)
-                ; can't avoid parse-processing??
+            ; want arg2 to be a recursive result - i.e.,  
+                ; (compile-open-code (rest-operands arguments) 'arg2 linkage operation null-value)
+                
+            ;(display (rest-operands arguments)) (newline)
+            (end-with-linkage linkage
+                (preserving '(env)
+                    (compile (first-operand arguments) 'arg1 'next) ; hmm, this kinda throws away (spread-arguments)...meh.
+                    (preserving '(arg1) ; exploitative - really needed ABOVE, not below
+                        (compile-open-code (rest-operands arguments) 'arg2 'next operation null-value)
+                        (make-instruction-sequence                          ; ^^ using linkage here instead gives an inscrutable bug (return value = execution procedure?)
+                            '(arg1 arg2)
+                            (list target)
+                            `((assign ,target (op ,operation) (reg arg1) (reg arg2)))
+                        )
+                    )
+                )
+            )
+                
+                
             ; want arg1 to be (compile (first-operand arguments) 'arg1 'next)
             ; throw (preserving) in there as appropriate?
             
-            (error "empty stub")
+            ;(error "empty stub")
         )
             
         (else (error "Bad number of arguments" (length arguments)))
@@ -168,32 +220,43 @@
     
     ; Try your new compiler on the factorial example. 
     ; Compare the resulting code with the result produced without open coding.
-    (compile-to-file
-        '(define (factorial n)
-          (if (= n 1)
-              1
-              (* (factorial (- n 1)) n)))
-        'val
-        'next
-        "5.38-factorial-open-coded.asm"
-    )
+    ;(compile-to-file
+    ;    '(define (factorial n)
+    ;      (if (= n 1)
+    ;          1
+    ;          (* (factorial (- n 1)) n)))
+    ;    'val
+    ;    'next
+    ;    "5.38-factorial-open-coded.asm"
+    ;)
     ; the result is roughly HALF the length!
     
     
     
     ; used for testing, but you have to modify ch5-eceval-compiler.scm
-    (compile-and-go 
-        '(define (f n)
-          (if (= n 1)
-              1
-              (* (f (- n 1)) n)))
-    )
+    ;(compile-and-go 
+    ;    '(define (f n)
+    ;      (if (= n 1)
+    ;          1
+    ;          (* (f (- n 1)) n)))
+    ;)
     
     ;(compile-and-go '(+ (+ 1 2) (+ 3 4)))
     
+    ; for part d.
     ;(compile-and-go '(+ 1 2 3 4))
-        
-    
+    (compile-and-go 
+        '(define (f n) 
+            (define (factorial n)
+             (if (= n 1)    
+                 1        
+                 (* (factorial (- n 1)) n)))    
+            (+ (factorial n) (factorial (+ n 1)) (factorial (+ n 2)))
+        )
+    )
+    ; (f 1) = 9 = 1! + 2! + 3!
+    ; (f 2) = 32 =  2! + 3! + 4!
+    ; looks like it works!
 )
 (define compile-compiler compile) (define compile compile-5.38) (test-5.38)
 ;(test-5.38)
