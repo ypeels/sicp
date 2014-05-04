@@ -1,7 +1,7 @@
 (load "5.33-38-compiling-to-file.scm") ; and override below
 
-;(load "ch5-compiler.scm")
-(load "load-eceval-compiler.scm")
+; for (compile-and-go) testing
+;(load "ch5-compiler.scm")(load "load-eceval-compiler.scm")
 
 ; Spread-arguments should take an operand list and compile the given operands targeted 
 ; to successive argument registers.
@@ -10,34 +10,23 @@
             (op2 (first-operand (rest-operands operands)))
             (op1-code (compile op1 'arg1 'next))
             (op2-code (compile op2 'arg2 'next))
-            )
+            (seq1 op1-code)
             
-        ; i don't think you can use (preserving) directly... since i want to wrap the SECOND seq, not the first
-        ; also need to preserve continue?? (compile) doesn't handle that for me??
-        ;(make-instruction-sequence
-        ;    ;'() ; needs
-        ;    (list-union (registers-needed op1-code) (registers-needed op2-code))
-        ;                
-        ;    ;'(arg1 arg2) ; modifies
-        ;    (list-union (registers-modified op1-code) (registers-modified op2-code))
-        ;    
-        ;    (statements
-                (if (modifies-register? op2-code 'arg1) ; oops, i had (needs-register?) incorrectly for a while
-                    
+            ; i don't think you can use (preserving) directly to save arg1... 
+            ; i want to wrap the SECOND seq, not the first
+            (seq2
+                (if (modifies-register? op2-code 'arg1)
                     (append-instruction-sequences
-                        op1-code
-                        
                         (make-instruction-sequence '(arg1) '() '((save arg1)))
                         op2-code
-                        (make-instruction-sequence '() '(arg1) '((restore arg1)))
-                    )
-                    (append-instruction-sequences
-                        op1-code
-                        op2-code
-                    )
-                )
-            ;)
-        ;)
+                        (make-instruction-sequence '() '(arg1) '((restore arg1))))
+                    op2-code))
+            )
+        
+        ; BUT you also need to preserve env for seq2, in case it needs it.
+        ; remember, this is an ALTERNATIVE to (compile-application)/(construct-arglist)!!
+        (preserving '(env) seq1 seq2)
+
     )
 )
 
@@ -57,8 +46,7 @@
             ((= 2 (length arguments))
 
                 (end-with-linkage linkage
-                    (preserving all-regs ;'(continue)
-                    ;(append-instruction-sequences
+                    (append-instruction-sequences
                     
                         ; and produces code to spread the arguments into the registers [arg1 and arg2]
                         (spread-arguments arguments)
@@ -75,7 +63,16 @@
                                     (reg arg2)
                                 )
                                 
-                                (perform (op user-print) (reg ,target))
+                                ;(perform (op user-print) (const "\n("))
+                                ;(perform (op user-print) (const ,operation))
+                                ;(perform (op user-print) (const " "))
+                                ;(perform (op user-print) (reg arg1))
+                                ;(perform (op user-print) (const " "))
+                                ;(perform (op user-print) (reg arg2))
+                                ;(perform (op user-print) (const ") = "))
+                                ;(perform (op user-print) (reg ,target))
+                                
+                                
                             )
                         )
                     )
@@ -145,16 +142,17 @@
         'next
         "5.38-factorial-open-coded.asm"
     )
-    ; the result is HALF the length!
-    ; hmm, but is it bugged? i don't see any (save continue) or (restore continue)...
+    ; the result is roughly HALF the length!
     
     
-    (compile-and-go 
-        '(define (f n)
-          (if (= n 1)
-              1
-              (* (f (- n 1)) n)))
-    )
+    
+    ; used for testing, but you have to modify ch5-eceval-compiler.scm
+    ;(compile-and-go 
+    ;    '(define (f n)
+    ;      (if (= n 1)
+    ;          1
+    ;          (* (f (- n 1)) n)))
+    ;)
     
     ;(compile-and-go '(+ (+ 1 2) (+ 3 4)))
         
