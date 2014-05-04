@@ -29,6 +29,15 @@
 
     )
 )
+; meteorgan does better http://community.schemewiki.org/?sicp-ex-5.38
+    ; he returns seq1 and seq2 back from here
+    ; then in (compile-open-code) he uses (preserving '(arg1) seq2 (assign)), which is MUCH cleaner
+    ; but his code is severely bugged! 
+        ; doesn't even run correctly
+        ; he forgot to save env
+        ; clearly he didn't test it
+; l0stman does the same with spread-arguments https://github.com/l0stman/sicp/blob/master/5.38.tex
+; both of these guys are disregarding the spec! it's part b that is supposed to perform the operation, NOT spread-argument
 
 
 
@@ -155,6 +164,8 @@
     ;)
     
     ;(compile-and-go '(+ (+ 1 2) (+ 3 4)))
+    
+    (compile-and-go '(+ 1 2 3 4))
         
     
 )
