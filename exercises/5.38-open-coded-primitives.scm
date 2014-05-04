@@ -71,6 +71,7 @@
                                 (reg arg2)
                             )
                             
+                            ; not deleting this - it's a useful demo
                             ;(perform (op user-print) (const "\n("))
                             ;(perform (op user-print) (const ,operation))
                             ;(perform (op user-print) (const " "))
@@ -85,66 +86,15 @@
                     )
                 )
             )
-            
-            ;(end-with-linkage linkage
-            ;
-            ;    (append-instruction-sequences
-            ;
-            ;        (preserving '(env)
-            ;            (compile (first-operand arguments) 'arg1 'next) ; hmm, this kinda throws away (spread-arguments)...meh.
-            ;            
-            ;            (append-instruction-sequences
-            ;            
-            ;                (make-instruction-sequence '(arg1) '() '((save arg1)))
-            ;                (compile (first-operand (rest-operands arguments)) 'arg2 'next)
-            ;                (make-instruction-sequence '() '(arg1) '((restore arg1)))
-            ;            )
-            ;        )
-            ;        
-            ;            (make-instruction-sequence
-            ;                '(arg1 arg2)
-            ;                (list target)
-            ;                `((assign ,target (op ,operation) (reg arg1) (reg arg2)))
-            ;            )
-            ;        
-            ;        
-            ;        ; didn't work? although it should have...
-            ;        ;(preserving '(arg1) ; exploitative - needed ABOVE, not below
-            ;        
-            ;            
-            ;            
-            ;            
-            ;        
-            ;
-            ;            
-            ;
-            ;        
-            ;    )
-            ;)
-        
         )
         
-        ; Extend your code generators for + and * so that they can handle expressions with arbitrary numbers of operands.
+        ; d. Extend your code generators for + and * so that they can handle expressions with arbitrary numbers of operands.
         ;  An expression with more than two operands will have to be compiled into a sequence of operations, each with only two inputs. 
         ((and (> (length arguments) 2) (memq operation '(+ *)))
         
             ; sounds like they want us to fix this at the COMPILE level?
             ; l0stman used the PARSE level, but that seems like a cheap cop-out...
             
-            ; first idea, but this seems like parse-level
-            ;(compile-open-code
-            ;    (list 
-            ;        (operator expr)
-            ;        (first-operand arguments)
-            ;        (compile
-            
-            
-            
-            ;`((assign ,target (op ,operation) arg1 arg2))
-            ; want arg2 to be a recursive result - i.e.,  
-                ; (compile-open-code (rest-operands arguments) 'arg2 linkage operation null-value)
-                
-            ;(display (rest-operands arguments)) (newline)
             (end-with-linkage linkage
                 (preserving '(env)
                     (compile (first-operand arguments) 'arg1 'next) ; hmm, this kinda throws away (spread-arguments)...meh.
@@ -158,12 +108,6 @@
                     )
                 )
             )
-                
-                
-            ; want arg1 to be (compile (first-operand arguments) 'arg1 'next)
-            ; throw (preserving) in there as appropriate?
-            
-            ;(error "empty stub")
         )
             
         (else (error "Bad number of arguments" (length arguments)))
@@ -220,15 +164,15 @@
     
     ; Try your new compiler on the factorial example. 
     ; Compare the resulting code with the result produced without open coding.
-    ;(compile-to-file
-    ;    '(define (factorial n)
-    ;      (if (= n 1)
-    ;          1
-    ;          (* (factorial (- n 1)) n)))
-    ;    'val
-    ;    'next
-    ;    "5.38-factorial-open-coded.asm"
-    ;)
+    (compile-to-file
+        '(define (factorial n)
+          (if (= n 1)
+              1
+              (* (factorial (- n 1)) n)))
+        'val
+        'next
+        "5.38-factorial-open-coded.asm"
+    )
     ; the result is roughly HALF the length!
     
     
@@ -245,18 +189,18 @@
     
     ; for part d.
     ;(compile-and-go '(+ 1 2 3 4))
-    (compile-and-go 
-        '(define (f n) 
-            (define (factorial n)
-             (if (= n 1)    
-                 1        
-                 (* (factorial (- n 1)) n)))    
-            (+ (factorial n) (factorial (+ n 1)) (factorial (+ n 2)))
-        )
-    )
+    ;(compile-and-go 
+    ;    '(define (f n) 
+    ;        (define (factorial n)
+    ;         (if (= n 1)    
+    ;             1        
+    ;             (* (factorial (- n 1)) n)))    
+    ;        (+ (factorial n) (factorial (+ n 1)) (factorial (+ n 2)))
+    ;    )
+    ;)
     ; (f 1) = 9 = 1! + 2! + 3!
     ; (f 2) = 32 =  2! + 3! + 4!
-    ; looks like it works!
+    ; looks like it works! maybe bugged for nested procedures with >2 arguments? meh
 )
 (define compile-compiler compile) (define compile compile-5.38) (test-5.38)
 ;(test-5.38)
