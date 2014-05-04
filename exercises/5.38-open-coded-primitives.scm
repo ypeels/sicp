@@ -1,5 +1,8 @@
 (load "5.33-38-compiling-to-file.scm") ; and override below
 
+;(load "ch5-compiler.scm")
+(load "load-eceval-compiler.scm")
+
 ; Spread-arguments should take an operand list and compile the given operands targeted 
 ; to successive argument registers.
 (define (spread-arguments operands)
@@ -9,14 +12,17 @@
             (op2-code (compile op2 'arg2 'next))
             )
             
-            (newline)(display op2-code)(newline)
-            
         ; i don't think you can use (preserving) directly... since i want to wrap the SECOND seq, not the first
-        (make-instruction-sequence
-            '() ; needs
-            '(arg1 arg2) ; modifies
-            (statements
-                (if (modifies-register? op2-code 'arg1) ; oops, i had (needs-register?) incorrecvtly for a while
+        ; also need to preserve continue?? (compile) doesn't handle that for me??
+        ;(make-instruction-sequence
+        ;    ;'() ; needs
+        ;    (list-union (registers-needed op1-code) (registers-needed op2-code))
+        ;                
+        ;    ;'(arg1 arg2) ; modifies
+        ;    (list-union (registers-modified op1-code) (registers-modified op2-code))
+        ;    
+        ;    (statements
+                (if (modifies-register? op2-code 'arg1) ; oops, i had (needs-register?) incorrectly for a while
                     
                     (append-instruction-sequences
                         op1-code
@@ -30,8 +36,8 @@
                         op2-code
                     )
                 )
-            )
-        )
+            ;)
+        ;)
     )
 )
 
@@ -41,17 +47,18 @@
 
 ; For each of the primitive procedures =, *, -, and +, 
 ; takes a combination with that operator, together with a target and a linkage descriptor,
-(define (compile-plus expr target linkage)
+(define (compile-open-code expr target linkage operation null-value)
     (let ((arguments (operands expr)))
         (cond
             ((no-operands? arguments)
-                (compile '0 target linkage))
+                (compile null-value target linkage))
             ((no-operands? (rest-operands arguments))
                 (compile (first-operand arguments) target linkage))
             ((= 2 (length arguments))
 
                 (end-with-linkage linkage
-                    (append-instruction-sequences
+                    (preserving all-regs ;'(continue)
+                    ;(append-instruction-sequences
                     
                         ; and produces code to spread the arguments into the registers [arg1 and arg2]
                         (spread-arguments arguments)
@@ -63,10 +70,12 @@
                             `(
                                 (assign
                                     ,target
-                                    (op +)
+                                    (op ,operation)
                                     (reg arg1)  ; what a bad name - it looks exactly like argl...
                                     (reg arg2)
                                 )
+                                
+                                (perform (op user-print) (reg ,target))
                             )
                         )
                     )
@@ -78,14 +87,33 @@
     )
 )
 
+(define (compile-plus expr target linkage)
+    (compile-open-code expr target linkage '+ '0))
+(define (compile-times expr target linkage)
+    (compile-open-code expr target linkage '* '1))
+(define (compile-minus expr target linkage)
+    (compile-open-code expr target linkage '- '0))   ; actually, (-) crashes scheme, but whatever
+(define (compile-equals expr target linkage)
+    (compile-open-code expr target linkage '= #t))
+
+(define (plus? expr) (tagged-list? expr '+))
+(define (times? expr) (tagged-list? expr '*))
+(define (minus? expr) (tagged-list? expr '-))
+(define (equals? expr) (tagged-list? expr '=))
 
 
-(define compile-compiler compile)
-(define (compile expr target linkage)                            
+
+
+(define (compile-5.38 expr target linkage)                            
     (cond 
         ((plus? expr)
-            (display "\nplusssss!!!!!\n")
             (compile-plus expr target linkage))
+        ((times? expr)
+            (compile-times expr target linkage))
+        ((minus? expr)
+            (compile-minus expr target linkage))
+        ((equals? expr)
+            (compile-equals expr target linkage))
         (else
             (compile-compiler expr target linkage))
     )
@@ -93,18 +121,44 @@
 
 
 
-(define (plus? expr)
-    (tagged-list? expr '+))
+
 
 
 
 
 (define (test-5.38)
+    ;(compile-to-file
+    ;    '(+ (+ 1 2) (+ 3 4));'(+ 1 2)
+    ;    'val
+    ;    'next
+    ;    "test.txt"
+    ;)
+    
+    ; Try your new compiler on the factorial example. 
+    ; Compare the resulting code with the result produced without open coding.
     (compile-to-file
-        '(+ (+ 1 2) (+ 3 4));'(+ 1 2)
+        '(define (factorial n)
+          (if (= n 1)
+              1
+              (* (factorial (- n 1)) n)))
         'val
         'next
-        "5.38-open-coded-primitives.txt"
+        "5.38-factorial-open-coded.asm"
     )
+    ; the result is HALF the length!
+    ; hmm, but is it bugged? i don't see any (save continue) or (restore continue)...
+    
+    
+    (compile-and-go 
+        '(define (f n)
+          (if (= n 1)
+              1
+              (* (f (- n 1)) n)))
+    )
+    
+    ;(compile-and-go '(+ (+ 1 2) (+ 3 4)))
+        
+    
 )
-(test-5.38)
+(define compile-compiler compile) (define compile compile-5.38) (test-5.38)
+;(test-5.38)
