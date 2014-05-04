@@ -16,7 +16,7 @@
               (* (factorial (- n 1)) n)))
         'val
         'next
-        "5.33-factorial.txt"
+        "5.33-factorial.asm"
     )
 )
 
@@ -28,7 +28,7 @@
               (* n (factorial-alt (- n 1)))))
         'val
         'next
-        "5.33-factorial-alt.txt"
+        "5.33-factorial-alt.asm"
     )
 )
 
