@@ -115,6 +115,7 @@
     ; construct and return the nested let
     (let (  (internal-definitions (all-internal-definitions body))
             (rest-of-body (rest-of-body body))
+            )
             
         (if (null? internal-definitions)
             body
