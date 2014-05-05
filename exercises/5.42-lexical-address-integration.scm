@@ -20,10 +20,23 @@
     
         ; "In cases where...the variable is not in the compile-time environment...
         ; you should have the code generators use the evaluator operations, as before"
-        ; Mark I - punt to superclass, not worrying about get-global-environment
+        
         (if (eq? addr (invalid-lexical-address))
-            (compile-variable-compiler expr target linkage)
             
+            ; Mark I - punt to superclass, not worrying about get-global-environment
+            ;(compile-variable-compiler expr target linkage)
+            
+            ; Mark II - search the global environment directly, which is the only place left it could be
+            (end-with-linkage linkage
+                (make-instruction-sequence '() (list target)
+                    `(
+                        (assign ,target (op get-global-environment)) ; meh, it's getting trashed anyway
+                        (assign ,target (op lookup-variable-value) (const ,expr) (reg ,target))
+                    )
+                )
+            )                                    
+            
+            ; lexical address found! use it to find value in runtime env
             (end-with-linkage linkage
                 (make-instruction-sequence '(env) (list target)
                     `(
