@@ -18,14 +18,15 @@
 (define (let-bindings expr) (cadr expr))
 (define (let-body expr) (caddr expr)) ; TODO: maybe this should be cddr, in case it's a SEQUENCE and not a single statement
 
-(define (eval expr env)
-  (cond 
-    ; ...
-    ((let? expr)
-        (eval (let->combination expr) env))
-    ; ...
-  )
-)
+; commented out for 5.43 (!)
+; (define (eval expr env)
+;   (cond 
+;     ; ...
+;     ((let? expr)
+;         (eval (let->combination expr) env))
+;     ; ...
+;   )
+; )
 
 ; doing this as a derived expression, so proceed as with cond.
 ; (make-lambda) will probably be useful.

@@ -59,7 +59,7 @@
 
     ; cf. (definition-value)
     (define (internal-definition? expr)
-        (and (tagged-list? 'define) (symbol? (cadr expr)))) ; sols use (definition?) directly. hmmmm...
+        (and (tagged-list? expr 'define) (symbol? (cadr expr)))) ; sols use (definition?) directly. hmmmm...
         
     (define (all-internal-definitions expr-list)
         (cond
@@ -90,8 +90,8 @@
     (define (wrap-with-let definitions rest-of-body)
         
         ; breaking the seal on "map" - since they used it in the book on p. 382, despite Footnote 5
-        (let (  (vars (map definition-value definitions))
-                (vals (map definition-variable definitions)))
+        (let (  (vals (map definition-value definitions))
+                (vars (map definition-variable definitions)))
             (let (  (unassigned-bindings (map (lambda (var) (list var '*unassigned*)) vars))
                     (assignments (map (lambda (var val) (list 'set! var val)) vars vals)))
         
