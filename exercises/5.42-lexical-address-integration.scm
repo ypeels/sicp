@@ -8,8 +8,7 @@
 )
 (define compile-variable-compiler '*unassigned*)
 (define compile-assignment-compiler '*unassigned*)
-(define f '*unassigned*) ; mwahahaha now this is accessible interactively!
-(define g '*unassigned*)
+
 
 
 
@@ -64,6 +63,12 @@
     (let* ( (ctenv (compile-time-environment other-args))
             (var (assignment-variable expr)) ; watch out! expr is NOT a variable now!!
             (addr (find-variable var ctenv))
+            
+            ; pulled out for use in Mark II
+            (get-value-code
+                (apply compile (append 
+                    (list (assignment-value expr) 'val 'next)
+                    other-args)))
             )
             
         ; basic logic from compile-variable-5.42
@@ -71,19 +76,37 @@
         (if (eq? addr (invalid-lexical-address))
         
             ; Mark I - punt to superclass, not worrying about get-global-environment
-            (apply compile-assignment-compiler
-                (append (list expr target linkage) other-args))
+            ;(apply compile-assignment-compiler
+            ;    (append (list expr target linkage) other-args))
             
-            ; compile-variable-5.42 + compile-assignment
+            ; Mark II - look in global environment directly
             (end-with-linkage linkage
-                (preserving '(env)
-                    
-                    ; get-value-code. meh, no real need for a (let)! true in original too...
-                    (apply compile (append 
-                        (list (assignment-value expr) 'val 'next)
-                        other-args))
-                    
-                    
+                (preserving '(env)  ; unnecessary? didn't feel like testing...
+                    get-value-code
+                    (make-instruction-sequence
+                        '(env val)
+                        (list target)
+                        `(
+                            (save env)
+                            (assign ,env (op get-global-environment))
+                            (perform 
+                                (op set-variable-value!)
+                                (const ,var)
+                                (reg val) ; from get-value-code
+                                (reg env)
+                            )
+                            (restore env)
+                        )
+                    )
+                )
+            )
+                            
+            
+            ; lexical address found!
+            ; pieced together from compile-variable-5.42 + compile-assignment
+            (end-with-linkage linkage
+                (preserving '(env)                   
+                    get-value-code
                     (make-instruction-sequence
                         '(env val)      ; needs
                         (list target)   ; modifies
@@ -182,4 +205,6 @@
         (list '()) ; default compile-time environment
     )
 )
-(test-5.42)
+
+; mwahahaha now f and g are accessible interactively!
+;(define f '*unassigned*) (define g '*unassigned*) (test-5.42)
