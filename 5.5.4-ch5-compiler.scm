@@ -23,17 +23,21 @@
          (compile-self-evaluating expr target linkage))
         ((quoted? expr) (compile-quoted expr target linkage))       ; Targets and linkages, p. 571    
         ((variable? expr)                                               ; target = register in which compiled code returns value of expression
-         (compile-variable expr target linkage))                        ; linkage = describes how to proceed after compiled code has executed
-        ((assignment? expr)                                                 ; "next": continue at next instruction in sequence
-         (compile-assignment expr target linkage))                          ; "return": return from procedure being compiled
-        ((definition? expr)                                                 ; <label>: jump to a named entry point
+        ;(compile-variable expr target linkage))                        ; linkage = describes how to proceed after compiled code has executed
+         (apply compile-variable                                            ; "next": continue at next instruction in sequence
+            (append (list expr target linkage) other-args)))                ; "return": return from procedure being compiled
+        ((assignment? expr)                                                 ; <label>: jump to a named entry point
+        ;(compile-assignment expr target linkage))                          
+         (apply compile-assignment                                          
+            (append (list expr target linkage) other-args)))
+        ((definition? expr)                                                 
          ;(compile-definition expr target linkage)) ; for lexical addressing
          (apply compile-definition 
             (append (list expr target linkage) other-args)))
         ((if? expr) ;(compile-if expr target linkage))
          (apply compile-if 
             (append (list expr target linkage) other-args)))
-       ((lambda? expr);(compile-lambda expr target linkage))       ; "code generators"
+        ((lambda? expr);(compile-lambda expr target linkage))       ; "code generators"
          (apply compile-lambda 
             (append (list expr target linkage) other-args)))
         ((begin? expr)
@@ -46,7 +50,9 @@
                 (list (cond->if expr) target linkage)
                 other-args)))
         ((application? expr)
-         (compile-application expr target linkage))
+        ;(compile-application expr target linkage))
+         (apply compile-application
+            (append (list expr target linkage) other-args)))
         (else
          (error "Unknown expression type -- COMPILE" expr))))
 
@@ -98,10 +104,13 @@
               (const ,expr)                                             ; [the compiler can bake in variable names instead of using reg val!]
               (reg env))))))
 
-(define (compile-assignment expr target linkage)                    ; Assignments and definitions are handled much as they are in the interpreter.
+(define (compile-assignment expr target linkage . other-args)       ; Assignments and definitions are handled much as they are in the interpreter.
   (let ((var (assignment-variable expr))
         (get-value-code                                                 ; generate code that computes the value to be assigned to the variable,
-         (compile (assignment-value expr) 'val 'next)))                     ; [with target val and linkage next for appending]
+        ;(compile (assignment-value expr) 'val 'next)))                     ; [with target val and linkage next for appending]
+         (apply compile (append
+            (list (assignment-value expr) 'val 'next)
+            other-args))))
     (end-with-linkage linkage
      (preserving '(env)                                                     ; [save env for set! to modify - since get-value-code might trash it]
       get-value-code                                                    ; and append to it...
