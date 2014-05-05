@@ -153,9 +153,28 @@
 
 
 
-
+(define compile-compiler '*unassigned)
+(define (install-compile-5.38)
+    (if (eq? compile-compiler '*unassigned)
+        (begin
+            (load "5.33-38-compiling-to-file.scm")
+            (load "load-eceval-compiler.scm") ; for (compile-and-go) testing
+        
+            (set! compile-compiler compile)
+            (set! compile compile-5.38)
+            
+            (set! eceval (make-machine 
+                (append eceval-compiler-register-list '(arg1 arg2))
+                (append eceval-operations (list (list '+ +) (list '- -) (list '* *) (list '= =)))
+                eceval-compiler-main-controller-text
+            ))
+        )
+    )
+)
 
 (define (test-5.38c)
+
+    (install-compile-5.38)
 
     ;(compile-to-file
     ;    '(+ (+ 1 2) (+ 3 4));'(+ 1 2)
@@ -193,6 +212,8 @@
 )
 
 (define (test-5.38d)
+    (install-compile-5.38)
+
     ; for part d.
     ;(compile-and-go '(+ 1 2 3 4))
     (compile-and-go 
@@ -212,16 +233,6 @@
     ; looks like it works! maybe bugged for nested procedures with >2 arguments? meh
 )
 
-; load
-(load "5.33-38-compiling-to-file.scm")
-(load "load-eceval-compiler.scm") ; for (compile-and-go) testing
 
-; override and run
-(define eceval (make-machine 
-    (append eceval-compiler-register-list '(arg1 arg2))
-    (append eceval-operations (list (list '+ +) (list '- -) (list '* *) (list '= =)))
-    eceval-compiler-main-controller-text
-))
-(define compile-compiler compile) (define compile compile-5.38) 
-(test-5.38c)
+;(test-5.38c)
 ;(test-5.38d)
