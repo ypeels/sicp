@@ -157,8 +157,6 @@
 (define (install-compile-5.38)
     (if (eq? compile-compiler '*unassigned)
         (begin
-            (load "5.33-38-compiling-to-file.scm")
-            (load "load-eceval-compiler.scm") ; for (compile-and-go) testing
         
             (set! compile-compiler compile)
             (set! compile compile-5.38)
@@ -174,6 +172,8 @@
 
 (define (test-5.38c)
 
+    (load "5.33-38-compiling-to-file.scm")
+    (load "load-eceval-compiler.scm") ; for (compile-and-go) testing
     (install-compile-5.38)
 
     ;(compile-to-file
@@ -212,6 +212,8 @@
 )
 
 (define (test-5.38d)
+    (load "5.33-38-compiling-to-file.scm")
+    (load "load-eceval-compiler.scm") ; for (compile-and-go) testing
     (install-compile-5.38)
 
     ; for part d.
@@ -234,5 +236,5 @@
 )
 
 
-;(test-5.38c)
+(test-5.38c)
 ;(test-5.38d)
