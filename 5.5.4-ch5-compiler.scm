@@ -19,13 +19,6 @@
                                      ; vvv for lexical addressing                          
 (define (compile expr target linkage . other-args)                  ; top-level dispatch, corresponding to (eval), (analyze), and eval-dispatch 
 
-  ; default value for other-args
-  (if (null? other-args)
-    (compile expr target linkage 
-        '(())                       ; default compile-time environment (empty)
-    )
-  )
-
   (cond ((self-evaluating? expr)                                        ; again uses expression-syntax procedures from 4.1.2 
          (compile-self-evaluating expr target linkage))
         ((quoted? expr) (compile-quoted expr target linkage))       ; Targets and linkages, p. 571    

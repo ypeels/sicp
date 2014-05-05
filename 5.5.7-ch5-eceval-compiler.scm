@@ -47,10 +47,13 @@
          (display '<compiled-procedure>))
         (else (display object))))
 
-(define (compile-and-go expression)
+(define (compile-and-go expression . other-args)
   (let ((instructions
          (assemble (statements
-                    (compile expression 'val 'return))
+                    ;(compile expression 'val 'return))
+                    (apply compile (append
+                        (list expression 'val 'return)
+                        other-args)))
                    eceval)))
     (set! the-global-environment (setup-environment))
     (set-register-contents! eceval 'val instructions)
