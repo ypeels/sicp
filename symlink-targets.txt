@@ -7,4 +7,3 @@ exercises ch4-query.scm ../4.4.4-ch4-query.scm
 exercises ch5-regsim.scm ../5.2.4-ch5-regsim.scm
 exercises ch5-compiler.scm ../5.5.4-ch5-compiler.scm
 exercises ch5-eceval-compiler.scm ../5.5.7-ch5-eceval-compiler.scm
-
