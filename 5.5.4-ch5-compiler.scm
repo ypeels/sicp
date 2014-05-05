@@ -16,8 +16,8 @@
 
 
 ;;;SECTION 5.5.1                                                ; <==== 5.5.1: Structure of the Compiler
-                                                               
-(define (compile expr target linkage)                               ; top-level dispatch, corresponding to (eval), (analyze), and eval-dispatch 
+                                     ; vvv for lexical addressing                          
+(define (compile expr target linkage . other-args)                  ; top-level dispatch, corresponding to (eval), (analyze), and eval-dispatch 
   (cond ((self-evaluating? expr)                                        ; again uses expression-syntax procedures from 4.1.2 
          (compile-self-evaluating expr target linkage))
         ((quoted? expr) (compile-quoted expr target linkage))       ; Targets and linkages, p. 571    
@@ -26,14 +26,22 @@
         ((assignment? expr)                                                 ; "next": continue at next instruction in sequence
          (compile-assignment expr target linkage))                          ; "return": return from procedure being compiled
         ((definition? expr)                                                 ; <label>: jump to a named entry point
-         (compile-definition expr target linkage))
-        ((if? expr) (compile-if expr target linkage))
+         ;(compile-definition expr target linkage)) ; for lexical addressing
+         (apply compile-definition 
+            (append (list expr target linkage) other-args)))
+        ((if? expr) ;(compile-if expr target linkage))
+         (apply compile-if 
+            (append (list expr target linkage) other-args)))
         ((lambda? expr) (compile-lambda expr target linkage))       ; "code generators"
         ((begin? expr)
-         (compile-sequence (begin-actions expr)
-                           target
-                           linkage))
-        ((cond? expr) (compile (cond->if expr) target linkage))
+         ;(compile-sequence (begin-actions expr) target linkage))
+         (apply compile-sequence (append
+            (list (begin-actions expr) target linkage)
+            other-args)))
+        ((cond? expr) ;(compile (cond->if expr) target linkage))
+            (apply compile (append 
+                (list (cond->if expr) target linkage)
+                other-args)))
         ((application? expr)
          (compile-application expr target linkage))
         (else
@@ -101,10 +109,13 @@
                   (reg env))
          (assign ,target (const ok))))))))                              ; and returns 'ok in the target register.
 
-(define (compile-definition expr target linkage)
+(define (compile-definition expr target linkage . other-args)
   (let ((var (definition-variable expr))
         (get-value-code
-         (compile (definition-value expr) 'val 'next)))
+         ;(compile (definition-value expr) 'val 'next))) ; for lexical addressing
+         (apply compile (append                                         
+            (list (definition-value expr) 'val 'next) 
+            other-args))))
     (end-with-linkage linkage
      (preserving '(env)
       get-value-code
@@ -131,18 +142,26 @@
                    (number->string (new-label-number)))))           ; after-if
 ;; end of footnote
 
-(define (compile-if expr target linkage)
+(define (compile-if expr target linkage . other-args)
   (let ((t-branch (make-label 'true-branch))
         (f-branch (make-label 'false-branch))                    
         (after-if (make-label 'after-if)))
     (let ((consequent-linkage                                       ; if linkage = return or label, true uses it directly
            (if (eq? linkage 'next) after-if linkage)))                  ; but for linkage = next, jump around false code to after-if
-      (let ((p-code (compile (if-predicate expr) 'val 'next))       ; compile the predicate, consequent, and alternative
+      (let ((p-code;(compile (if-predicate expr) 'val 'next))       ; compile the predicate, consequent, and alternative
+                (apply compile (append ; ^^^ for lexical addressing
+                    (list (if-predicate expr) 'val 'next)
+                    other-args)))
             (c-code
-             (compile
-              (if-consequent expr) target consequent-linkage))
+             ;(compile (if-consequent expr) target consequent-linkage))
+             (apply compile (append
+                (list (if-consequent expr) target consequent-linkage)
+                other-args)))
             (a-code
-             (compile (if-alternative expr) target linkage)))
+             ;(compile (if-alternative expr) target linkage)))
+             (apply compile (append
+                (list (if-alternative expr) target linkage)
+                other-args))))
         (preserving '(env continue)                                 ; env might be needed by c-code/a-code, continue by linkage
          p-code
          (append-instruction-sequences
@@ -156,12 +175,21 @@
 
 ;;; sequences                                                   ; Compiling sequences
 
-(define (compile-sequence seq target linkage)                       ; parallels ev-sequence
+(define (compile-sequence seq target linkage . other-args)          ; parallels ev-sequence
   (if (last-exp? seq)                                                   
-      (compile (first-exp seq) target linkage)                          ; last expression with (final) linkage for the sequence
+     ;(compile (first-exp seq) target linkage)                          ; last expression with (final) linkage for the sequence
+      (apply compile (append
+        (list (first-exp seq) target linkage)
+        other-args))
       (preserving '(env continue)                                           ; env needed for rest of seq, continue (possibly) for final linkage
-       (compile (first-exp seq) target 'next)                           ; other expressions with linkage next (to rest of sequence)
-       (compile-sequence (rest-exps seq) target linkage))))
+      ;(compile (first-exp seq) target 'next)                           ; other expressions with linkage next (to rest of sequence)
+       (apply compile (append
+        (list (first-exp seq) target 'next)
+        other-args)) 
+       ;(compile-sequence (rest-exps seq) target linkage))))
+       (apply compile-sequence (append
+        (list (rest-exps seq) target linkage)
+        other-args)))))
 
 ;;;lambda expressions                                          ; Compiling lambda expressions
 
@@ -199,10 +227,16 @@
 
 ;;;combinations
 
-(define (compile-application expr target linkage)               ; "The essence of the compilation process is the compilation of procedure applications."
-  (let ((proc-code (compile (operator expr) 'proc 'next))           ; <---- the only place where target != val in the compiler
+(define (compile-application expr target linkage . other-args)  ; "The essence of the compilation process is the compilation of procedure applications."
+  (let;((proc-code (compile (operator expr) 'proc 'next))           ; <---- the only place where target != val in the compiler
+       ((proc-code (apply compile (append
+            (list (operator expr) 'proc 'next)
+            other-args)))
         (operand-codes
-         (map (lambda (operand) (compile operand 'val 'next))
+         (map (lambda (operand) ;(compile operand 'val 'next))
+                (apply compile (append
+                    (list operand 'val 'next)
+                    other-args)))
               (operands expr))))
     (preserving '(env continue)                                         ; env needed for operands, continue for final linkage
      proc-code                                                      ; <compilation of operator, target proc, linkage next>
