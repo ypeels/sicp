@@ -34,17 +34,16 @@
         ; oh you only need to extend ctenv INSIDE the body, not outside in the return value!
             ; that makes life easier
         
-        
-        
-        ; still need to extend the run-time environment in base class
-            ; that's where the values are stored!!
-            ; what ctenv does is speed up LOOKUP in rtenv
             
         ; extend the compile-time environment! see 5.41 for data structure
         ; other-args is passed in by VALUE! just what i wanted...
         (set-compile-time-environment! other-args (cons formals ctenv))
         ;(display "\nother-args inside procedure = ") (display other-args)
         
+        
+        ; still need to extend the run-time environment in base class
+            ; that's where the values are stored!!
+            ; what ctenv does is speed up LOOKUP in rtenv
         (apply compile-lambda-body-compiler 
             (append (list expr proc-entry) other-args))        
         
