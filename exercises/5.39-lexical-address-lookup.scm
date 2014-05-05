@@ -38,9 +38,9 @@
         (cond
             ((null? env)
                 (error "Bad address? -- LEXICAL-ADDRESS-DRIVER" address))
-            ((< 0 frame)
+            ((< frame 0) ; wow this prefix inequality order STILL bites me with stupid bugs
                 (error "Negative frame number -- LEXICAL-ADDRESS-DRIVER" address))
-            ((= 0 frame)
+            ((= frame 0)
             
                 ; and return the value of the variable stored at the specified lexical address.
                 ;(list-ref (frame-values (first-frame env)) displacement))

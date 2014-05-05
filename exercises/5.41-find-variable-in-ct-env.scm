@@ -29,10 +29,14 @@
                 frame-number
                 (find-displacement (list-ref compile-time-env frame-number))
             )
-            'not-found
+            (invalid-lexical-address)
         )
     )
 )
+
+(define (invalid-lexical-address)
+    'not-found)
+
 
 
 (define (test-5.41)
@@ -41,7 +45,7 @@
     (newline) (display (find-variable 'x '((y z) (a b c d e) (x y)))) ; should be (2 0)
     (newline) (display (find-variable 'w '((y z) (a b c d e) (x y)))) ; should be 'not-found
 )
-(test-5.41)
+;(test-5.41)
 
 
 ; remember, the COMPILER need not be blazing fast, as long as the resulting OBJECT code is fast!
