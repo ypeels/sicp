@@ -32,7 +32,9 @@
         ((if? expr) ;(compile-if expr target linkage))
          (apply compile-if 
             (append (list expr target linkage) other-args)))
-        ((lambda? expr) (compile-lambda expr target linkage))       ; "code generators"
+       ((lambda? expr);(compile-lambda expr target linkage))       ; "code generators"
+         (apply compile-lambda 
+            (append (list expr target linkage) other-args)))
         ((begin? expr)
          ;(compile-sequence (begin-actions expr) target linkage))
          (apply compile-sequence (append
@@ -193,7 +195,7 @@
 
 ;;;lambda expressions                                          ; Compiling lambda expressions
 
-(define (compile-lambda expr target linkage)                        ; code to construct procedure object; followed by code for procedure body    
+(define (compile-lambda expr target linkage . other-args)           ; code to construct procedure object; followed by code for procedure body    
   (let ((proc-entry (make-label 'entry))                                
         (after-lambda (make-label 'after-lambda)))                      ; hmm, generates label before it knows it's necessary...
     (let ((lambda-linkage                                               
@@ -206,10 +208,12 @@
                     (op make-compiled-procedure)                            ; new op - Footnote 38 p. 580
                     (label ,proc-entry)                                     ; proc body entry point + current env (SAVED from point of definition) - p. 580
                     (reg env)))))                                       ; <lambda-linkage> - from (end-with-linkage)
-        (compile-lambda-body expr proc-entry))                          ; <compiled body> - from (tack-on-instruction-sequence)
+       ;(compile-lambda-body expr proc-entry))                          ; <compiled body> - from (tack-on-instruction-sequence)
+        (apply compile-lambda-body 
+            (append (list expr proc-entry) other-args)))
        after-lambda))))                                                 ; label after-lambda - from (append-instruction-sequences)
 
-(define (compile-lambda-body expr proc-entry)                       ; code for body [since we're already here]
+(define (compile-lambda-body expr proc-entry . other-args)          ; code for body [since we're already here]
   (let ((formals (lambda-parameters expr)))                             ; ONLY invoked from (compile-lambda).
     (append-instruction-sequences
      (make-instruction-sequence '(env proc argl) '(env)
@@ -220,7 +224,10 @@
                 (const ,formals)
                 (reg argl)
                 (reg env))))
-     (compile-sequence (lambda-body expr) 'val 'return))))              ; The procedure body.
+    ;(compile-sequence (lambda-body expr) 'val 'return))))              ; The procedure body.
+     (apply compile-sequence (append
+        (list (lambda-body expr) 'val 'return)
+        other-args)))))
                                                                         ; Always end with return(val).
 
 ;;;SECTION 5.5.3                                            ; <==== 5.5.3: Compiling Combinations [i.e., procedure applications - p. 6!]       
