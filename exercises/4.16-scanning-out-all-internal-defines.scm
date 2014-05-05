@@ -92,7 +92,7 @@
         ; breaking the seal on "map" - since they used it in the book on p. 382, despite Footnote 5
         (let (  (vals (map definition-value definitions))
                 (vars (map definition-variable definitions)))
-            (let (  (unassigned-bindings (map (lambda (var) (list var '*unassigned*)) vars))
+            (let (  (unassigned-bindings (map (lambda (var) (list var ''*unassigned*)) vars)) ; really? double quote??? (exercise 5.43)
                     (assignments (map (lambda (var val) (list 'set! var val)) vars vals)))
         
                 (make-let

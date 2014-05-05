@@ -25,21 +25,32 @@
         
         
 (define (compile-lambda-body-5.43 expr proc-entry . other-args)
-    ;(apply compile-lambda-body-5.40 (append
-    (apply compile-lambda-body-compiler (append
-        (list 
+    
+    ;(display expr)
+    
+    (let ((processed-expr 
             (make-lambda
-                (lambda-parameters expr)
+                (lambda-parameters expr) 
                 (desugar-let                            ; from below
                     (scan-out-defines                   ; from 4.16
                         (lambda-body expr)
                     )
                 )
             )
-            proc-entry
-        )
-        other-args
-    ))
+            ))
+            
+        ;(display "\ncompile-lambda-body-5.43: processed-expr = ") (display processed-expr)
+                
+    
+        (apply compile-lambda-body-compiler (append
+        ;(apply compile-lambda-body-5.40 (append
+            (list 
+                processed-expr
+                proc-entry
+            )
+            other-args
+        ))
+    )
 )
 
 (define compile-lambda-body-compiler '*unassigned)
@@ -47,11 +58,7 @@
 (define (install-compile-lambda-body-5.43)
     
     (set! compile-lambda-body-compiler compile-lambda-body) ; no, let's do a sequential override...
-    
-    
     (set! compile-lambda-body compile-lambda-body-5.43) ; punts explicitly to 5.40, so no further aliasing needed
-    
-    
 )
 
 (define (desugar-let expr)
@@ -61,34 +68,24 @@
                 (vals (let-values bindings))
                 (body (let-body expr))
                 (result
-                    ; hey, is this IT?
-                    (append
-                        (list (make-lambda formals body))
-                        vals
+                    ; grappled with the syntax for quite a while... deceptively simple...
+                    (list
+                        (append
+                            (list (make-lambda formals body))
+                            vals
+                        )
                     )
                 ))
               
-          (display "\nlet body = ") (display body)
-          (display "\ndesguar-let result: ") (display result)
+          ;(display "\nlet body = ") (display body)
+          ;(display "\ndesugar-let result: ") (display result)
           result
-
         )
         
         ; oh right, i'm calling this unconditionally in compile-lambda-body
         expr
     )
 )
-            
-            
-
-
-
-
-
-
-
-
-
         
         
         
@@ -109,14 +106,17 @@
 
     (load "ch5-compiler.scm")
     (load "load-eceval-compiler.scm")
-    (load "5.33-38-compiling-to-file.scm") ; for testing
+    ;(load "5.33-38-compiling-to-file.scm") ; for testing
+    
+    ; currently not working with lexical addressing. ugh, wasn't that the POINT of all this?
     ;(load "5.39-lexical-address-lookup.scm")
+    ;(load "5.40-compile-time-env-in-lambda-body.scm") (install-compile-lambda-body-5.40)
     ;(load "5.41-find-variable-in-ct-env.scm")
     ;(load "5.42-lexical-address-integration.scm") (install-compile-var-set-5.42)
 
     (load "4.06-let.scm") ;(set! let-body (lambda (expr) (cddr expr))) ; changed from caddr - to parallel (lambda-body). didn't feel like changing old code and checking that stuff didn't break.
     (load "4.16-scanning-out-all-internal-defines.scm") ; hey, i never tested this...
-    ;(load "5.40-compile-time-env-in-lambda-body.scm") (install-compile-lambda-body-5.40)
+    
     (install-compile-lambda-body-5.43)
     
     
@@ -136,8 +136,7 @@
     
     ; some unit testing...cuz my answer to 4.16 was never tested
     ;(newline) (display (scan-out-defines '((define number 42) number)))
-    ;(newline) (display (desugar-let (scan-out-defines '((define number 42) number))))
-    
+    ;(newline) (display (desugar-let (scan-out-defines '((define number 42) number)))) 
     
     
     
@@ -153,16 +152,19 @@
     ))
     
     
-    (set! start-5.43 (lambda (expr) (compile-to-file expr 'val 'return "test.txt")))
-    ;(set! start-5.43 (lambda (expr) (compile-and-go expr (list '()))))
+    (newline)
+    ;(set! start-5.43 (lambda (expr) (compile-to-file expr 'val 'return "test.txt")))
+    (set! start-5.43 (lambda (expr) (compile-and-go expr (list '()))))
+    ;(set! start-5.43 (lambda (expr) (compile-and-go ''hello (list '()))))
     
     
     ;(start
     (start-5.43
-        ;`(begin
-            test-internal-define
-        ;    (f)
-        ;)
+        `(begin
+            ,test-internal-define
+        ;   (define (f) ((lambda (number) (set! number 42) number) '*unassigned)) ; this compiles and runs fine...
+            (f)
+        )
     )
     
     
