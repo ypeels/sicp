@@ -96,7 +96,7 @@
    (make-instruction-sequence '() (list target)                     ; All these instructions will modify the target register...
     `((assign ,target (const ,(text-of-quotation expr)))))))            ; [the compiler can bake in quotation text instead of using reg val!]
 
-(define (compile-variable expr target linkage)
+(define (compile-variable expr target linkage . other-args)
   (end-with-linkage linkage
    (make-instruction-sequence '(env) (list target)                  ; and the one that looks up a variable needs the env register.
     `((assign ,target
