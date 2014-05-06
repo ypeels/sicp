@@ -17,6 +17,7 @@
         (else true)
     )
 )
+(define (empty-compile-time-environment) '(()) )
 
 
 (define (compile-lambda-body-5.40 expr proc-entry . other-args)
