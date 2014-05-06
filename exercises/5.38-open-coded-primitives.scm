@@ -6,11 +6,11 @@
 
 ; Spread-arguments should take an operand list and compile the given operands targeted 
 ; to successive argument registers.
-(define (spread-arguments operands)
+(define (spread-arguments operands other-args)
     (let* ( (op1 (first-operand operands))
             (op2 (first-operand (rest-operands operands)))
-            (op1-code (compile op1 'arg1 'next))
-            (op2-code (compile op2 'arg2 'next))
+            (op1-code (apply compile (append (list op1 'arg1 'next) other-args)));(compile op1 'arg1 'next))
+            (op2-code (apply compile (append (list op2 'arg2 'next) other-args)));(compile op2 'arg2 'next))
             (seq1 op1-code)
             
             ; i don't think you can use (preserving) directly to save arg1... 
@@ -46,19 +46,21 @@
 
 ; For each of the primitive procedures =, *, -, and +, 
 ; takes a combination with that operator, together with a target and a linkage descriptor,
-(define (compile-open-code arguments target linkage operation null-value)
+(define (compile-open-code arguments target linkage operation null-value other-args)
     (cond
         ((no-operands? arguments)
-            (compile null-value target linkage))
+            ;(compile null-value target linkage))
+            (apply compile (append (list null-value target linkage) other-args)))
         ((no-operands? (rest-operands arguments))
-            (compile (first-operand arguments) target linkage))
+            ;(compile (first-operand arguments) target linkage))
+            (apply compile (append (list (first-operand arguments) target linkage) other-args)))
         ((= 2 (length arguments))
 
             (end-with-linkage linkage
                 (append-instruction-sequences
                 
                     ; and produces code to spread the arguments into the registers [arg1 and arg2]
-                    (spread-arguments arguments)
+                    (spread-arguments arguments other-args)
             
                     ; and then perform the operation targeted to the given target with the given linkage
                     (make-instruction-sequence
@@ -98,9 +100,13 @@
             
             (end-with-linkage linkage
                 (preserving '(env)
-                    (compile (first-operand arguments) 'arg1 'next) ; hmm, this kinda throws away (spread-arguments)...meh.
+                    ;(compile (first-operand arguments) 'arg1 'next) ; hmm, this kinda throws away (spread-arguments)...meh.
+                    (apply compile (append (list (first-operand arguments) 'arg1 'next) other-args))
                     (preserving '(arg1) ; exploitative - really needed ABOVE, not below
-                        (compile-open-code (rest-operands arguments) 'arg2 'next operation null-value)
+                        (compile-open-code (rest-operands arguments) 'arg2 'next operation null-value other-args)
+                        ;(apply compile-open-code (append 
+                        ;    (list (rest-operands arguments) 'arg2 'next operation null-value)
+                        ;    other-args))
                         (make-instruction-sequence                          ; ^^ using linkage here instead gives an inscrutable bug (return value = execution procedure?)
                             '(arg1 arg2)
                             (list target)
@@ -116,14 +122,24 @@
 )
 
 
-(define (compile-plus expr target linkage)
-    (compile-open-code (operands expr) target linkage '+ '0))
-(define (compile-times expr target linkage)
-    (compile-open-code (operands expr) target linkage '* '1))
-(define (compile-minus expr target linkage)
-    (compile-open-code (operands expr) target linkage '- '0))   ; actually, (-) crashes scheme, but whatever
-(define (compile-equals expr target linkage)
-    (compile-open-code (operands expr) target linkage '= #t))
+(define (compile-plus expr target linkage other-args)
+    ;(compile-open-code (operands expr) target linkage '+ '0))
+    (compile-open-code-driver expr target linkage '0 other-args))
+(define (compile-times expr target linkage other-args)
+    ;(compile-open-code (operands expr) target linkage '* '1))
+    (compile-open-code-driver expr target linkage '1 other-args))
+(define (compile-minus expr target linkage other-args)
+    ;(compile-open-code (operands expr) target linkage '- '0))   ; actually, (-) crashes scheme, but whatever
+    (compile-open-code-driver expr target linkage '0 other-args))
+(define (compile-equals expr target linkage other-args)
+    ;(compile-open-code (operands expr) target linkage '= #t))
+    (compile-open-code-driver expr target linkage '#t other-args))
+    
+(define (compile-open-code-driver expr target linkage null-value other-args)
+    (compile-open-code (operands expr) target linkage (operator expr) null-value other-args))
+    ;(apply compile-open-code (append
+    ;    (list (operands expr) target linkage (operator expr) null-value)
+    ;    other-args)))
 
 (define (plus? expr) (tagged-list? expr '+))
 (define (times? expr) (tagged-list? expr '*))
@@ -133,18 +149,19 @@
 
 
 
-(define (compile-5.38 expr target linkage)                            
+(define (compile-5.38 expr target linkage . other-args)                            
     (cond 
         ((plus? expr)
-            (compile-plus expr target linkage))
+            (compile-plus expr target linkage other-args))
         ((times? expr)
-            (compile-times expr target linkage))
+            (compile-times expr target linkage other-args))
         ((minus? expr)
-            (compile-minus expr target linkage))
+            (compile-minus expr target linkage other-args))
         ((equals? expr)
-            (compile-equals expr target linkage))
+            (compile-equals expr target linkage other-args))
         (else
-            (compile-compiler expr target linkage))
+            ;(compile-compiler expr target linkage))
+            (apply compile-compiler (append (list expr target linkage) other-args)))
     )
 )
 
