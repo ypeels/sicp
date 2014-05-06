@@ -359,7 +359,7 @@
 (define (registers-modified s)                                      ; ONLY invoked below
   (if (symbol? s) '() (cadr s)))                                        ; (registers-needed label) = '()
 
-(define (statements s)                                              ; ONLY invoked below
+(define (statements s)                                              ; ONLY invoked below [and in (compile-and-go)]
   (if (symbol? s) (list s) (caddr s)))                                  ; (instructions label) = (label)
 
 (define (needs-register? seq reg)                                   ; ONLY invoked in (preserving)
