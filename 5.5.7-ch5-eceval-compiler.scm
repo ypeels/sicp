@@ -59,7 +59,7 @@
     (set-register-contents! eceval 'val instructions)                       ; val=expression code, eceval.the-instruction-sequence = interpreter
     (set-register-contents! eceval 'flag true)                              ; evaluator will go to external-entry and execute val - Footnote 49 p. 605
     (start eceval)))                                                            ; then it will print results and enter the EC-Eval main loop.
-
+                                                                              ; notice how OS (eceval) and app (expression) are both represented as assembly, then machine code. equal footing!
 ;;**NB. To [not] monitor stack operations, comment in/[out] the line after
 ;; print-result in the machine controller below
 ;;**Also choose the desired make-stack version in regsim.scm
