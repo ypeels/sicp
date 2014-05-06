@@ -89,8 +89,11 @@
 ; total pushes(n) decreases to around 2.36x regsim
     ; so it helps SOME
     ; if i really cared, i'd compare the compiler output (assembly code) with Figure 5.12 like l0stman, that trooper
+        ; correction: l0stman didn't even TRY open coding!
+            ; tsk tsk, when you spend that much time typing up solutions and duplicating code,
+            ; you lose sight of the truth
     
-    
+    ; bad ideas? can you really implement these in the compiler without fundamentally changing the algorithm??
     ; maybe implement some sort of memoization?
         ; would have to make sure that it's a non-mutating procedure
     ; the best cure here, really, is algorithmic
