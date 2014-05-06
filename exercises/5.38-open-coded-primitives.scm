@@ -225,10 +225,8 @@
     (load "5.33-38-compiling-to-file.scm")
     (load "load-eceval-compiler.scm") ; for (compile-and-go) testing
     (install-compile-5.38)
-
-    ; for part d.
-    ;(compile-and-go '(+ 1 2 3 4))
-    (compile-and-go 
+    
+    (define test-code
         '(begin
             (define (f n) 
                 (define (factorial n)
@@ -237,9 +235,18 @@
                      (* (factorial (- n 1)) n)))    
                 (+ (factorial n) (factorial (+ n 1)) (factorial (+ n 2)))
             )
+            
             "(f n) = (+ (factorial n) (factorial (+ n 1)) (factorial (+ n 2)))"
+            (f 2)
         )
     )
+    
+    (display "\nIn underlying scheme: ")
+    (display (eval test-code user-initial-environment))
+
+    ; for part d.
+    ;(compile-and-go '(+ 1 2 3 4))
+    (compile-and-go test-code)
     ; (f 1) = 9 = 1! + 2! + 3!
     ; (f 2) = 32 =  2! + 3! + 4!
     ; looks like it works! maybe bugged for nested procedures with >2 arguments? meh
