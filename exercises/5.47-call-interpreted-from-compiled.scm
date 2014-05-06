@@ -120,4 +120,4 @@
     ; EC-Eval: (begin (define (g x) (+ x 1)) (f 0))
     ; 1
 )
-(test-5.47)
+;(test-5.47)
