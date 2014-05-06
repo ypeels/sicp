@@ -1,6 +1,7 @@
 ; this should be pretty easy, right?
 ; just do something similar to (compile-and-go), and make it accessible to eceval
 
+(load "5.33-38-compiling-to-file.scm")
 
 (define (compile-and-run expression)
     (let (  (instructions 
@@ -10,9 +11,13 @@
                     ) 
                     eceval ; hmm, accessing the global variable directly...
                 ))
+            (pc ((eceval 'get-register) 'pc))
+            (continue ((eceval 'get-register) 'continue))
+            (stack (eceval 'stack))
             )
         
-        (display "\nhello from compile-and-run")
+        (display "\nhello from compile-and-run\n")
+        (compile-to-file expression 'val 'return "test.txt")
         
         ; uh, how to jump to instructions??
         ; hmm, it's a little creepy that eceval would call the following within a "primitive"...
@@ -20,8 +25,18 @@
         ;(set-register-contents! eceval 'flag true)
         
         
-        ; this is ugly and completely wrong.     
-        ;(set-register-contents! eceval 'pc instructions) 
+        ; this is ugly and completely wrong. "empty stack"
+        ; or maybe i should add some additional assembly instructions and then (assemble)?
+        ; or maybe i should manipulate the stack directly??
+        ;(advance-pc pc)
+        ;(push stack (pc 'get))
+        ;(push stack (continue 'get))
+        ;(push stack (continue 'get))
+        ;(push stack (continue 'get))
+        ;(push stack (continue 'get))
+        
+        ; if i jump directly, there are TWO unbalanced pops.
+        (set-register-contents! eceval 'pc instructions) 
         
         'compile-and-run-done
     )
