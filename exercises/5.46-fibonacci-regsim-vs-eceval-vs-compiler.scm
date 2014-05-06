@@ -53,7 +53,7 @@
         )
     )
 )
-(test-compiler)
+;(test-compiler)
 ; stack statistics    
 ; n       total   max  
 ; 0-1     7       3   
