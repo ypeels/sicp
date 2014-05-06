@@ -104,9 +104,6 @@
                     (apply compile (append (list (first-operand arguments) 'arg1 'next) other-args))
                     (preserving '(arg1) ; exploitative - really needed ABOVE, not below
                         (compile-open-code (rest-operands arguments) 'arg2 'next operation null-value other-args)
-                        ;(apply compile-open-code (append 
-                        ;    (list (rest-operands arguments) 'arg2 'next operation null-value)
-                        ;    other-args))
                         (make-instruction-sequence                          ; ^^ using linkage here instead gives an inscrutable bug (return value = execution procedure?)
                             '(arg1 arg2)
                             (list target)
@@ -123,16 +120,12 @@
 
 
 (define (compile-plus expr target linkage other-args)
-    ;(compile-open-code (operands expr) target linkage '+ '0))
     (compile-open-code-driver expr target linkage '0 other-args))
 (define (compile-times expr target linkage other-args)
-    ;(compile-open-code (operands expr) target linkage '* '1))
     (compile-open-code-driver expr target linkage '1 other-args))
 (define (compile-minus expr target linkage other-args)
-    ;(compile-open-code (operands expr) target linkage '- '0))   ; actually, (-) crashes scheme, but whatever
-    (compile-open-code-driver expr target linkage '0 other-args))
+    (compile-open-code-driver expr target linkage '0 other-args)) ; actually, (-) crashes scheme, but whatever
 (define (compile-equals expr target linkage other-args)
-    ;(compile-open-code (operands expr) target linkage '= #t))
     (compile-open-code-driver expr target linkage '#t other-args))
     
 (define (compile-open-code-driver expr target linkage null-value other-args)
