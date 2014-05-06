@@ -26,39 +26,39 @@
 
 ;; any old value to create the variable so that
 ;;  compile-and-go and/or start-eceval can set! it.
-(define the-global-environment '())
+(define the-global-environment '())                                     ; new! for once, we don't have to do this ourselves
 
 ;;; Interfacing compiled code with eceval machine
-;;; From section 5.5.7
-(define (start-eceval)
-  (set! the-global-environment (setup-environment))
-  (set-register-contents! eceval 'flag false)
-  (start eceval))
+;;; From section 5.5.7                                                  ; new! from Footnote 49 p. 605 [previously (define the-global-env) (start eceval)]
+(define (start-eceval)                                                      ; this procedure does NOT compile/execute external code.
+  (set! the-global-environment (setup-environment))                             ; "backwards compatibility" - should behave same as ch5-eceval.scm
+  (set-register-contents! eceval 'flag false)                               ; <--- key difference: must initialize flag register before starting
+  (start eceval))                                                           ; previously: (define the-global-env) (start eceval), DIY
 
 ;; Modification of section 4.1.4 procedure
-;; **replaces version in syntax file
-(define (user-print object)
+;; **replaces version in syntax file                                    ; actually, replaces version in ch5-eceval-support.scm
+(define (user-print object)                                             ; changed! Footnote 50 p. 605
   (cond ((compound-procedure? object)
          (display (list 'compound-procedure
                         (procedure-parameters object)
                         (procedure-body object)
                         '<procedure-env>)))
-        ((compiled-procedure? object)
+        ((compiled-procedure? object)                                       ; 1 new case so it won't print compiled procedures either
          (display '<compiled-procedure>))
         (else (display object))))
 
-(define (compile-and-go expression . other-args)
+(define (compile-and-go expression . other-args)                        ; new! 5.5.7 p. 606
   (let ((instructions
-         (assemble (statements
+         (assemble (statements                                              ; assemble object code to executable (regsim) code
                     ;(compile expression 'val 'return))
-                    (apply compile (append
-                        (list expression 'val 'return)
+                    (apply compile (append                                  ; compile Scheme code to object (assembly) code
+                        (list expression 'val 'return)                      ; val/return linkage matches assumptions from external-entry below
                         other-args)))
                    eceval)))
     (set! the-global-environment (setup-environment))
-    (set-register-contents! eceval 'val instructions)
-    (set-register-contents! eceval 'flag true)
-    (start eceval)))
+    (set-register-contents! eceval 'val instructions)                       ; val=expression code, eceval.the-instruction-sequence = interpreter
+    (set-register-contents! eceval 'flag true)                              ; evaluator will go to external-entry and execute val - Footnote 49 p. 605
+    (start eceval)))                                                            ; then it will print results and enter the EC-Eval main loop.
 
 ;;**NB. To [not] monitor stack operations, comment in/[out] the line after
 ;; print-result in the machine controller below
@@ -69,9 +69,9 @@
    ;;primitive Scheme operations
    (list 'read read)			;used by eceval
 
-   ;;used by compiled code
-   (list 'list list)
-   (list 'cons cons)
+   ;;used by compiled code                                              ; new, but not mentioned in book    
+   (list 'list list)                                                        ; used by (construct-arglist) in ch5-compiler.scm
+   (list 'cons cons)                                                        ; used by (code-to-get-rest-args) in ch5-compiler.scm
 
    ;;operations in syntax.scm
    (list 'self-evaluating? self-evaluating?)
@@ -105,7 +105,7 @@
 
    ;;operations in eceval-support.scm
    (list 'true? true?)
-   (list 'false? false?)		;for compiled code
+   (list 'false? false?)		;for compiled code                      ; new! used by (compile-if) in ch5-compiler.scm    
    (list 'make-procedure make-procedure)
    (list 'compound-procedure? compound-procedure?)
    (list 'procedure-parameters procedure-parameters)
@@ -126,11 +126,11 @@
    (list 'no-more-exps? no-more-exps?)	;for non-tail-recursive machine
    (list 'get-global-environment get-global-environment)
 
-   ;;for compiled code (also in eceval-support.scm)
-   (list 'make-compiled-procedure make-compiled-procedure)
-   (list 'compiled-procedure? compiled-procedure?)
-   (list 'compiled-procedure-entry compiled-procedure-entry)
-   (list 'compiled-procedure-env compiled-procedure-env)
+   ;;for compiled code (also in eceval-support.scm)                     ; new! 5.5.3 Footnote 38 p. 580
+   (list 'make-compiled-procedure make-compiled-procedure)                  ; used by (compile-lambda) in ch5-compiler.scm
+   (list 'compiled-procedure? compiled-procedure?)                          ; used at new apply-dispatch code below
+   (list 'compiled-procedure-entry compiled-procedure-entry)                ; used by (compile-proc-appl), and at compiled-apply below
+   (list 'compiled-procedure-env compiled-procedure-env)                    ; used by (compile-lambda-body) in ch5-compiler.scm 
    ))
    
 
@@ -146,10 +146,10 @@
 (define eceval-compiler-main-controller-text
   '(
 ;;SECTION 5.4.4, as modified in 5.5.7
-;;*for compiled to call interpreted (from exercise 5.47)
+;;*for compiled to call interpreted (from exercise 5.47)                    ; new...
   (assign compapp (label compound-apply))
-;;*next instruction supports entry from compiler (from section 5.5.7)
-  (branch (label external-entry))
+;;*next instruction supports entry from compiler (from section 5.5.7)       ; 1 new line from 5.5.7 p. 605
+  (branch (label external-entry))                                               ; execute external code if flag is initially set - Footnote 49 p. 605
 read-eval-print-loop
   (perform (op initialize-stack))
   (perform
@@ -166,13 +166,13 @@ print-result
   (perform (op user-print) (reg val))
   (goto (label read-eval-print-loop))
 
-;;*support for entry from compiler (from section 5.5.7)
+;;*support for entry from compiler (from section 5.5.7)                     ; new label and 4 new lines from 5.5.7 p. 605
 external-entry
-  (perform (op initialize-stack))
+  (perform (op initialize-stack))                                               ; redo 2 lines, since read-eval-print-loop was skipped
   (assign env (op get-global-environment))
-  (assign continue (label print-result))
-  (goto (reg val))
-
+  (assign continue (label print-result))                                        ; assumes external instruction sequence ends with (goto (reg continue))
+  (goto (reg val))                                                              ; assumes external instruction sequence is located at val on boot
+                                                                                    ; from val/return linkage p. 606 in (compile-and-go) above
 unknown-expression-type
   (assign val (const unknown-expression-type-error))
   (goto (label signal-error))
@@ -270,15 +270,15 @@ apply-dispatch
   (test (op compound-procedure?) (reg proc))  
   (branch (label compound-apply))
 ;;*next added to call compiled code from evaluator (section 5.5.7)
-  (test (op compiled-procedure?) (reg proc))  
+  (test (op compiled-procedure?) (reg proc))                                ; 2 new lines from 5.5.7 p. 604
   (branch (label compiled-apply))
   (goto (label unknown-procedure-type))
 
-;;*next added to call compiled code from evaluator (section 5.5.7)
+;;*next added to call compiled code from evaluator (section 5.5.7)          ; new label and 3 new lines from 5.5.7 p. 604     
 compiled-apply
-  (restore continue)
-  (assign val (op compiled-procedure-entry) (reg proc))
-  (goto (reg val))
+  (restore continue)                                                        ; pp. 553, 605: at apply-dispatch, continuation is at the top of the stack
+  (assign val (op compiled-procedure-entry) (reg proc))                         ; but compiled code expects continuation in (reg continue)
+  (goto (reg val))                                                              ; hmm, why not just (goto (reg proc))?
 
 primitive-apply
   (assign val (op apply-primitive-procedure)
