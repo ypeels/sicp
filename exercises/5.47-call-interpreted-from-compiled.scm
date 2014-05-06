@@ -44,7 +44,9 @@
     ; note that linkage comes from the COMPILER
 (define (compound-proc-appl target linkage)
 
-    (define questionable-command '(save continue))
+    ; yep, this looks correct from my testing!
+    (define questionable-command '(save continue));'(assign val (reg val)));
+    ;(define questionable-command '(assign val (reg val))); "nop" results in "empty stack"!
 
     (cond
         ((and (eq? target 'val) (not (eq? linkage 'return)))
@@ -60,17 +62,17 @@
                 
                 ; NEW! i THINK this is needed by compound-apply - emulates the beginning of ev-application
                 ; without this, ev-sequence is gonna kill this, one way or another!
-                questionable-command     
+                ,questionable-command     
                 
                 ; changed! goto compound-apply in eceval, as per the problem statement.
                 (goto (reg compapp))
             ))
         )
-        ((and (not (eq? target 'val) (eq? linkage 'return)))
+        ((and (not (eq? target 'val)) (eq? linkage 'return))
             (let ((proc-return (make-label 'proc-return)))
                 (make-instruction-sequence '(proc) all-regs `(
                     (assign continue (label ,proc-return))
-                    questionable-command
+                    ,questionable-command ; oops, without evaluating this, it just becomes a LABEL
                     (goto (reg compapp))
                     ,proc-return
                     (assign ,target (reg val))
@@ -83,7 +85,7 @@
                 
                 ; return linkage means continue already contains the return point.
                 ; still adding this new save, as in case 1.
-                questionable-command
+                ,questionable-command
                 
                 (goto (reg compapp))
             ))
@@ -94,4 +96,28 @@
         (else (error "impossible case"))
     )
 )
-        
+
+
+
+(define (install-compile-procedure-call-5.47)
+    (set! compile-procedure-call compile-procedure-call-5.47)
+)
+
+
+
+(define (test-5.47)
+    (load "ch5-compiler.scm")
+    (load "load-eceval-compiler.scm")
+    (install-compile-procedure-call-5.47)
+    (compile-and-go
+        '(begin
+            (define (f x) (g x))
+        )        
+    )
+    ; EC-Eval: (f 0) 
+    ; Unbound variable g
+    
+    ; EC-Eval: (begin (define (g x) (+ x 1)) (f 0))
+    ; 1
+)
+(test-5.47)
