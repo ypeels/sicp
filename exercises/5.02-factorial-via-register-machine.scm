@@ -63,10 +63,15 @@
             test-counter
                 (test (op >) (reg counter) (reg n))
                 (branch (label fact-done))
-                (assign t (op *) (reg product) (reg counter))
-                (assign product (reg t))
-                (assign t (op +) (reg counter) (const 1))
-                (assign counter (reg t))
+                
+                ;(assign t (op *) (reg product) (reg counter))
+                ;(assign product (reg t))
+                (assign product (op *) (reg product) (reg counter))
+                
+                ;(assign t (op +) (reg counter) (const 1))
+                ;(assign counter (reg t))
+                (assign counter (op +) (reg counter) (const 1))
+                
                 (goto (label test-counter))
             fact-done
 ;)
@@ -77,13 +82,15 @@
 
 
 
+(define (test-5.2)
 
-(set-register-contents! factorial-machine 'n 6)
-(start factorial-machine)
-(display (get-register-contents factorial-machine 'product)) ; 720. woohoo!
+    (set-register-contents! factorial-machine 'n 6)
+    (start factorial-machine)
+    (display (get-register-contents factorial-machine 'product)) ; 720. woohoo!
 
-(newline)
-
+    (newline)
+)
+;(test-5.2)
 
 ;;  copy/pasted from sols http://community.schemewiki.org/?sicp-ex-5.2
 ; (define fact-machine 
