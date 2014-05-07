@@ -50,6 +50,8 @@
 ;(test-mceval)
 
 
+
+; ok, now the REAL code (everything above is basically test data/code)
 (define (install-eceval-5.50)
     (load "ch5-compiler.scm")
     (load "load-eceval-compiler.scm")
@@ -65,9 +67,12 @@
         (list 'list list)
         
         ; required to (define) (apply-in-underlying-scheme)
-        (list 'apply apply)
+        ;(list 'apply apply)  ; have to dig twice as deep! i don't really feel like figuring out why        
+        ; makes more sense to redefine this than to redefine (apply-primitive-procedure) in mceval.
+        (list 'apply (lambda (proc args) (apply (primitive-implementation proc) args)))
         
         ; iirc, you're not supposed to do this... it's a louis reasoner exercise, isn't it? 4.14
+        ; declaring a lambda doesn't work here because it's recursive! (maybe a y-operator would work?)
         ; instead, "type" it into EC-Eval.
         ;;(list 'map map) 
         
@@ -83,8 +88,8 @@
         (list 'display display)
         (list 'read read)
         
-        ; "run-time" requirements - mceval searches EC-Eval's "primitives" for these
-        ; need to forward to the "real" underlying scheme primitive
+        ; "run-time" requirements - mceval searches EC-Eval's "primitives" for these (i.e., anything you can call at the EC-Eval prompt, without defining it)
+        ; just forward to the "real" underlying scheme primitive
         ; let's go as far as it takes to run factorial
         (list 'number? number?)
         (list 'pair? pair?)
@@ -97,11 +102,6 @@
         (list 'caddr caddr)
         (list 'not not)
         (list 'cdddr cdddr)
-        
-        ;(list '+ +)
-        ;
-        ;
-        ;
     ))
 )
 
@@ -110,52 +110,38 @@
 (define (test-5.50)
     (install-eceval-5.50)
     ;(compile mceval-text 'val 'return)
-    (compile-and-go `(begin
+    (compile-and-go     
+        `(begin
 
-        ; this code is on equal footing with mceval.
-    
-        ; reproducing anything i had to type in (test-mceval)
-        (define apply-in-underlying-scheme apply)
-        ;(define apply-in-underlying-scheme
-        ;    (lambda (proc args)
-        ;        (apply (primitive-implementation proc) args)
-        ;    )
-        ;)
-        ,mceval-text
+            ; this code is on equal footing with everything in mceval.scm
         
-        ; and then there's Exercise 4.14 - using code from 2.2.1 p. 105
-        ; this is required for (setup-environment) to run AND not to crash
-        (define (map proc items)
-            (if (null? items)
-                '()
-                (cons (proc (car items))
-                      (map proc (cdr items)))))
-                      
-        ; the first bona-fide difference!
-        (define (apply-primitive-procedure proc args)
-            (apply-in-underlying-scheme
-                (primitive-implementation               ; have to dig twice as deep! i don't really feel like figuring out why
-                    (primitive-implementation proc)
-                )
-                args
-            )
+            ; reproducing anything i had to type in (test-mceval)
+            (define apply-in-underlying-scheme apply)
+            ,mceval-text
+            
+            ; and then there's Exercise 4.14 - using code from 2.2.1 p. 105
+            ; this is required for (setup-environment) to run AND not to crash
+            (define (map proc items)
+                (if (null? items)
+                    '()
+                    (cons (proc (car items))
+                          (map proc (cdr items)))))
+                          
+            (define the-global-environment (setup-environment))
+            
+            ; finishing touch
+            (set! input-prompt ";;; M-Eval on EC-Eval input:")
+            (set! output-prompt ";;; M-Eval on EC-Eval value:")
+            
+            ; laziness
+            ,mceval-batch-text
+            (mceval '(+ 1 1))
+            (mceval ',factorial-test) ; yes, that syntax is right!
+            ;(mceval '(begin (define (f x) (+ x 1)) (f 3)))
+            
+            (driver-loop)
         )
-                      
-                      
-        (define the-global-environment (setup-environment))
-        
-        ; finishing touch
-        (set! input-prompt ";;; M-Eval on EC-Eval input:")
-        (set! output-prompt ";;; M-Eval on EC-Eval value:")
-        
-        ; laziness
-        ,mceval-batch-text
-        (mceval '(+ 1 1))
-        (mceval ',factorial-test)
-        ;(mceval '(begin (define (f x) (+ x 1)) (f 3)))
-        
-        (driver-loop)
-    ))
+    )
 )
 (test-5.50)
 
