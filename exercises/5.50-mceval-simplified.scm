@@ -188,8 +188,9 @@
 (define (expand-clauses clauses)
   (if (null? clauses)
       'false                          ; no else clause
-      (let ((first (car clauses))
-            (rest (cdr clauses)))
+      ;(let ((first (car clauses))
+      ;      (rest (cdr clauses)))      
+      ((lambda (first rest)      
         (if (cond-else-clause? first)
             (if (null? rest)
                 (sequence->exp (cond-actions first))
@@ -197,7 +198,9 @@
                        clauses))
             (make-if (cond-predicate first)
                      (sequence->exp (cond-actions first))
-                     (expand-clauses rest))))))
+                     (expand-clauses rest))));))
+       (car clauses)
+       (cdr clauses))))
 
 ;;;SECTION 4.1.3
 
@@ -253,9 +256,11 @@
             (else (scan (cdr vars) (cdr vals)))))
     (if (eq? env the-empty-environment)
         (error "Unbound variable" var)
-        (let ((frame (first-frame env)))
+        ;(let ((frame (first-frame env)))
+        ((lambda (frame)
           (scan (frame-variables frame)
-                (frame-values frame)))))
+                (frame-values frame)));))
+         (first-frame env))))
   (env-loop env))
 
 (define (set-variable-value! var val env)
@@ -268,13 +273,16 @@
             (else (scan (cdr vars) (cdr vals)))))
     (if (eq? env the-empty-environment)
         (error "Unbound variable -- SET!" var)
-        (let ((frame (first-frame env)))
+        ;(let ((frame (first-frame env)))
+        ((lambda (frame)
           (scan (frame-variables frame)
-                (frame-values frame)))))
+                (frame-values frame)));))
+         (first-frame env))))
   (env-loop env))
 
 (define (define-variable! var val env)
-  (let ((frame (first-frame env)))
+  ;(let ((frame (first-frame env)))
+  ((lambda (frame)
     (define (scan vars vals)
       (cond ((null? vars)
              (add-binding-to-frame! var val frame))
@@ -282,18 +290,25 @@
              (set-car! vals val))
             (else (scan (cdr vars) (cdr vals)))))
     (scan (frame-variables frame)
-          (frame-values frame))))
+          (frame-values frame)));)
+   (first-frame env)))
 
 ;;;SECTION 4.1.4
 
 (define (setup-environment)
-  (let ((initial-env
-         (extend-environment (primitive-procedure-names)
-                             (primitive-procedure-objects)
-                             the-empty-environment)))
+  ;(let ((initial-env
+  ;       (extend-environment (primitive-procedure-names)
+  ;                           (primitive-procedure-objects)
+  ;                           the-empty-environment)))
+  ((lambda (initial-env)
     (define-variable! 'true true initial-env)
     (define-variable! 'false false initial-env)
-    initial-env))
+    initial-env);)
+   (extend-environment
+    (primitive-procedure-names)
+    (primitive-procedure-objects)
+    the-empty-environment)))
+   
 
 ;[do later] (define the-global-environment (setup-environment))
 
@@ -335,10 +350,14 @@
 
 (define (driver-loop)
   (prompt-for-input input-prompt)
-  (let ((input (read)))
-    (let ((output (eval input the-global-environment)))
+  ;(let ((input (read)))
+  ((lambda (input)
+    ;(let ((output (eval input the-global-environment)))
+    ((lambda (output)
       (announce-output output-prompt)
-      (user-print output)))
+      (user-print output));)
+     (eval input the-global-environment)))
+   (read))     
   (driver-loop))
 
 (define (prompt-for-input string)
