@@ -5,69 +5,7 @@
 ; l0stman, on the other hand, just calls (start eceval) from within (compile-and-run)
     ; impressive that this works, but i worry about garbage buildup...
 
-
-;(load "5.33-38-compiling-to-file.scm")
-(define (compile-and-run-development expression)
-    (let* ( ;(pc ((eceval 'get-register) 'pc))
-            ;(continue ((eceval 'get-register) 'continue))
-            ;(printres ((eceval 'get-register) 'printres))
-            (stack (eceval 'stack))
-            (target 'val)
-            (linkage 'next)
-            
-            (scheme-code
-                (begin
-                    ;(display "\ncompile-and-run: expression = ") (display expression) (newline)
-                    expression
-                )
-            )
-            
-            (asm-code 
-                (begin
-                    ;(display "scheme-code = ") (display scheme-code) (newline)
-                    (statements 
-                        (compile scheme-code target linkage)
-                    ) 
-                )
-            )
-            
-            (instructions
-                (begin
-                    ;(display asm-code)
-                    (assemble
-                        (append
-                        
-                            ; can use this + return linkage, or post-goto + next linkage
-                            ;'((assign continue (reg printres)))
-                        
-                            asm-code
-                            
-                            ; compile linkage=print-result is fine...
-                            ; the problem is that the assembler doesn't know about labels not in its input code
-                                ; can't assemble explicit (goto (label print-result))
-                                ; can't assemble compile(linkage=print-result), which gives the same thing
-                                ; hence the text's use of compadd
-                            ;'((goto (label print-result))) 
-                            '((goto (reg printres))) 
-                        )
-                        eceval ; hmm, accessing the global variable directly...
-                    )
-                )
-            )            
-         )
-        
-        ;(display "\nhello from compile-and-run\n")
-        ;(compile-to-file expression target linkage "test.txt")
-        
-        ; remember: this code hooks into primitive-apply! test/trace from  there.
-        (stack 'pop) ; get rid of old value of continue - optional if you're using 'next linkage + goto
-        ((stack 'push) instructions) ; now primitive-apply will jump to newly compiled/assembled code
-        
-        'compile-and-run-done
-    )
-)
-
-
+; for development code, see previous git commits.
 
 ; condensed version for uploading to wiki
 ; http://community.schemewiki.org/?sicp-ex-5.48
@@ -121,11 +59,11 @@
 (test-5.48)
 
 ; ;;; EC-Eval input:
-; (compile-and-run '(define (factorial n) (if (= n 1) 1 (* (factorial (- n 1)) n))))
+; (compile-and-run '(define (f n) (if (= n 1) 1 (* (f (- n 1)) n))))
 ; ;;; EC-Eval value:
 ; ok
 ; ;;; EC-Eval input:
-; (factorial 5)
+; (f 5)
 ; ;;; EC-Eval value:
 ; 120
     
