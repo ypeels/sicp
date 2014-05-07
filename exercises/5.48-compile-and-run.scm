@@ -4,37 +4,25 @@
 
 
 (define (compile-and-run expression)
-    (let* ( (pc ((eceval 'get-register) 'pc))
-            (continue ((eceval 'get-register) 'continue))
-            (printres ((eceval 'get-register) 'printres))
+    (let* ( ;(pc ((eceval 'get-register) 'pc))
+            ;(continue ((eceval 'get-register) 'continue))
+            ;(printres ((eceval 'get-register) 'printres))
             (stack (eceval 'stack))
             (target 'val)
-            (linkage 'return)
+            (linkage 'next)
             
             (scheme-code
                 (begin
-                    ;(cond
-                    ;    ((or (self-evaluating? expression) (symbol? expression))
-                    ;        expression)
-                    ;    ((pair? expression)
-                    ;        (text-of-quotation expression))
-                    ;    (else
-                    ;        (error "Unknown expression type -- COMPILE-AND-RUN" expression))
-                    ;)
-                    (display "\ncompile-and-run: expression = ") 
-                    (display expression)
-                    (newline)
+                    ;(display "\ncompile-and-run: expression = ") (display expression) (newline)
                     expression
                 )
             )
             
             (asm-code 
                 (begin
-                    (display "scheme-code = ") 
-                    (display scheme-code)
-                    (newline)
-                    (statements ; works without text-of-quotation, but this makes the syntax consistent with the normal compiler
-                        (compile scheme-code target linkage);'next) ;
+                    ;(display "scheme-code = ") (display scheme-code) (newline)
+                    (statements 
+                        (compile scheme-code target linkage)
                     ) 
                 )
             )
@@ -45,15 +33,18 @@
                     (assemble
                         (append
                         
-                            '((assign continue (reg printres)))
+                            ; can use this + return linkage, or post-goto + next linkage
+                            ;'((assign continue (reg printres)))
                         
                             asm-code
                             
-                            ; ohhh assembler doesn't know about labels not in this code
-                                ; likewise, can't assemble 'print-result linkage directly
-                            ; hence the text's use of compadd
+                            ; compile linkage=print-result is fine...
+                            ; the problem is that the assembler doesn't know about labels not in its input code
+                                ; can't assemble explicit (goto (label print-result))
+                                ; can't assemble compile(linkage=print-result), which gives the same thing
+                                ; hence the text's use of compadd
                             ;'((goto (label print-result))) 
-                            ;'((goto (reg printres)))
+                            '((goto (reg printres))) 
                         )
                         eceval ; hmm, accessing the global variable directly...
                     )
@@ -62,31 +53,11 @@
          )
         
         ;(display "\nhello from compile-and-run\n")
-        (compile-to-file expression target linkage "test.txt")
+        ;(compile-to-file expression target linkage "test.txt")
         
-        ; remember: this code hooks into primitive-apply! test there.
-        (stack 'pop) ; get rid of old value of continue
-        ;((stack 'push) printres) ; point of return for compiled code        
-        ((stack 'push) instructions) ; new value for immediate continue in primitive-apply
-        
-        
-        
-        ; ohhhhh if i jump directly, i also need to make sure i emulate the end of primitive-apply, from whence this came
-        ;((stack 'push) (continue 'get)) ; nope. my first instinct was the REVERSE of what i need
-        ;((continue 'set) (stack 'pop)) ; return linkage will get it, right? yeah!
-        ; not QUITE, since you want the interpreter to print the output
-        ; don't need to worry about clearing the stack, since (op initialize-stack) should clear it?
-        ; but then if i don't, there's some weird behavior
-        ;(stack 'pop)
-        ;((continue 'set) (stack 'pop))
-        
-        
-        
-        
-        ;(set-register-contents! pc instructions) ; this doesn't work (probably too low level)
-        ;((pc 'set) instructions) ; hmmm, this still gets returned into val, and as a QUOTE??
-        ;(display "giggity")
-
+        ; remember: this code hooks into primitive-apply! test/trace from  there.
+        (stack 'pop) ; get rid of old value of continue - optional if you're using 'next linkage + goto
+        ((stack 'push) instructions) ; now primitive-apply will jump to newly compiled/assembled code
         
         'compile-and-run-done
     )
@@ -99,7 +70,7 @@
 (define (test-5.48)
     (load "ch5-compiler.scm")
     (load "load-eceval-compiler.scm")
-    (load "5.33-38-compiling-to-file.scm")
+    ;(load "5.33-38-compiling-to-file.scm")
     
     (set! eceval (make-machine
         (cons 'printres eceval-compiler-register-list)
@@ -116,7 +87,13 @@
     
     (start-eceval)
 )
-(test-5.48)
+;(test-5.48)
 ; ;;; EC-Eval input:
-; (compile-and-run 
+; (compile-and-run '(define (factorial n) (if (= n 1) 1 (* (factorial (- n 1)) n))))
+; ;;; EC-Eval value:
+; ok
+; ;;; EC-Eval input:
+; (factorial 5)
+; ;;; EC-Eval value:
+; 120
     
