@@ -37,8 +37,8 @@
     ;(eval mceval-text user-initial-environment)    
     (eval ; can only be called once? has to do with stupid env...
         `(begin
-            ,mceval-batch-text
             ,mceval-text
+            ,mceval-batch-text            
         )
         user-initial-environment
     )    
@@ -90,12 +90,15 @@
         (list 'pair? pair?)
         (list 'string? string?)
         (list 'symbol? symbol?)
-        (list 'cddr cddr)
+        (list 'cddr cddr)   ; needed for factorial, somehow
         (list 'cdadr cdadr)
         (list 'caadr caadr) ; oh come ON
         (list 'cadddr cadddr)
         (list 'caddr caddr)
+        (list 'not not)
+        (list 'cdddr cdddr)
         
+        ;(list '+ +)
         ;
         ;
         ;
@@ -109,8 +112,15 @@
     ;(compile mceval-text 'val 'return)
     (compile-and-go `(begin
 
+        ; this code is on equal footing with mceval.
+    
         ; reproducing anything i had to type in (test-mceval)
         (define apply-in-underlying-scheme apply)
+        ;(define apply-in-underlying-scheme
+        ;    (lambda (proc args)
+        ;        (apply (primitive-implementation proc) args)
+        ;    )
+        ;)
         ,mceval-text
         
         ; and then there's Exercise 4.14 - using code from 2.2.1 p. 105
@@ -120,7 +130,18 @@
                 '()
                 (cons (proc (car items))
                       (map proc (cdr items)))))
-        
+                      
+        ; the first bona-fide difference!
+        (define (apply-primitive-procedure proc args)
+            (apply-in-underlying-scheme
+                (primitive-implementation               ; have to dig twice as deep! i don't really feel like figuring out why
+                    (primitive-implementation proc)
+                )
+                args
+            )
+        )
+                      
+                      
         (define the-global-environment (setup-environment))
         
         ; finishing touch
@@ -129,10 +150,71 @@
         
         ; laziness
         ,mceval-batch-text
-        ;(mceval ',factorial-test)
+        (mceval '(+ 1 1))
+        (mceval ',factorial-test)
         ;(mceval '(begin (define (f x) (+ x 1)) (f 3)))
         
         (driver-loop)
     ))
 )
 (test-5.50)
+
+; gahahahahaha!!!
+; scheme (MC) on top of 
+; scheme (EC) on top of 
+; scheme (MIT)
+; got runtime library working as far as factorial, and that's as far as i'll take her.
+
+; l0stman's solution is strangely shorter... but wtf cares!?!? that's IT FOR SICP!!!
+
+
+
+; i still hate scheme
+; i guess i don't HATE the book anymore
+; but i still hate scheme, just maybe not with a passion
+
+; now i definitely think anybody who proselytizes this book is either being pretentious, or never worked the exercises
+    ; omfg the stupid exercises
+    ; how many hours have i wasted on stupid scheme syntax bugs? 
+    ; the parentheses.... the parentheses...
+        ; if the developer tools had been better, i might have rated this book at 4/5
+            ; but definitely not a 5/5 classic must-read, not like godel escher bach
+                ; this book is inescapably "language-dependent" and therefore not truly timeless
+            ; the tools are just so horribly unfriendly and archaic (can't a brother get a line number for an error??)
+    
+                
+; for every field there is a suitable language
+    ; for systems programming, C
+    ; for numerical analysis, Fortran
+    ; for metalinguistic analysis, Lisp
+    ; for short networking scripts, Python?
+    ; in such field-language combinations, common tasks are expressed CONCISELY and CLEARLY
+    
+
+
+; in the end, it IS pretty impressive how far they can take their toy language
+    ; metalinguistic analysis/implementation is only possible with such a syntactically simple language
+    ; and the symbol processing capabilities (inherited from Lisp) make it pretty natural for metalinguistic stuff
+    ; BUT such ideas are DEFINITELY not suitable for a first/required course
+        ; 99%+ of your students won't be writing compilers    
+        ; 99%+ of your students would benefit from learning a more mainstream language as their "mother language"
+        ; although important ideas like encapsulation are there in nascent form, they are 
+            ; poorly structured  
+            ; too loosely enforced
+            ; outdated
+        ; but i guess any serious student of CS should read it eventually...
+            
+; it is also impressive how the chapters are "cumulative"
+    ; Chapter 1 shows how far you can go with JUST lambda
+    ; Chapter 2 shows how far you can go with lambda + lists
+    ; Chapter 3 shows how far you can go with lambda + lists + assignment
+    ; Chapter 4 takes that knowledge to implement (Scheme) interpreters
+    ; Chapter 5 takes the same knowledge to simulate computer hardware, and then run Scheme on the simulated hardware
+    
+; the book should really be subtitled "more than you wanted to know about the scheme programming language"
+
+; 2001 review score: 2/5 stars (recalled through the hazy lens of memory)
+    ; i think i DESPISED the class CS 1, but thought the book was ok, if a bit time-consuming to read? but hated scheme
+; 2014 review score: 3.5/5 stars
+    
+
