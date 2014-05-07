@@ -39,7 +39,7 @@
 (load "ch5-eceval-support.scm") ; for syntax and utility procedures
 (load "ch5-eceval-compiler.scm") ; for operation list, needed by assembler
 
-; return linkage makes compiled code return to print-result below
+; return linkage ensures that compiled code return to print-result below
 (define (compile-and-assemble expr)
     (assemble   
         (statements (compile expr 'val 'return))
