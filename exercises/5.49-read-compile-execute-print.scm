@@ -33,48 +33,39 @@
 
 ; first parrot the outermost loop of eceval-compiler
 read-compile-exec-print-loop
-    (perform (op initialize-stack))
-    (perform (op prompt-for-input) (const ";;; EC-Eval-5.49 input:"))
+    (perform (op initialize-stack)) ; better name inspired by l0stman
+    (perform (op prompt-for-input) (const ";;; EC-Comp-Exec input:"))
     (assign expr (op read))
     (assign env (op get-global-environment))
-    ;(assign continue (label print-result))
+    ;(assign continue (label print-result)) ; moved to comp-exec-dispatch
     (goto (label comp-exec-dispatch))
 print-result
-    ;(perform (op print-stack-statistics))
-    (perform (op announce-output) (const ";;; EC-Eval-5.49 value:"))
+    (perform (op print-stack-statistics))
+    (perform (op announce-output) (const ";;; EC-Comp-Exec value:"))
     (perform (op user-print) (reg val))
     (goto (label read-compile-exec-print-loop))
   
   
-  ; expr = scheme expression from user
-  ; continue = print-result
+; basically, this entire exercise is just about writing these 3 new lines of assembly code!
+    ; expr = scheme expression from user
+    ; continue = print-result
 comp-exec-dispatch  
     (assign val (op compile) (reg expr) (const val) (const return)) ; you DON'T quote val/return here. ehhhh?
     (assign val (op assemble-for-eceval-5.49) (reg val))
-    (assign continue (label print-result)); moved here from main loop for clarity
-    (goto (reg val)) ; will return linkage automagically handle everything??
+    (assign continue (label print-result)); moved here from main loop for clarity. unlike eceval, this exit point is unconditional
+    (goto (reg val)) ; will return linkage automagically handle everything?? yes!
 ))
+
+
+; another cursed existence with little to no utility
+    ; 5.48 yielded a compiling interpreter - typing expressions is slower than compiling in batch
+    ; 5.49 yielded an interpreting compiler - compiling expressions is (possibly?) slower than interpreting
 
 
 ; all (op)'s needed by eceval-instructions-5.49, and nothing more? 
     ; no, assembler needs lookup-variable-value, etc. runtime
 (define eceval-operations-5.49 '*unassigned*)
 (define (install-eceval-operations-5.49)
-;    (set! eceval-operations-5.49
-;        (list
-;            ;(list 'initialize-stack ; this and print-stack-statistics are declared in (make-new-machine)
-;            
-;            ; in order of appearance - all from ch5-eceval-support.scm unless marked otherwise
-;            (list 'prompt-for-input prompt-for-input) 
-;            (list 'read read) ; scheme built-in, of course
-;            (list 'get-global-environment get-global-environment) 
-;            (list 'announce-output announce-output) 
-;            (list 'user-print user-print)
-;            (list 'compile compile) ; from ch5-compiler.scm, of course
-;            (list 'assemble-for-eceval-5.49 assemble-for-eceval-5.49) ; gee, i wonder where this comes from
-;        )
-;    )
-
     (set! eceval-operations-5.49 
         (append
             eceval-operations
@@ -86,18 +77,13 @@ comp-exec-dispatch
     )
 )
 
-;; ohh now the burden for all the crazy operations is on the ASSEMBLER...
-;(define (install-primitives-5.49)
-;    (append! 
-;            
 
 
 (define (test-5.49)
     (load "ch5-regsim.scm") ; for (make-machine) and (assemble)
     (load "ch5-compiler.scm") ; for (compile)
     (load "ch5-eceval-support.scm") ; for syntax and utility procedures
-    (load "ch5-eceval-compiler.scm") ; for operation list
-    
+    (load "ch5-eceval-compiler.scm") ; for operation list, needed by assembler
     
     (set! the-global-environment (setup-environment))
     (install-eceval-operations-5.49)
