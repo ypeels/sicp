@@ -11,8 +11,10 @@
 ;;;;**WARNING: Don't load this file twice (or you'll lose the primitives
 ;;;;  interface, due to renamings of apply).
 
+(define mceval-text '(begin
+
 ;;;from section 4.1.4 -- must precede def of metacircular apply
-(define apply-in-underlying-scheme apply)
+;(define apply-in-underlying-scheme apply)
 
 ;;;SECTION 4.1.1
 
@@ -306,6 +308,10 @@
         (list 'cons cons)
         (list 'null? null?)
 ;;      more primitives
+        (list '= =)
+        (list '+ +)
+        (list '- -)
+        (list '* *)
         ))
 
 (define (primitive-procedure-names)
@@ -355,3 +361,5 @@
 ;;(driver-loop)
 
 'METACIRCULAR-EVALUATOR-LOADED
+
+)) ; mceval-text
