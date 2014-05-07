@@ -6,7 +6,10 @@
 (define (compile-and-run expression)
     (let* ( (pc ((eceval 'get-register) 'pc))
             (continue ((eceval 'get-register) 'continue))
+            (printres ((eceval 'get-register) 'printres))
             (stack (eceval 'stack))
+            (target 'val)
+            (linkage 'return)
             
             (scheme-code
                 (begin
@@ -31,7 +34,7 @@
                     (display scheme-code)
                     (newline)
                     (statements ; works without text-of-quotation, but this makes the syntax consistent with the normal compiler
-                        (compile scheme-code 'val 'return);'next) ;
+                        (compile scheme-code target linkage);'next) ;
                     ) 
                 )
             )
@@ -41,6 +44,9 @@
                     ;(display asm-code)
                     (assemble
                         (append
+                        
+                            '((assign continue (reg printres)))
+                        
                             asm-code
                             
                             ; ohhh assembler doesn't know about labels not in this code
@@ -53,25 +59,20 @@
                     )
                 )
             )            
-          )
+         )
         
         ;(display "\nhello from compile-and-run\n")
-        (compile-to-file expression 'val 'return "test.txt")
+        (compile-to-file expression target linkage "test.txt")
         
-        ; uh, how to jump to instructions??
-        ; hmm, it's a little creepy that eceval would call the following within a "primitive"...
-        ;(set-register-contents! eceval 'val instructions)
-        ;(set-register-contents! eceval 'flag true)
+        ; remember: this code hooks into primitive-apply! test there.
+        (stack 'pop) ; get rid of old value of continue
+        ;((stack 'push) printres) ; point of return for compiled code        
+        ((stack 'push) instructions) ; new value for immediate continue in primitive-apply
         
         
-        ; this is ugly and completely wrong. "empty stack"
-        ; or maybe i should add some additional assembly instructions and then (assemble)?
-        ; or maybe i should manipulate the stack directly??
-        ;(advance-pc pc)
-        ;(push stack (pc 'get))
-
+        
         ; ohhhhh if i jump directly, i also need to make sure i emulate the end of primitive-apply, from whence this came
-        ';((stack 'push) (continue 'get)) ; nope. my first instinct was the REVERSE of what i need
+        ;((stack 'push) (continue 'get)) ; nope. my first instinct was the REVERSE of what i need
         ;((continue 'set) (stack 'pop)) ; return linkage will get it, right? yeah!
         ; not QUITE, since you want the interpreter to print the output
         ; don't need to worry about clearing the stack, since (op initialize-stack) should clear it?
@@ -79,15 +80,15 @@
         ;(stack 'pop)
         ;((continue 'set) (stack 'pop))
         
-        ; empirically: if i jump directly, there are TWO unbalanced pops.
-        ;(disp
-        ;(display instructions)
         
-        (set-register-contents! eceval 'pc instructions) 
+        
+        
+        ;(set-register-contents! pc instructions) ; this doesn't work (probably too low level)
+        ;((pc 'set) instructions) ; hmmm, this still gets returned into val, and as a QUOTE??
         ;(display "giggity")
 
         
-        ;'compile-and-run-done
+        'compile-and-run-done
     )
 )
         
