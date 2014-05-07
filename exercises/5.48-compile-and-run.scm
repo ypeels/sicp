@@ -30,15 +30,15 @@
         ; or maybe i should manipulate the stack directly??
         ;(advance-pc pc)
         ;(push stack (pc 'get))
-        ;(push stack (continue 'get))
-        ;(push stack (continue 'get))
-        ;(push stack (continue 'get))
-        ;(push stack (continue 'get))
+
+        ; ohhhhh if i jump directly, i also need to make sure i emulate the end of primitive-apply, from whence this came
+        ;((stack 'push) (continue 'get)) ; my first instinct was the REVERSE of what i need
+        ((continue 'set) (stack 'pop)) ; return linkage will get it, right?
         
-        ; if i jump directly, there are TWO unbalanced pops.
+        ; empirically: if i jump directly, there are TWO unbalanced pops.
         (set-register-contents! eceval 'pc instructions) 
         
-        'compile-and-run-done
+        ;'compile-and-run-done
     )
 )
         
